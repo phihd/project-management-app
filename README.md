@@ -7,7 +7,6 @@ Step 2: Run app on a local machine
 ```bash
 cd backend/
 npm install # run only once
-touch .env
 echo 'MONGODB_URI=mongodb+srv://phihd:khongten@cluster0.vwz1m.mongodb.net/projectApp?retryWrites=true&w=majority' >> .env
 echo 'TEST_MONGODB_URI=mongodb+srv://phihd:khongten@cluster0.vwz1m.mongodb.net/testProjectApp?retryWrites=true&w=majority' >> .env
 echo 'PORT=3003' >> .env
