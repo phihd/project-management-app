@@ -1,0 +1,55 @@
+/* Procedure.css */
+.procedure-container {
+  padding: 20px;
+}
+
+.template-section {
+  margin-bottom: 20px;
+}
+
+.create-template-form {
+  margin-top: 20px;
+}
+
+.create-template-form label {
+  font-size: 16px;
+  margin-right: 10px;
+}
+
+.create-template-form input,
+.create-template-form textarea {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 15px;
+  font-size: 16px;
+}
+
+.create-template-form button {
+  background-color: #3498db;
+  color: #fff;
+  padding: 10px 15px;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.create-template-form button:hover {
+  background-color: #2980b9;
+}
+
+.template-list {
+  list-style-type: none;
+  padding: 0;
+}
+
+.template-list-item {
+  border: 1px solid #ddd;
+  padding: 15px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  transition: background-color 0.3s ease-in-out;
+}
+
+.template-list-item:hover {
+  background-color: #f9f9f9;
+}

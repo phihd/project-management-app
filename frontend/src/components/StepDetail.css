@@ -1,0 +1,26 @@
+/* StepDetail.css */
+.step-detail-container {
+  padding: 20px;
+}
+
+.step-detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.step-detail-actions button {
+  background-color: #5bc0de;
+  color: #fff;
+  padding: 10px 15px;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.step-detail-actions button:hover {
+  background-color: #46b8da;
+}
+
+/* Add more styling for step details */

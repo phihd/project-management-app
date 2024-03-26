@@ -1,0 +1,8 @@
+POST http://localhost:3003/api/projects
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImhhaWFuaGhvYW5nIiwiaWQiOiI2NTkzYmY0OTM1Mzc0ODQzNWMyYTJmNzQiLCJpYXQiOjE3MDQ3MDgyMTAsImV4cCI6MTcwNDcxMTgxMH0.6ryvaUY5VVvbLWdwJBXvfUDofP8N81pdnT7genXton4
+
+{
+  "name": "Phần mềm quản lý doanh nghiệp",
+  "members": ["6593bf49353748435c2a2f74", "659b94f6b792c4351e8eb73d"]
+}

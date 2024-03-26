@@ -1,0 +1,3 @@
+- When delete, for example, an issue, involved projects and users should be fixed as well
+- export FLYCTL_INSTALL="/home/phi/.fly"
+  export PATH="$FLYCTL_INSTALL/bin:$PATH"
