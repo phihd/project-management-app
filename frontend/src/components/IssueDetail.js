@@ -82,7 +82,12 @@ const IssueDetail = ({ projects }) => {
           <span className="issue-status">{issue.status}</span>
           <p className="issue-meta">
             <span className="issue-info">Opened by {issue.creator.name}</span>
-            <span className="issue-info">Created on 08/01/2024</span>
+            <span className="issue-info">Created on {
+              new Date(issue.createdDate).toLocaleDateString('en-GB', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+              })}</span>
             <span
               className="issue-info">
               Due on {
@@ -109,7 +114,7 @@ const IssueDetail = ({ projects }) => {
               {/* Add more labels */}
             </div>
             <div className="assignee">
-              <p>Assigned to UserXYZ</p>
+              <p>Assigned to {issue.assignees.map(assignee => assignee.name).join(', ')} </p>
             </div>
           </div>
           <div className="issue-comments">

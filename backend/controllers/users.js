@@ -19,7 +19,8 @@ usersRouter.get('/', async (request, response) => {
   const users = await User
     .find({})
     .populate("projects", { name: 1 })
-    .populate('issues', { title: 1 })
+    .populate('createdIssues', { title: 1 })
+    .populate('assignedIssues', { title: 1 })
   response.json(users)
 })
 
@@ -55,13 +56,13 @@ usersRouter.get('/:userId/projects', async (request, response) => {
 
   const user = await User.findById(request.params.userId)
   const projectIds = user.projects
-  const projects = Project
+  const projects = await Project
     .find({ _id: { $in: projectIds } }) // get all projects based on provided project ids
 
   response.json(projects)
 })
 
-usersRouter.get('/:userId/issues', async (request, response) => {
+usersRouter.get('/:userId/createdIssues', async (request, response) => {
   const token = request.token
   if (!token) {
     return response.status(401).json({ error: 'token missing' })
@@ -73,7 +74,26 @@ usersRouter.get('/:userId/issues', async (request, response) => {
   }
 
   const user = await User.findById(request.params.userId)
-  const issueIds = user.issues
+  const issueIds = user.createdIssues
+  const issues = await Issue
+    .find({ _id: { $in: issueIds } }) // get all issues based on provided issue ids
+    .populate('project', { name: 1 })
+  response.json(issues)
+})
+
+usersRouter.get('/:userId/assignedIssues', async (request, response) => {
+  const token = request.token
+  if (!token) {
+    return response.status(401).json({ error: 'token missing' })
+  }
+
+  const decodedToken = jwt.verify(token, process.env.SECRET)
+  if (!decodedToken.id) {
+    return response.status(401).json({ error: 'token invalid' })
+  }
+
+  const user = await User.findById(request.params.userId)
+  const issueIds = user.assignedIssues
   const issues = await Issue
     .find({ _id: { $in: issueIds } }) // get all issues based on provided issue ids
     .populate('project', { name: 1 })

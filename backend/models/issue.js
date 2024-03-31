@@ -18,6 +18,11 @@ const issueSchema = new mongoose.Schema({
     ref: 'User',
     required: true,
   },
+  assignees: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
+  }],
   project: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Project',
