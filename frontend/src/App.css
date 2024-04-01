@@ -158,6 +158,11 @@
     padding: 18px; /* Add padding to the sidebar */
   }
 
+  /* Apply hidden style when the hidden class is added */
+.sidebar.hidden {
+  transform: translateX(-100%); /* Move the sidebar off-screen */
+}
+
 /* Adjust width of sidebar */
   @media (max-width: 768px) {
     .sidebar-wrapper {
@@ -451,11 +456,6 @@
     font-size: 1.5rem;
     margin-bottom: 20px;
     text-align: center;
-  }
-
-  /* Form fields */
-  div {
-    margin-bottom: 15px;
   }
 
   label {
