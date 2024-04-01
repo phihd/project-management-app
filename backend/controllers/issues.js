@@ -10,6 +10,7 @@ issuesRouter.get('/', async (request, response) => {
     const issues = await Issue
       .find({ project: projectId })
       .populate('creator', { name: 1 })
+      .populate('assignees', { name: 1 })
       .populate('project', { title: 1 })
       .populate('comments', { text: 1 })
     response.json(issues)
@@ -59,11 +60,16 @@ issuesRouter.post('/', async (request, response, next) => {
     dueDate: body.dueDate,
     createdDate: body.createdDate,
     creator: user.id,
+    assignees: body.assignees,
     project: projectId
   })
 
   const savedIssue = await issue.save()
-  user.issues = user.issues.concat(savedIssue._id)
+  user.createdIssues = user.createdIssues.concat(savedIssue._id)
+  savedIssue.assignees = savedIssue.assignees.map(assignee => ({
+    ...assignee,
+    assignedIssues: [...assignee.assignedIssues, savedIssue._id]
+  }))
   await user.save()
   project.issues = project.issues.concat(savedIssue._id)
   await project.save()
@@ -105,17 +111,18 @@ issuesRouter.put('/:issueId', async (request, response, next) => {
       title: body.title,
       status: body.status,
       description: body.description,
-      creator: body.creator,
       dueDate: body.dueDate,
-      project: projectId,
-      comments: body.comments
+      createdDate: body.createdDate,
+      creator: user.id,
+      assignees: body.assignees,
+      project: projectId
     }
 
     const updatedIssue = await Issue
       .findOneAndUpdate({ _id: issueId, projectId }, issue, { new: true })
       .populate('creator', { name: 1 })
       .populate('project', { title: 1 })
-      .populate('comments')
+      // .populate('comments')
     if (!updatedIssue) {
       return response.status(404).json({ message: 'Issue not found' });
     }

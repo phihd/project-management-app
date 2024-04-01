@@ -1,15 +1,17 @@
 /* eslint-disable */
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useContext } from 'react'
 import './ProjectDetail.css'
 import { useParams, Link } from 'react-router-dom'
 import issueService from '../services/issues'
-
+import UserContext from './UserContext'
 import NewIssueForm from './NewIssueForm'
 
 function ProjectDetail({ projects }) {
   const [showIssueForm, setShowIssueForm] = useState(false)
   const [issues, setIssues] = useState([])
   const { projectId } = useParams()
+  const { user } = useContext(UserContext)
+
 
   const project = projects.find((project) => project.id === projectId)
 
@@ -42,9 +44,11 @@ function ProjectDetail({ projects }) {
     <div className="project-detail">
       {!issues && <div> Loading... </div>}
       {project && <div>
-        <div className="new-issue-button">
-          <button onClick={handleNewIssueClick}>Create New Issue</button>
-        </div>
+        {project.members.map(member => member.id).includes(user.id) &&
+          <div className="new-issue-button">
+            <button onClick={handleNewIssueClick}>Create New Issue</button>
+          </div>
+        }
         {showIssueForm && (
           <div className="overlay">
             <div className="modal">
