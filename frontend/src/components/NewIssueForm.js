@@ -1,6 +1,7 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import DatePicker from 'react-datepicker'
 import 'react-datepicker/dist/react-datepicker.css'
+import userService from '../services/users'
 
 function NewIssueForm({ handleCreateIssue, handleCloseForm }) {
   const [issueTitle, setIssueTitle] = useState('')
@@ -12,12 +13,28 @@ function NewIssueForm({ handleCreateIssue, handleCloseForm }) {
     return oneMonthLater
   })
 
+  const [selectedAssignees, setSelectedAssignees] = useState([])
+  const [assignees, setAssignees] = useState([])
+
+  useEffect(() => {
+    // Fetch the list of users/assignees from the server
+    userService.getAll().then(users => {
+      setAssignees(users)
+    })
+  }, [])
+
+  const handleAssigneeSelection = (e) => {
+    const selectedOptions = Array.from(e.target.selectedOptions, (option) => option.value)
+    setSelectedAssignees(selectedOptions)
+  }
+
   const handleSubmit = (e) => {
     e.preventDefault()
     const newIssue = {
       title: issueTitle,
       description: issueDescription,
       dueDate: dueDate ? dueDate.toISOString().split('T')[0] : '', // Format date before sending
+      assignees: selectedAssignees
     }
     handleCreateIssue(newIssue)
     handleCloseForm()
@@ -50,6 +67,20 @@ function NewIssueForm({ handleCreateIssue, handleCloseForm }) {
           dateFormat="dd-MM-yyyy"
           placeholderText="Select due date"
         />
+      </div>
+      <div>
+        <label>Select Assignees:</label>
+        <select
+          id="assignees"
+          multiple
+          onChange={handleAssigneeSelection}
+        >
+          {assignees.map(assignee => (
+            <option key={assignee.id} value={assignee.id}>
+              {assignee.name}
+            </option>
+          ))}
+        </select>
       </div>
       <div>
         <button type="submit">Create Issue</button>
