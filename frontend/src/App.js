@@ -1,5 +1,5 @@
 /* eslint-disable */
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useContext } from 'react'
 import './App.css'
 import {
   Routes,
@@ -26,6 +26,7 @@ import Procedure from './components/Procedure'
 import TemplateDetail from './components/TemplateDetail'
 import StepDetail from './components/StepDetail'
 
+import UserContext from './components/UserContext'
 
 import loginService from './services/login'
 import projectService from './services/projects'
@@ -36,7 +37,6 @@ import { setToken } from './services/tokenmanager'
 const App = () => {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
-  const [user, setUser] = useState(null)
   const [message, setMessage] = useState({
     text: null,
     isError: false,
@@ -45,7 +45,9 @@ const App = () => {
   const [showProjectForm, setShowProjectForm] = useState(false)
   const [refreshProjects, setRefreshProjects] = useState(false)
   const [showLogin, setShowLogin] = useState(true);
-  const [showSignUp, setShowSignUp] = useState(false);
+  const [showSignUp, setShowSignUp] = useState(false)
+
+  const { user, setUser } = useContext(UserContext)
 
   useEffect(() => {
     const loggedUserJSON = window.localStorage.getItem('loggedProjectappUser')
@@ -411,21 +413,21 @@ const App = () => {
               <NavigationBar />
               <Notification text={message.text} isError={message.isError} />
               <div className="main-content">
-                <Routes>
-                  <Route path="/" element={<Main />} />
-                  <Route path="/project" element={<Project />} />
-                  <Route
-                    path="/project/:projectId"
-                    element={<ProjectDetail projects={projects} />} />
-                  <Route path="/department" element={<Department />} />
-                  <Route
-                    path="/project/:projectId/:issueId"
-                    element={<IssueDetail projects={projects} />}
-                  />
-                  <Route path="/procedure" element={<Procedure />} />
-                  <Route path="/procedure/:templateId" element={<TemplateDetail />} />
-                  <Route path="/procedure/:templateId/:stepId" element={<StepDetail />} />
-                </Routes>
+                  <Routes>
+                    <Route path="/" element={<Main />} />
+                    <Route path="/project" element={<Project />} />
+                    <Route
+                      path="/project/:projectId"
+                      element={<ProjectDetail projects={projects} />} />
+                    <Route path="/department" element={<Department />} />
+                    <Route
+                      path="/project/:projectId/:issueId"
+                      element={<IssueDetail projects={projects} />}
+                    />
+                    <Route path="/procedure" element={<Procedure />} />
+                    <Route path="/procedure/:templateId" element={<TemplateDetail />} />
+                    <Route path="/procedure/:templateId/:stepId" element={<StepDetail />} />
+                  </Routes>
               </div>
               <Footer />
             </div>

@@ -11,7 +11,7 @@ function Dashboard({ currentUser }) {
     // Fetch open issues involving the current user
     const fetchOpenIssues = async () => {
       try {
-        const issues = await userService.getIssues(currentUser.id)
+        const issues = await userService.getAssignedIssues(currentUser.id)
         const openIssues = issues.filter(issue => issue.status === 'Open')
         setOpenIssues(openIssues)
       } catch (error) {

@@ -22,13 +22,23 @@ const getProjects = (userId) => {
   return request.then(response => response.data)
 }
 
-const getIssues = (userId) => {
+const getCreatedIssues = (userId) => {
   const token = getToken()
   const config = {
     headers: { Authorization: token },
   }
 
-  const request = axios.get(`${baseUrl}/${userId}/issues`, config)
+  const request = axios.get(`${baseUrl}/${userId}/createdIssues`, config)
+  return request.then(response => response.data)
+}
+
+const getAssignedIssues = (userId) => {
+  const token = getToken()
+  const config = {
+    headers: { Authorization: token },
+  }
+
+  const request = axios.get(`${baseUrl}/${userId}/assignedIssues`, config)
   return request.then(response => response.data)
 }
 
@@ -44,4 +54,4 @@ const create = async (name, username, password) => {
 }
 
 // eslint-disable-next-line
-export default { getAll, getProjects, getIssues, create }
+export default { getAll, getProjects, getCreatedIssues, getAssignedIssues, create }
