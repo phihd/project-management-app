@@ -107,28 +107,34 @@ issuesRouter.put('/:issueId', async (request, response, next) => {
   try {
     const body = request.body
     const { projectId, issueId } = request.params
-    const issue = {
-      title: body.title,
-      status: body.status,
-      description: body.description,
-      dueDate: body.dueDate,
-      createdDate: body.createdDate,
-      creator: user.id,
-      assignees: body.assignees,
-      project: projectId
+    const user = request.user
+
+    const existingIssue = await Issue.findOne({ _id: issueId, project: projectId });
+
+    if (!existingIssue) {
+      return response.status(404).json({ message: 'Issue not found' });
     }
 
-    const updatedIssue = await Issue
-      .findOneAndUpdate({ _id: issueId, projectId }, issue, { new: true })
-      .populate('creator', { name: 1 })
-      .populate('project', { title: 1 })
-      // .populate('comments')
+    // Construct update object, excluding status update if user is not the creator
+    const update = { ...body }
+    if ('status' in body && body.status != existingIssue.status && existingIssue.creator.toString() !== user.id.toString()) {
+      return response.status(403).json({ message: 'Only creator can close or reopen an issue' })
+    }
+
+    const updatedIssue = await Issue.findOneAndUpdate(
+      { _id: issueId, project: projectId },
+      body,
+      {
+        new: true,
+        runValidators: true,
+      }
+    )
     if (!updatedIssue) {
-      return response.status(404).json({ message: 'Issue not found' });
+      return response.status(404).json({ message: 'Issue not found after update attempt' });
     }
     response.json(updatedIssue)
   } catch (error) {
-    response.status(400).json({ message: error.message });
+    response.status(400).json({ message: error.message })
   }
 })
 
