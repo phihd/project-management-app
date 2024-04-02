@@ -11,7 +11,7 @@ echo 'MONGODB_URI=mongodb+srv://<username>:<password>@cluster0.vwz1m.mongodb.net
 echo 'DEV_MONGODB_URI=mongodb+srv://<username>:<password>@cluster0.vwz1m.mongodb.net/devProjectApp?retryWrites=true&w=majority' >> .env
 echo 'TEST_MONGODB_URI=mongodb+srv://<username>:<password>@cluster0.vwz1m.mongodb.net/testProjectApp?retryWrites=true&w=majority' >> .env
 echo 'PORT=3003' >> .env
-echo 'SECRET=cahop' >> .env
+echo 'SECRET=<secret>' >> .env
 npm run dev
 ```
 ```bash
