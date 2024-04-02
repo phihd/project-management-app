@@ -7,7 +7,7 @@ const issueSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['Open', 'Closed'],
+    enum: ['Open', 'Close'],
     default: 'Open',
   },
   description: {
