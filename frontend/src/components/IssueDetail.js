@@ -5,6 +5,7 @@ import './IssueDetail.css' // Import your CSS file
 import { useParams, Link } from 'react-router-dom'
 import issueService from '../services/issues'
 import commentService from '../services/comments'
+import {Switch} from 'antd'
 
 const IssueDetail = ({ projects }) => {
 
@@ -16,6 +17,15 @@ const IssueDetail = ({ projects }) => {
 
   const { projectId, issueId } = useParams()
 
+  // Define state for the current status of the issue
+  const [currentStatus, setCurrentStatus] = useState('')
+
+  // Function to toggle the status
+  const toggleStatus = () => {
+    // Toggle between 'Open' and 'Closed' based on the current status
+    setCurrentStatus(currentStatus === 'Open' ? 'Closed' : 'Open')
+  }
+
   // Find the project data based on the projectId
   const project = projects.find((project) => project.id === projectId)
 
@@ -25,6 +35,7 @@ const IssueDetail = ({ projects }) => {
       issueService.getAll(project.id).then(issues => {
         const foundIssue = issues.find(issue => issue.id === issueId)
         setIssue(foundIssue)
+        setCurrentStatus(foundIssue.status)
         commentService.getAll(projectId, issueId).then(comments => {
           setComments(comments)
         })
@@ -32,7 +43,33 @@ const IssueDetail = ({ projects }) => {
     }
   }, [projects])
 
+  const updateIssueStatus = async (newStatus) => {
+    try {
+      // Update the issue status in the backend
+      await issueService.update(projectId, issueId, {status: newStatus})
+      // Update the issue status in the UI
+      setIssue(prevIssue => ({ ...prevIssue, status: newStatus }));
+      // setCurrentStatus(newStatus);
+    } catch (exception) {
+      console.log(exception.response.data.error)
+    }
+  }
 
+
+  const handleStatusButtonClick = async () => {
+    if (issue) {
+      const newStatus = currentStatus === 'Open' ? 'Closed' : 'Open';
+      try {
+        await updateIssueStatus(newStatus);
+        setCurrentStatus(newStatus);
+      } catch (error) {
+        console.error('Error updating issue status:', error);
+      }
+    } else {
+      console.error('Issue data not available');
+      // Handle case where issue data is not available
+    }
+  };
 
   const updateIssue = async (id, issueToUpdate) => {
     try {
@@ -64,8 +101,7 @@ const IssueDetail = ({ projects }) => {
     if (commentInput.trim() !== '') {
       const newComment = {
         text: commentInput,
-        timestamp: new Date().toLocaleString(), // Current timestamp
-        // files: files,
+        timestamp: new Date().toLocaleString(), 
       }
       createComment(newComment)
       setCommentInput('')
@@ -73,13 +109,17 @@ const IssueDetail = ({ projects }) => {
     }
   }
 
-
   return (
     <div className="issue-detail">
       {issue && <div>
         <div className="issue-header">
           <h2 className="issue-title">#1 {issue.title} </h2>
-          <span className="issue-status">{issue.status}</span>
+          <button
+              className={`issue-status ${currentStatus.toLowerCase()}`}
+              onClick={handleStatusButtonClick}
+            >
+              {currentStatus}
+          </button>
           <p className="issue-meta">
             <span className="issue-info">Opened by {issue.creator.name}</span>
             <span className="issue-info">Created on {

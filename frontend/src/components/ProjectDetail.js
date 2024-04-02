@@ -17,9 +17,12 @@ function ProjectDetail({ projects }) {
 
   useEffect(() => {
     if (projects.length > 0 && project.id) {
-      issueService.getAll(project.id).then(issues =>
-        setIssues(issues)
-      )
+      issueService.getAll(project.id)
+        .then(issues => {
+          // Filter issues to only include those with status "Open"
+          const openIssues = issues.filter(issue => issue.status === 'Open')
+          setIssues(openIssues)
+        })
     }
   }, [projects])
 
@@ -89,7 +92,7 @@ function ProjectDetail({ projects }) {
           </div>
         </div>
         <div className="project-detail-issue-list">
-          <h2>Issues</h2>
+          <h2>Open Issues</h2>
           <ul className="project-detail-issue-list-container">
             {issues.map((issue) => (
               <li key={issue.id} className="project-detail-issue-item">
