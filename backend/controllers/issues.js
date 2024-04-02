@@ -105,30 +105,39 @@ issuesRouter.delete('/:id', async (request, response, next) => {
 
 issuesRouter.put('/:issueId', async (request, response, next) => {
   try {
-    const body = request.body
-    const { projectId, issueId } = request.params
-    const issue = {
+    const body = request.body;
+    const { projectId, issueId } = request.params;
+
+    // Check if the status is being updated
+    if (body.status) {
+      // Update the status only if it's a valid status
+      if (body.status !== 'Open' && body.status !== 'Closed') {
+        return response.status(400).json({ message: 'Invalid status' });
+      }
+    }
+
+    // Prepare the updated issue object
+    const updatedIssue = {
       title: body.title,
       status: body.status,
       description: body.description,
       dueDate: body.dueDate,
-      createdDate: body.createdDate,
-      creator: user.id,
-      assignees: body.assignees,
-      project: projectId
-    }
+    };
 
-    const updatedIssue = await Issue
-      .findOneAndUpdate({ _id: issueId, projectId }, issue, { new: true })
-      .populate('creator', { name: 1 })
-      .populate('project', { title: 1 })
-      // .populate('comments')
-    if (!updatedIssue) {
+    // Update the issue in the database
+    const result = await Issue.findOneAndUpdate(
+      { _id: issueId, project: projectId },
+      updatedIssue,
+      { new: true }
+    ).populate('creator', { name: 1 }).populate('project', { title: 1 });
+
+    if (!result) {
       return response.status(404).json({ message: 'Issue not found' });
     }
-    response.json(updatedIssue)
+
+    response.json(result);
   } catch (error) {
-    response.status(400).json({ message: error.message });
+    response.status(500).json({ message: error.message });
   }
 })
 
