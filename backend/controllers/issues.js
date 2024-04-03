@@ -105,39 +105,37 @@ issuesRouter.delete('/:id', async (request, response, next) => {
 
 issuesRouter.put('/:issueId', async (request, response, next) => {
   try {
-    const body = request.body;
-    const { projectId, issueId } = request.params;
+    const body = request.body
+    const { projectId, issueId } = request.params
+    const user = request.user
 
-    // Check if the status is being updated
-    if (body.status) {
-      // Update the status only if it's a valid status
-      if (body.status !== 'Open' && body.status !== 'Closed') {
-        return response.status(400).json({ message: 'Invalid status' });
-      }
+    const existingIssue = await Issue.findOne({ _id: issueId, project: projectId });
+
+    if (!existingIssue) {
+      return response.status(404).json({ message: 'Issue not found' });
     }
 
-    // Prepare the updated issue object
-    const updatedIssue = {
-      title: body.title,
-      status: body.status,
-      description: body.description,
-      dueDate: body.dueDate,
-    };
+    // Construct update object, excluding status update if user is not the creator
+    const update = { ...body }
+    if ('status' in body && body.status != existingIssue.status && existingIssue.creator.toString() !== user.id.toString()) {
+      return response.status(403).json({ message: 'Only creator can close or reopen an issue' })
+    }
 
-    // Update the issue in the database
-    const result = await Issue.findOneAndUpdate(
+    const updatedIssue = await Issue.findOneAndUpdate(
       { _id: issueId, project: projectId },
-      updatedIssue,
-      { new: true }
-    ).populate('creator', { name: 1 }).populate('project', { title: 1 });
-
-    if (!result) {
-      return response.status(404).json({ message: 'Issue not found' });
+      body,
+      {
+        new: true,
+        runValidators: true,
+      }
+    )
+    if (!updatedIssue) {
+      return response.status(404).json({ message: 'Issue not found after update attempt' });
     }
 
     response.json(result);
   } catch (error) {
-    response.status(500).json({ message: error.message });
+    response.status(400).json({ message: error.message })
   }
 })
 
