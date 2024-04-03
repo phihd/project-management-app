@@ -19,9 +19,7 @@ function ProjectDetail({ projects }) {
     if (projects.length > 0 && project.id) {
       issueService.getAll(project.id)
         .then(issues => {
-          // Filter issues to only include those with status "Open"
-          const openIssues = issues.filter(issue => issue.status === 'Open')
-          setIssues(openIssues)
+          setIssues(issues)
         })
     }
   }, [projects])
