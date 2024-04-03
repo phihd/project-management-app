@@ -5,7 +5,6 @@ import './IssueDetail.css' // Import your CSS file
 import { useParams, Link } from 'react-router-dom'
 import issueService from '../services/issues'
 import commentService from '../services/comments'
-import {Switch} from 'antd'
 
 const IssueDetail = ({ projects }) => {
 
