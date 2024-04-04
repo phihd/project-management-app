@@ -150,6 +150,7 @@ issuesRouter.put('/:issueId', async (request, response, next) => {
     if (!updatedIssue) {
       return response.status(404).json({ message: 'Issue not found after update attempt' });
     }
+
     response.json(updatedIssue)
   } catch (error) {
     response.status(400).json({ message: error.message })

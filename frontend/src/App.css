@@ -21,10 +21,9 @@ body {
 
 /* Content wrapper */
 .content-wrapper {
-  flex: 1;
-  height: 100%;
+  flex: 1; /* Let the content-wrapper take remaining space */
   overflow-y: auto;
-  padding: 15px;
+  padding: 25px;
   display: flex;
   flex-direction: column;
   background-color: #353542;
@@ -33,10 +32,15 @@ body {
 
 /* Sidebar wrapper */
 .sidebar-wrapper {
-  width: 280px;
-  height: 100%;
-  overflow-y: auto;
-  color: #fff;
+  display: flex;
+  flex-direction: column;
+  height:  100%;;
+  background-color: #000000; /* Set background color for the sidebar */
+  min-width: 150px; /* Set a minimum width for the sidebar */
+  max-width: 280px; /* Set a maximum width for the sidebar */
+  height: 100vh; /* Make sidebar wrapper full height */
+  overflow-y: auto; /* Enable vertical scrolling if content exceeds sidebar height */
+  color: #fff; /* Text color for the sidebar */
 }
 
 /* Navbar styles */
@@ -151,16 +155,28 @@ body {
 
 /* Sidebar styles */
 .sidebar {
-  background-color: #000000;
-  /* Sidebar background color */
-  width: 280px;
-  height: 100vh;
-  overflow-y: auto;
-  padding: 18px;
-  position: fixed;
-  top: 0;
-  left: 0;
+  padding: 18px; /* Add padding to the sidebar */
 }
+
+/* Apply hidden style when the hidden class is added */
+.sidebar.hidden {
+transform: translateX(-100%); /* Move the sidebar off-screen */
+}
+
+/* Adjust width of sidebar */
+@media (max-width: 768px) {
+  .sidebar-wrapper {
+    width: 200px; /* Adjust width for smaller screens */
+  }
+}
+
+/* Media query for even smaller screens */
+@media (max-width: 576px) {
+  .sidebar-wrapper {
+    width: 150px; /* Further adjust width for even smaller screens */
+  }
+}
+
 
 .sidebar-content-list {
   list-style: none;
@@ -440,11 +456,6 @@ h2 {
   font-size: 1.5rem;
   margin-bottom: 20px;
   text-align: center;
-}
-
-/* Form fields */
-div {
-  margin-bottom: 15px;
 }
 
 label {

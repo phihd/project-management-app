@@ -17,9 +17,10 @@ function ProjectDetail({ projects }) {
 
   useEffect(() => {
     if (projects.length > 0 && project.id) {
-      issueService.getAll(project.id).then(issues =>
-        setIssues(issues)
-      )
+      issueService.getAll(project.id)
+        .then(issues => {
+          setIssues(issues)
+        })
     }
   }, [projects])
 
