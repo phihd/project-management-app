@@ -13,6 +13,7 @@ const IssueDetail = ({ projects }) => {
   const [commentInput, setCommentInput] = useState('')
   const [files, setFiles] = useState([])
   const [comments, setComments] = useState([])
+  const [currentStatus, setCurrentStatus] = useState('')
 
   const { projectId, issueId } = useParams()
 
@@ -25,6 +26,7 @@ const IssueDetail = ({ projects }) => {
       issueService.getAll(project.id).then(issues => {
         const foundIssue = issues.find(issue => issue.id === issueId)
         setIssue(foundIssue)
+        setCurrentStatus(foundIssue.status)
         commentService.getAll(projectId, issueId).then(comments => {
           setComments(comments)
         })
@@ -33,16 +35,29 @@ const IssueDetail = ({ projects }) => {
   }, [projects])
 
 
+  const handleStatusButtonClick = async () => {
+    if (issue) {
+      const newStatus = currentStatus === 'Open' ? 'Close' : 'Open';
+      try {
+        await updateIssue(projectId, issueId, { status: newStatus })
+        setCurrentStatus(newStatus);
+      } catch (error) {
+        console.error('Error updating issue status:', error);
+      }
+    } else {
+      console.error('Issue data not available');
+    }
+  };
 
-  const updateIssue = async (id, issueToUpdate) => {
+  const updateIssue = async (projectId, issueId, issueToUpdate) => {
     try {
-      const updatedIssue = await issueService.update(id, issueToUpdate)
+      const updatedIssue = await issueService.update(projectId, issueId, issueToUpdate)
       const newIssues = issues.map(
         issue => issue.id === id ? updatedIssue : issue
       )
       setIssues(newIssues)
     } catch (exception) {
-      console.log(exception.response.data.error)
+      console.log(exception)
     }
   }
 
@@ -79,7 +94,12 @@ const IssueDetail = ({ projects }) => {
       {issue && <div>
         <div className="issue-header">
           <h2 className="issue-title">#1 {issue.title} </h2>
-          <span className="issue-status">{issue.status}</span>
+          <button
+            className={`issue-status ${currentStatus.toLowerCase()}`}
+            onClick={handleStatusButtonClick}
+          >
+            {currentStatus}
+          </button>
           <p className="issue-meta">
             <span className="issue-info">Opened by {issue.creator.name}</span>
             <span className="issue-info">Created on {
