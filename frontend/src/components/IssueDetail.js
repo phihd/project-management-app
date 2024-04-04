@@ -22,12 +22,8 @@ const IssueDetail = ({ projects }) => {
   const [assigneeInput, setAssigneeInput] = useState('')
   const { projectId, issueId } = useParams()
   const [currentStatus, setCurrentStatus] = useState('')
-  const [dueDateInput, setDueDateInput] = useState('')
-  const [isDueDateEditMode, setIsDueDateEditMode] = useState(false)
-  const [isTitleEditMode, setIsTitleEditMode] = useState(false)
-  const [titleInput, setTitleInput] = useState('')
-  const [isDescriptionEditMode, setIsDescriptionEditMode] = useState(false)
-  const [descriptionInput, setDescriptionInput] = useState('')
+  const [dueDateInput, setDueDateInput] = useState('');
+  const [isDueDateEditMode, setIsDueDateEditMode] = useState(false);
 
 
   // Find the project data based on the projectId
@@ -202,87 +198,13 @@ const IssueDetail = ({ projects }) => {
     return day + '/' + month + '/' + year
   }
 
-  const updateTitle = async (newTitle) => {
-    try {
-      // Update the issue title in the backend
-      await issueService.update(projectId, issueId, { title: newTitle })
-      // Update the issue due date in the UI
-      setIssue(prevIssue => ({ ...prevIssue, title: newTitle }))
-    } catch (exception) {
-      console.log(exception)
-      throw new Error('Failed to update title: ' + exception)
-    }
-  }
-
-  const toggleTitleEditMode = () => {
-    setIsTitleEditMode(!isTitleEditMode)
-    // Set initial value of title input field to current title
-    setTitleInput(issue.title)
-  }
-
-  const handleTitleUpdate = async () => {
-    try {
-      await updateTitle(titleInput)
-      setIsTitleEditMode(false)
-    } catch (error) {
-      console.error('Error updating title:', error)
-    }
-  }
-
-  const updateDescription = async (newDescription) => {
-    try {
-      // Update the issue title in the backend
-      await issueService.update(projectId, issueId, { description: newDescription })
-      // Update the issue due date in the UI
-      setIssue(prevIssue => ({ ...prevIssue, description: newDescription }))
-    } catch (exception) {
-      console.log(exception)
-      throw new Error('Failed to update description: ' + exception)
-    }
-  }
-
-  const toggleDescriptionEditMode = () => {
-    setIsDescriptionEditMode(!isDescriptionEditMode)
-    // Set initial value of title input field to current title
-    setDescriptionInput(issue.description)
-  }
-
-  const handleDescriptionUpdate = async () => {
-    try {
-      await updateDescription(descriptionInput)
-      setIsDescriptionEditMode(false)
-    } catch (error) {
-      console.error('Error updating description:', error)
-    }
-  }
-
   return (
     <div className="issue-detail">
       {issue && <div>
         <div className="issue-header">
-          
-          <h2 className="issue-header">
-            {!isTitleEditMode ? (
-              issue.title
-            ) : (
-              <input
-                type="text"
-                value={titleInput}
-                onChange={(e) => setTitleInput(e.target.value)}
-              />
-            )}
-          </h2>
-          {/* Render edit button for the title */}
-          {!isTitleEditMode &&(
-            <button onClick={toggleTitleEditMode}>Edit Title</button>
-          )}
-          
-          {/* Render update button if in edit mode */}
-          {isTitleEditMode && (
-            <button onClick={handleTitleUpdate}>Update Title</button>
-          )}
+          <h2 className="issue-title">#1 {issue.title} </h2>
 
-
+          
           {issue.creator.id === user.id && <div>
             <button
               className={`issue-status ${currentStatus.toLowerCase()}`}
@@ -328,28 +250,12 @@ const IssueDetail = ({ projects }) => {
           </p>
 
         </div>
-
-
         <div className="issue-body">
           <div className="issue-description">
-            <h3> Description
-
-            {!isDescriptionEditMode && (
-              <button onClick={toggleDescriptionEditMode}> Edit</button>
-            )}
-            </h3>
-
-            {!isDescriptionEditMode ? (
-              <p className="issue-description-text">{issue.description}</p>
-            ) : (
-              <textarea
-                value={descriptionInput}
-                onChange={(e) => setDescriptionInput(e.target.value)}
-              />
-            )}
-            {isDescriptionEditMode && (
-              <button onClick={handleDescriptionUpdate}> Update </button>
-            )}
+            <h3>Description</h3>
+            <p className="issue-description-text">
+              {issue.description}
+            </p>
           </div>
 
           <div className="issue-details">
