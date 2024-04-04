@@ -105,6 +105,16 @@ issuesRouter.delete('/:id', async (request, response, next) => {
 
 issuesRouter.put('/:issueId', async (request, response, next) => {
   try {
+    const token = request.token
+    if (!token) {
+      return response.status(401).json({ error: 'token missing' })
+    }
+
+    const decodedToken = jwt.verify(token, process.env.SECRET)
+    if (!decodedToken.id) {
+      return response.status(401).json({ error: 'token invalid' })
+    }
+
     const body = request.body
     const { projectId, issueId } = request.params
     const user = request.user
@@ -129,6 +139,7 @@ issuesRouter.put('/:issueId', async (request, response, next) => {
         runValidators: true,
       }
     )
+
     if (!updatedIssue) {
       return response.status(404).json({ message: 'Issue not found after update attempt' });
     }

@@ -19,7 +19,12 @@ const create = async (projectId, newObject) => {
 }
 
 const update = (projectId, issueId, newObject) => {
-  const request = axios.put(`${baseUrl}/${projectId}/issues/${issueId}`, newObject)
+  const token = getToken()
+  const config = {
+    headers: { Authorization: token },
+  }
+
+  const request = axios.put(`${baseUrl}/${projectId}/issues/${issueId}`, newObject, config)
   return request.then(response => response.data)
 }
 
