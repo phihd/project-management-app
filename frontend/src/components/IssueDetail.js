@@ -19,8 +19,6 @@ const IssueDetail = ({ projects }) => {
   const [assigneeInput, setAssigneeInput] = useState('')
   const { projectId, issueId } = useParams()
 
-  // Define state for the current status of the issue
-  const [currentStatus, setCurrentStatus] = useState('')
 
   // Function to toggle the status
   const toggleStatus = () => {
@@ -73,28 +71,27 @@ const IssueDetail = ({ projects }) => {
 
   const handleStatusButtonClick = async () => {
     if (issue) {
-      const newStatus = currentStatus === 'Open' ? 'Closed' : 'Open';
+      const newStatus = currentStatus === 'Open' ? 'Close' : 'Open';
       try {
-        await updateIssueStatus(newStatus);
+        await updateIssue(projectId, issueId, { status: newStatus })
         setCurrentStatus(newStatus);
       } catch (error) {
         console.error('Error updating issue status:', error);
       }
     } else {
       console.error('Issue data not available');
-      // Handle case where issue data is not available
     }
   };
 
-  const updateIssue = async (id, issueToUpdate) => {
+  const updateIssue = async (projectId, issueId, issueToUpdate) => {
     try {
-      const updatedIssue = await issueService.update(id, issueToUpdate)
+      const updatedIssue = await issueService.update(projectId, issueId, issueToUpdate)
       const newIssues = issues.map(
         issue => issue.id === id ? updatedIssue : issue
       )
       setIssues(newIssues)
     } catch (exception) {
-      console.log(exception.response.data.error)
+      console.log(exception)
     }
   }
 
