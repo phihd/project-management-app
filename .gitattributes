@@ -1,0 +1,2 @@
+./frontend/.eslintrc.js merge=ours
+./backend/package.json merge=ours
