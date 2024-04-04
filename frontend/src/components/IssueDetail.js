@@ -1,10 +1,11 @@
 /* eslint-disable */
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useContext } from 'react'
 import './IssueDetail.css' // Import your CSS file
 import { useParams, Link } from 'react-router-dom'
 import issueService from '../services/issues'
 import commentService from '../services/comments'
+import UserContext from './UserContext'
 
 const IssueDetail = ({ projects }) => {
 
@@ -13,7 +14,9 @@ const IssueDetail = ({ projects }) => {
   const [commentInput, setCommentInput] = useState('')
   const [files, setFiles] = useState([])
   const [comments, setComments] = useState([])
-
+  const { user } = useContext(UserContext)
+  const [isAssigneeEditMode, setIsAssigneeEditMode] = useState(false)
+  const [assigneeInput, setAssigneeInput] = useState('')
   const { projectId, issueId } = useParams()
 
   // Define state for the current status of the issue
@@ -27,7 +30,6 @@ const IssueDetail = ({ projects }) => {
 
   // Find the project data based on the projectId
   const project = projects.find((project) => project.id === projectId)
-
 
   useEffect(() => {
     if (projects.length > 0 && project.id) {
@@ -54,6 +56,20 @@ const IssueDetail = ({ projects }) => {
     }
   }
 
+  const toggleAssigneeEditMode = () => {
+    setIsAssigneeEditMode(!isAssigneeEditMode);
+    // Set initial value of assignee input field to current assignee
+    setAssigneeInput(issue.assignees.map(assignee => assignee.name).join(', '));
+  }
+
+  const handleAssigneeUpdate = async () => {
+    try {
+      console.log('Assignee updated successfully:', assigneeInput)
+      setIsAssigneeEditMode(false); // Once updated, toggle off edit mode
+    } catch (error) {
+      console.error('Error updating assignee:', error);
+    }
+  }
 
   const handleStatusButtonClick = async () => {
     if (issue) {
@@ -113,13 +129,41 @@ const IssueDetail = ({ projects }) => {
       {issue && <div>
         <div className="issue-header">
           <h2 className="issue-title">#1 {issue.title} </h2>
-          <button
+
+          {issue.creator.id === user.id && (
+            <div className="assignee">
+              <p>Assigned to {issue.assignees.map(assignee => assignee.name).join(', ')} </p>
+              {/* Render edit button for assignee if user is the creator */}
+              <button onClick={toggleAssigneeEditMode}>Edit Assignee</button>
+              {/* Render input field for assignee if in edit mode */}
+              {isAssigneeEditMode && (
+                <div>
+                  <input
+                    type="text"
+                    value={assigneeInput}
+                    onChange={(e) => setAssigneeInput(e.target.value)}
+                  />
+                  <button onClick={handleAssigneeUpdate}>Update Assignee</button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* {console.log(issue.creator)} */}
+          {issue.creator.id === user.id && <div>
+            <button
               className={`issue-status ${currentStatus.toLowerCase()}`}
               onClick={handleStatusButtonClick}
             >
               {currentStatus}
           </button>
-          <p className="issue-meta">
+          </div>
+          }
+          {issue.creator.id != user.id && <div>
+            <span className = "issue-status"> Open </span>
+            </div>
+          }
+          <p classNameI="issue-meta">
             <span className="issue-info">Opened by {issue.creator.name}</span>
             <span className="issue-info">Created on {
               new Date(issue.createdDate).toLocaleDateString('en-GB', {
@@ -192,14 +236,14 @@ const IssueDetail = ({ projects }) => {
               value={commentInput}
               onChange={handleCommentInput}
             ></textarea>
-            {/* <input
+              <input
               type="file"
               multiple
               accept=".pdf,.doc,.docx,.jpg,.png"
               onChange={handleFileUpload}
-            /> */}
-            <button className="comment-button" onClick={handleAddComment}>Comment</button>
+            />
           </div>
+          <button className="comment-button" onClick={handleAddComment}>Comment</button>
         </div>
       </div>}
     </div>
