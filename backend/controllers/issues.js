@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken')
+const helper = require('../utils/helper')
 const issuesRouter = require('express').Router({ mergeParams: true }) // Use mergeParams to access the parent route params
 const Issue = require('../models/issue')
 const Project = require('../models/project')
@@ -125,12 +126,18 @@ issuesRouter.put('/:issueId', async (request, response, next) => {
       return response.status(404).json({ message: 'Issue not found' });
     }
 
-    // Construct update object, excluding status update if user is not the creator
     const update = { ...body }
+
     if ('status' in body && body.status != existingIssue.status && existingIssue.creator.toString() !== user.id.toString()) {
       return response.status(403).json({ message: 'Only creator can close or reopen an issue' })
     }
-
+    if ('assignees' in body && !helper.listEqual(body.assignees, existingIssue.assignees) && existingIssue.creator.toString() !== user.id.toString()) {
+      return response.status(403).json({ message: 'Only creator can change assignees' })
+    }
+    if ('dueDate' in body && !helper.areDatesSameDay(body.dueDate, existingIssue.dueDate) && existingIssue.creator.toString() !== user.id.toString()) {
+      return response.status(403).json({ message: 'Only creator can change due date' })
+    }
+    
     const updatedIssue = await Issue.findOneAndUpdate(
       { _id: issueId, project: projectId },
       body,
