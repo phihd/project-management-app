@@ -4,6 +4,7 @@ import React, { useState, useEffect, useContext } from 'react'
 import './IssueDetail.css' // Import your CSS file
 import { useParams, Link } from 'react-router-dom'
 import issueService from '../services/issues'
+import userService from '../services/users'
 import commentService from '../services/comments'
 import UserContext from './UserContext'
 
@@ -18,13 +19,10 @@ const IssueDetail = ({ projects }) => {
   const [isAssigneeEditMode, setIsAssigneeEditMode] = useState(false)
   const [assigneeInput, setAssigneeInput] = useState('')
   const { projectId, issueId } = useParams()
+  const [currentStatus, setCurrentStatus] = useState('')
+  const [dueDateInput, setDueDateInput] = useState('');
+  const [isDueDateEditMode, setIsDueDateEditMode] = useState(false);
 
-
-  // Function to toggle the status
-  const toggleStatus = () => {
-    // Toggle between 'Open' and 'Closed' based on the current status
-    setCurrentStatus(currentStatus === 'Open' ? 'Closed' : 'Open')
-  }
 
   // Find the project data based on the projectId
   const project = projects.find((project) => project.id === projectId)
@@ -42,32 +40,38 @@ const IssueDetail = ({ projects }) => {
     }
   }, [projects])
 
-  const updateIssueStatus = async (newStatus) => {
-    try {
-      // Update the issue status in the backend
-      await issueService.update(projectId, issueId, {status: newStatus})
-      // Update the issue status in the UI
-      setIssue(prevIssue => ({ ...prevIssue, status: newStatus }));
-      // setCurrentStatus(newStatus);
-    } catch (exception) {
-      console.log(exception.response.data.error)
-    }
-  }
-
   const toggleAssigneeEditMode = () => {
     setIsAssigneeEditMode(!isAssigneeEditMode);
     // Set initial value of assignee input field to current assignee
-    setAssigneeInput(issue.assignees.map(assignee => assignee.name).join(', '));
+    setAssigneeInput(issue.assignee);
   }
 
+  const updateAssignee = async (newAssignees) => {
+    try {
+      // Map the new assignees to their corresponding IDs
+      const assigneeIds = newAssignees.map(assignee => assignee.id);
+      // Update the issue assignees in the backend
+      await issueService.update(projectId, issueId, { assignees: assigneeIds });
+      // Update the issue assignees in the UI
+      setIssue(prevIssue => ({ ...prevIssue, assignees: newAssignees }));
+    } catch (exception) {
+      console.log(exception);
+      throw new Error('Failed to update assignees: ' + exception);
+    }
+  };
+  
   const handleAssigneeUpdate = async () => {
     try {
-      console.log('Assignee updated successfully:', assigneeInput)
-      setIsAssigneeEditMode(false); // Once updated, toggle off edit mode
+      // Retrieve user IDs for selected assignees
+      const selectedAssigneeUsers = assigneeInput.map(assigneeName => project.members.find(user => user.name === assigneeName));
+      // Call updateAssignee function with selected assignees
+      await updateAssignee(selectedAssigneeUsers); 
+      // Once updated, toggle off edit mode
+      setIsAssigneeEditMode(false); 
     } catch (error) {
-      console.error('Error updating assignee:', error);
+      console.error('Error updating assignees:', error);
     }
-  }
+  };
 
   const handleStatusButtonClick = async () => {
     if (issue) {
@@ -121,32 +125,49 @@ const IssueDetail = ({ projects }) => {
     }
   }
 
+  const updateDueDate = async (newDueDate) => {
+    try {
+      // Update the issue due date in the backend
+      await issueService.update(projectId, issueId, { dueDate: newDueDate })
+      // Update the issue due date in the UI
+      setIssue(prevIssue => ({ ...prevIssue, dueDate: newDueDate }))
+    } catch (exception) {
+      console.log(exception)
+      throw new Error('Failed to update due date: ' + exception)
+    }
+  };
+
+  const toggleDueDateEditMode = () => {
+    setIsDueDateEditMode(!isDueDateEditMode)
+    setDueDateInput(issue.dueDate)
+  }
+
+  const handleDueDateUpdate = async () => {
+    try {
+      await updateDueDate(dueDateInput)
+      setIsDueDateEditMode(false)
+    } catch (error) {
+      console.error('Error updating due date:', error)
+    }
+  }
+
+  const formatDate = (dueDate) => {
+    const date = new Date(dueDate)
+    const year = date.getFullYear()
+    let month = (1 + date.getMonth()).toString()
+    month = month.length > 1 ? month : '0' + month
+    let day = date.getDate().toString();
+    day = day.length > 1 ? day : '0' + day
+    return day + '/' + month + '/' + year
+  }
+
   return (
     <div className="issue-detail">
       {issue && <div>
         <div className="issue-header">
           <h2 className="issue-title">#1 {issue.title} </h2>
 
-          {issue.creator.id === user.id && (
-            <div className="assignee">
-              <p>Assigned to {issue.assignees.map(assignee => assignee.name).join(', ')} </p>
-              {/* Render edit button for assignee if user is the creator */}
-              <button onClick={toggleAssigneeEditMode}>Edit Assignee</button>
-              {/* Render input field for assignee if in edit mode */}
-              {isAssigneeEditMode && (
-                <div>
-                  <input
-                    type="text"
-                    value={assigneeInput}
-                    onChange={(e) => setAssigneeInput(e.target.value)}
-                  />
-                  <button onClick={handleAssigneeUpdate}>Update Assignee</button>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* {console.log(issue.creator)} */}
+          
           {issue.creator.id === user.id && <div>
             <button
               className={`issue-status ${currentStatus.toLowerCase()}`}
@@ -160,6 +181,7 @@ const IssueDetail = ({ projects }) => {
             <span className = "issue-status"> Open </span>
             </div>
           }
+
           <p classNameI="issue-meta">
             <span className="issue-info">Opened by {issue.creator.name}</span>
             <span className="issue-info">Created on {
@@ -168,16 +190,28 @@ const IssueDetail = ({ projects }) => {
                 month: '2-digit',
                 year: 'numeric',
               })}</span>
-            <span
-              className="issue-info">
-              Due on {
-                new Date(issue.dueDate).toLocaleDateString('en-GB', {
-                  day: '2-digit',
-                  month: '2-digit',
-                  year: 'numeric',
-                })}
+            <span className="issue-info">
+              Due on {formatDate(issue.dueDate)}
+              {user.id === issue.creator.id && (
+                <span>
+                  {!isDueDateEditMode && (
+                    <button onClick={toggleDueDateEditMode}>Edit Due Date</button>
+                  )}
+                  {isDueDateEditMode && (
+                    <div>
+                      <input
+                        type="date"
+                        value={dueDateInput}
+                        onChange={(e) => setDueDateInput(e.target.value)}
+                      />
+                      <button onClick={handleDueDateUpdate}>Update Due Date</button>
+                    </div>
+                  )}
+                </span>
+              )}
             </span>
           </p>
+
         </div>
         <div className="issue-body">
           <div className="issue-description">
@@ -186,16 +220,41 @@ const IssueDetail = ({ projects }) => {
               {issue.description}
             </p>
           </div>
+
           <div className="issue-details">
             <h3>Details</h3>
-            <div className="issue-labels">
-              <span className="label">Bug</span>
-              <span className="label">Feature Request</span>
-              {/* Add more labels */}
-            </div>
+
+            {issue.creator.id != user.id && <div className="assignee">
+              <p>Assigned to {issue.assignees.map(assignee => assignee.name).join(', ')} </p>
+              </div>}
+
+            {issue.creator.id === user.id && (
             <div className="assignee">
               <p>Assigned to {issue.assignees.map(assignee => assignee.name).join(', ')} </p>
+              {/* Render edit button for assignee if user is the creator */}
+              <button onClick={toggleAssigneeEditMode}>Edit Assignee</button>
+              {/* Render select input for assignee if in edit mode */}
+              {isAssigneeEditMode && (
+                <div>
+                  <select
+                    value={assigneeInput}
+                    onChange={(e) => setAssigneeInput(Array.from(e.target.selectedOptions, option => option.value))}
+                    multiple
+                  >
+                    <option value="">Select Assignee</option>
+                    {project.members.map(user => (
+                      <option key={user.id} value={user.name}>
+                        {user.name}
+                      </option>
+                    ))}
+                  </select>
+                  <button onClick={handleAssigneeUpdate}>Update Assignee</button>
+                </div>
+              )}
             </div>
+          )}
+            
+            
           </div>
           <div className="issue-comments">
             <h3>Comments</h3>
