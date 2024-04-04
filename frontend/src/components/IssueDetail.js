@@ -12,9 +12,11 @@ const IssueDetail = ({ projects }) => {
 
   const [issues, setIssues] = useState([])
   const [issue, setIssue] = useState(null)
-  const [commentInput, setCommentInput] = useState('')
   const [files, setFiles] = useState([])
   const [comments, setComments] = useState([])
+  const [commentInput, setCommentInput] = useState('')
+  const [isCommentEditMode, setIsCommentEditMode] = useState(false)
+  const [editedComments, setEditedComments] = useState({})
   const { user } = useContext(UserContext)
   const [isAssigneeEditMode, setIsAssigneeEditMode] = useState(false)
   const [assigneeInput, setAssigneeInput] = useState('')
@@ -108,6 +110,41 @@ const IssueDetail = ({ projects }) => {
     setComments(comments.concat(comment))
   }
 
+
+  const toggleCommentEditMode = () => {
+    setIsCommentEditMode(!isCommentEditMode)
+    if (isCommentEditMode) {
+      setCommentInput('')
+    }
+  }
+
+  const handleCommentUpdate = async () => {
+    try {
+      await commentService.update(projectId, issueId, { commentId: commentId, text: commentInput })
+      // Update comment in the UI
+      const updatedComments = comments.map(comment => {
+        if (comment.id === commentId) {
+          return { ...comment, text: commentInput }
+        }
+        return comment;
+      });
+      setComments(updatedComments)
+      // Store edited comment
+      setEditedComments({ ...editedComments, [commentId]: true })
+      setIsCommentEditMode(false); // Toggle off edit mode
+    } catch (error) {
+      console.error('Error updating comment:', error)
+    }
+  }
+
+  const renderEditedButton = (isEdited) => {
+    if (isEdited) {
+      return <button>Edited</button>
+    }
+    return null
+  }
+
+  
   const handleCommentInput = (event) => {
     setCommentInput(event.target.value)
   }
@@ -359,24 +396,9 @@ const IssueDetail = ({ projects }) => {
                 <div className="comment" key={index}>
                   <p className="comment-user">{comment.user.name} commented on {comment.timestamp}</p>
                   <p className="comment-text">{comment.text}</p>
-                  {/* {comment.files.length > 0 && (
-                    <div className="comment-files">
-                      Attached Files:
-                      <ul>
-                        {comment.files.map((file, fileIndex) => (
-                          <li key={fileIndex}>
-                            <a href={URL.createObjectURL(file)} download={file.name}>
-                              {file.name}
-                            </a>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )} */}
                 </div>
               ))
             )}
-            {/* More comments can be added here */}
           </div>
           <div className="add-comment">
             <h3>Add Comment</h3>
