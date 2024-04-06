@@ -1,7 +1,6 @@
 POST http://localhost:3003/api/projects/6593c6e7a27bdd9a5a8fcba9/issues
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImhhaWFuaGhvYW5nIiwiaWQiOiI2NTkzYmY0OTM1Mzc0ODQzNWMyYTJmNzQiLCJpYXQiOjE3MDQyNzAxODQsImV4cCI6MTcwNDI3Mzc4NH0.NoTpMna5XwxWd70owI5O4w2qABsWeOp6W-KK-q82mY4
-
+Authorization:
 {
   "title": "Lược bớt thông tin",
   "description": "Card visit đang có quá nhiều thông tin, gẫy nhiễu và chữ rất nhỏ. Cần chọn lọc những thông tin cần thiết nhất để giữ lại."

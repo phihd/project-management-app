@@ -1,6 +1,6 @@
 POST http://localhost:3003/api/projects
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImhhaWFuaGhvYW5nIiwiaWQiOiI2NTkzYmY0OTM1Mzc0ODQzNWMyYTJmNzQiLCJpYXQiOjE3MDQ3MDgyMTAsImV4cCI6MTcwNDcxMTgxMH0.6ryvaUY5VVvbLWdwJBXvfUDofP8N81pdnT7genXton4
+Authorization:
 
 {
   "name": "Phần mềm quản lý doanh nghiệp",

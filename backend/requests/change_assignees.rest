@@ -1,7 +1,6 @@
 PUT http://localhost:3003/api/projects/659bcbab51659ac5c226fb12/issues/659bcc1d51659ac5c226fb2d/
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImhhaWFuaGhvYW5nIiwiaWQiOiI2NTkzYmY0OTM1Mzc0ODQzNWMyYTJmNzQiLCJpYXQiOjE3MTIyMjIzOTEsImV4cCI6MTcxMjIyNTk5MX0.xzwhQkAt2K76oDhInWQQy36iq4iRNT6D3_yRu6an42I
-
+Authorization:
 {
   "dueDate": "2024-04-01"
 }
