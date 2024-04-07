@@ -23,6 +23,7 @@ npm run dev
 ```
 ```bash
 cd frontend/
+npm install # run only once
 npm start
 ```
 
