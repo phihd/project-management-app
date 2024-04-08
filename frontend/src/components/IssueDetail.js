@@ -150,7 +150,7 @@ const IssueDetail = ({ projects }) => {
 
   const handleDueDateUpdate = async () => {
     try {
-      await updateDueDate(dueDateInput)
+      await updateDueDate(Date(dueDateInput))
       setIsDueDateEditMode(false)
     } catch (error) {
       console.error('Error updating due date:', error)
@@ -409,7 +409,6 @@ const IssueDetail = ({ projects }) => {
                 <div className="comment" key={index}>
                   <p className="comment-user">{comment.user.name} commented on {formatTimestamp(comment.timestamp)}</p>
                   <p className="comment-text">{comment.text}</p>
-                  {/* Render attached files */}
                   {comment.files && comment.files.map((file, index) => (
                     <a key={index} href={file} download={`file${index}`}>
                       Download File {index + 1}
