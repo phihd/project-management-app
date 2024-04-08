@@ -1,0 +1,10 @@
+POST http://localhost:3003/api/blogs
+Content-Type: application/json
+Authorization: Bearer 
+
+{
+  "title": "How to play Akali quadra kill",
+  "author": "Mark Nguyen",
+  "url": "https://www.professorakalikhoamap.com",
+  "likes": 1412
+}
