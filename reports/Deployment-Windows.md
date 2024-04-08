@@ -28,5 +28,5 @@ npm start
 ```
 
 ### Step 4: Before create a pull request, adjust to configs for linux
-- In `./backend/package.json`: In "scripts", append "cross-env" to each every "NODE_ENV".
+- In `./backend/package.json`: In "scripts", delete all "cross-env".
 - In `./frontend/.eslintrc.js`: In "linebreak-style", change "windows" to "unix".
