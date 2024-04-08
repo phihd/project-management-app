@@ -102,8 +102,11 @@ const IssueDetail = ({ projects }) => {
   }
 
   const createComment = async (newComment) => {
+    // Attach file URLs to comment before creating
+    newComment.files = files.map(file => URL.createObjectURL(file))
     const comment = await commentService.create(projectId, issueId, newComment)
     setComments(comments.concat(comment))
+    setFiles([]) // Clear files after comment creation
   }
 
   
@@ -406,6 +409,12 @@ const IssueDetail = ({ projects }) => {
                 <div className="comment" key={index}>
                   <p className="comment-user">{comment.user.name} commented on {formatTimestamp(comment.timestamp)}</p>
                   <p className="comment-text">{comment.text}</p>
+                  {/* Render attached files */}
+                  {comment.files && comment.files.map((file, index) => (
+                    <a key={index} href={file} download={`file${index}`}>
+                      Download File {index + 1}
+                    </a>
+                  ))}
                 </div>
               ))
             )}
