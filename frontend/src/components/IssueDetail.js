@@ -150,7 +150,7 @@ const IssueDetail = ({ projects }) => {
 
   const handleDueDateUpdate = async () => {
     try {
-      await updateDueDate(Date(dueDateInput))
+      await updateDueDate(new Date(dueDateInput))
       setIsDueDateEditMode(false)
     } catch (error) {
       console.error('Error updating due date:', error)
