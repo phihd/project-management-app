@@ -15,8 +15,6 @@ const IssueDetail = ({ projects }) => {
   const [files, setFiles] = useState([])
   const [comments, setComments] = useState([])
   const [commentInput, setCommentInput] = useState('')
-  const [isCommentEditMode, setIsCommentEditMode] = useState(false)
-  const [editedComments, setEditedComments] = useState({})
   const { user } = useContext(UserContext)
   const [isAssigneeEditMode, setIsAssigneeEditMode] = useState(false)
   const [assigneeInput, setAssigneeInput] = useState('')
@@ -30,6 +28,10 @@ const IssueDetail = ({ projects }) => {
   const [descriptionInput, setDescriptionInput] = useState('')
   const [descriptionHistory, setDescriptionHistory] = useState([])
   const [showDescriptionHistory, setShowDescriptionHistory] = useState(false)
+  const [titleHistory, setTitleHistory] = useState([])
+  const [assigneeHistory, setAssigneeHistory] = useState([])
+  const [dueDateHistory, setDueDateHistory] = useState([])
+  const [statusHistory, setStatusHistory] = useState([])
 
 
   // Find the project data based on the projectId
@@ -59,6 +61,14 @@ const IssueDetail = ({ projects }) => {
       const assigneeIds = newAssignees.map(assignee => assignee.id)
       await issueService.update(projectId, issueId, { assignees: assigneeIds })
       setIssue(prevIssue => ({ ...prevIssue, assignees: newAssignees }))
+      const assigneeNames = newAssignees.map(assignee => assignee.name).join(', ');
+      const assignedTo = assigneeNames ? `assigned to ${assigneeNames}` : 'unassigned';
+      const editedAssignee = {
+        username: user.name,
+        timestamp: new Date().toLocaleString(),
+        assignee: assignedTo,
+      };
+      setAssigneeHistory([...assigneeHistory, editedAssignee]);
     } catch (exception) {
       console.log(exception);
       throw new Error('Failed to update assignees: ' + exception)
@@ -80,9 +90,17 @@ const IssueDetail = ({ projects }) => {
       const newStatus = currentStatus === 'Open' ? 'Close' : 'Open';
       try {
         await updateIssue(projectId, issueId, { status: newStatus })
-        setCurrentStatus(newStatus);
+        setCurrentStatus(newStatus)
+        setStatusHistory(prevStatusHistory => [
+          ...prevStatusHistory,
+          {
+            username: user.name,
+            newStatus: newStatus,
+            timestamp: new Date().toLocaleString(),
+          }
+        ])
       } catch (error) {
-        console.error('Error updating issue status:', error);
+        console.error('Error updating issue status:', error)
       }
     } else {
       console.error('Issue data not available')
@@ -133,15 +151,21 @@ const IssueDetail = ({ projects }) => {
 
   const updateDueDate = async (newDueDate) => {
     try {
-      // Update the issue due date in the backend
+      const oldDueDate = issue.dueDate
       await issueService.update(projectId, issueId, { dueDate: newDueDate })
-      // Update the issue due date in the UI
       setIssue(prevIssue => ({ ...prevIssue, dueDate: newDueDate }))
+            const editedDueDate = {
+              username: user.name,
+              timestamp: new Date().toLocaleString(),
+              oldDueDate: oldDueDate,
+              newDueDate: newDueDate,
+            }
+            setDueDateHistory([...dueDateHistory, editedDueDate])
     } catch (exception) {
       console.log(exception)
       throw new Error('Failed to update due date: ' + exception)
     }
-  };
+  }
 
   const toggleDueDateEditMode = () => {
     setIsDueDateEditMode(!isDueDateEditMode)
@@ -171,10 +195,15 @@ const IssueDetail = ({ projects }) => {
     try {
       // Update the issue title in the backend
       await issueService.update(projectId, issueId, { title: newTitle })
-      // Update the issue due date in the UI
+      // // Update the issue due date in the UI
       setIssue(prevIssue => ({ ...prevIssue, title: newTitle }))
+      const editedTitle = {
+        username: user.name,
+        timestamp: new Date().toLocaleString(),
+        title: newTitle,
+      };
+      setTitleHistory([...titleHistory, editedTitle]);
     } catch (exception) {
-      console.log(exception)
       throw new Error('Failed to update title: ' + exception)
     }
   }
@@ -215,9 +244,9 @@ const IssueDetail = ({ projects }) => {
     try {
       await updateDescription(descriptionInput);
       const editedDescription = {
-        username: user.name, // Assuming user object has a 'name' property
-        timestamp: new Date().toLocaleString(), // Timestamp of the edit
-        description: descriptionInput // New description
+        username: user.name,
+        timestamp: new Date().toLocaleString(),
+        description: descriptionInput
       }
       setDescriptionHistory([...descriptionHistory, editedDescription])
       setIsDescriptionEditMode(false)
@@ -331,7 +360,6 @@ const IssueDetail = ({ projects }) => {
               )}
             </span>
           </p>
-
         </div>
 
 
@@ -344,7 +372,6 @@ const IssueDetail = ({ projects }) => {
                   <button onClick={toggleDescriptionEditMode}> Edit</button>
                   {renderDescriptionHistory}
               </div>
-              
             )}
             </h3>
 
@@ -365,15 +392,15 @@ const IssueDetail = ({ projects }) => {
           </div>
 
           <div className="issue-details">
-            <h3>Details</h3>
+            <h3>Assignees</h3>
 
             {issue.creator.id != user.id && <div className="assignee">
-              <p>Assigned to {issue.assignees.map(assignee => assignee.name).join(', ')} </p>
+              <p> {issue.assignees.map(assignee => assignee.name).join(', ')} </p>
               </div>}
 
             {issue.creator.id === user.id && (
             <div className="assignee">
-              <p>Assigned to {issue.assignees.map(assignee => assignee.name).join(', ')} </p>
+              <p>{issue.assignees.map(assignee => assignee.name).join(', ')}</p>
               {/* Render edit button for assignee if user is the creator */}
               <button onClick={toggleAssigneeEditMode}>Edit Assignee</button>
               {/* Render select input for assignee if in edit mode */}
@@ -396,7 +423,44 @@ const IssueDetail = ({ projects }) => {
               )}
             </div>
           )}
-            
+          </div>
+
+          <div className="issue-details">
+            <h3> Detail Actions </h3>
+            {/* Display notifications for description edits */}
+            {descriptionHistory.map((entry, index) => (
+              <div key={index}>
+                {entry.username} edited the description on {entry.timestamp}
+              </div>
+            ))}
+
+            {/* Display notifications for title edits */}
+            {titleHistory.map((entry, index) => (
+              <div key={index}>
+                {entry.username} edited the title on {entry.timestamp}
+              </div>
+            ))}
+
+            {/* Display notifications for assignee edits */}
+            {assigneeHistory.map((entry, index) => (
+              <div key={index}>
+                {entry.username} {entry.assignee} on {entry.timestamp}
+              </div>
+            ))}
+
+            {/*Display notifications for due date edits */}
+            {dueDateHistory.map((entry, index) => (
+              <div key={index}>
+                {entry.username} changed the deadline of this issue from {new Date(entry.oldDueDate).toLocaleDateString('en-GB')} to {new Date(entry.newDueDate).toLocaleDateString('en-GB')} on {entry.timestamp}
+              </div>
+            ))}
+
+            {/*Display notifications for issue status */}
+            {statusHistory.map((entry, index) => (
+              <div key={index}>
+                {entry.username} {entry.newStatus === 'Open' ? 'opened' : 'closed'} this issue on {entry.timestamp}
+              </div>
+            ))}
             
           </div>
 
