@@ -1,5 +1,5 @@
 /* eslint-disable */
-import React, { useState, useEffect, useContext } from 'react'
+import React, { useState, useEffect, useContext, useRef } from 'react'
 import './App.css'
 import {
   Routes,
@@ -14,6 +14,8 @@ import scqcLogo from './img/LOGO-SCQC-ISO.png'
 import user_phihd from './img/user_phihd.jpeg'
 import default_avatar from './img/default_avatar.jpg'
 import delete_button from './img/delete.png'
+import noti_img from './img/noti_img.png'
+import noti_yes from './img/noti-yes-img.png'
 
 import ProjectDetail from './components/ProjectDetail'
 import Dashboard from './components/Dashboard'
@@ -49,6 +51,7 @@ const App = () => {
 
   const { user, setUser } = useContext(UserContext)
   const [notifications, setNotifications] = useState([])
+  const [showNotifications, setShowNotifications] = useState(false)
   
 
   useEffect(() => {
@@ -76,7 +79,42 @@ const App = () => {
   }, [refreshProjects])
 
 
+
+
   function NavigationBar() {
+    const [showNotifications, setShowNotifications] = useState(false);
+    const [notifications, setNotifications] = useState([])
+    const buttonRef = useRef(null)
+  
+    // Function to simulate fetching notifications from the server
+    const fetchNotifications = () => {
+      const simulatedNotifications = [
+        { id: 1, message: 'New notification 1', read: true },
+        { id: 2, message: 'New notification 2', read: true },
+        { id: 3, message: 'New notification 3', read: false },
+      ]
+  
+      setNotifications(simulatedNotifications);
+    }
+  
+    // Function to handle notification button click
+    const handleNotificationClick = () => {
+      setShowNotifications(!showNotifications)
+    }
+
+    // Function to mark a notification as read
+    const markNotificationAsRead = (id) => {
+      setNotifications(prevNotifications =>
+        prevNotifications.map(notification =>
+          notification.id === id ? { ...notification, read: true } : notification
+        )
+      )
+    }
+  
+    useEffect(() => {
+      fetchNotifications();
+    }, []);
+  
     return (
       <nav className="navbar">
         <div className="navigation-links">
@@ -86,8 +124,29 @@ const App = () => {
             <li><a href="#">Thảo luận</a></li>
           </ul>
         </div>
+        <div className="notification">
+          <button ref={buttonRef} className="notification-btn" onClick={handleNotificationClick}>
+            <img src={noti_img} alt="Notification" />
+          </button>
+          {showNotifications && (
+            <div className="notification-popup" style={{ top: buttonRef.current.offsetTop + buttonRef.current.offsetHeight }}>
+              <div className="notification-panel">
+                {notifications.map(notification => (
+                  <a
+                    key={notification.id}
+                    href={`/project/659bcbab51659ac5c226fb12/659bcc7151659ac5c226fb46`}
+                    className={`notification-link ${notification.read ? 'read' : 'unread'}`}
+                    onClick={() => markNotificationAsRead(notification.id)}
+                  >
+                    <div>{notification.message}</div>
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
       </nav>
-    )
+    );
   }
 
   function Sidebar() {
@@ -268,7 +327,6 @@ const App = () => {
           <div className="dropdown-content">
             <button onClick={() => handleItemClick('settings')}>Settings</button>
             <button onClick={() => handleItemClick('logout')}>Log Out</button>
-            {/* Add more options as needed */}
           </div>
         )}
         {isOpenEmailForm && (
