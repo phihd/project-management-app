@@ -13,9 +13,9 @@ commentsRouter.get('/', async (request, response) => {
   response.json(comments)
 })
 
-commentsRouter.get('/:id', async (request, response) => {
-  const { issueId } = request.params.issueId
-  const comment = await Issue.findOne({ _id: issueId, issue: issueId })
+commentsRouter.get('/:commentId', async (request, response) => {
+  const commentId = request.params.commentId
+  const comment = await CommentModel.findOne({ _id: commentId })
   if (comment) {
     response.json(comment)
   } else {
@@ -47,11 +47,10 @@ commentsRouter.post('/', async (request, response, next) => {
   const issue = await Issue.findById(issueId)
 
   const comment = await new CommentModel({
-    text: body.text,
-    date: body.date,
     issue: issue,
-    user: user.id
-  }).populate('user', { username: 1, name: 1 })
+    user: user.id,
+    versions: [{ text: body.text }]
+  }).populate('user', { name: 1 })
 
   const savedComment = await comment.save()
   issue.comments = issue.comments.concat(savedComment._id)
@@ -60,7 +59,7 @@ commentsRouter.post('/', async (request, response, next) => {
   response.status(201).json(savedComment)
 })
 
-commentsRouter.delete('/:id', async (request, response, next) => {
+commentsRouter.delete('/:commentId', async (request, response, next) => {
   const token = request.token
   if (!token) {
     return response.status(401).json({ error: 'token missing' })
@@ -86,20 +85,36 @@ commentsRouter.delete('/:id', async (request, response, next) => {
   }
 })
 
-commentsRouter.put('/:id', async (request, response, next) => {
-  const body = request.body
-  const issueId = request.params.issueId
+commentsRouter.put('/:commentId', async (request, response, next) => {
+  const token = request.token
+  if (!token) {
+    return response.status(401).json({ error: 'token missing' })
+  }
 
-  const comment = {
-    text: body.title,
-    date: body.date,
-    issue: body.issue,
-    user: body.user
+  const decodedToken = jwt.verify(token, process.env.SECRET)
+  if (!decodedToken.id) {
+    return response.status(401).json({ error: 'token invalid' })
+  }
+
+  const body = request.body
+  const user = request.user
+  const commentId = request.params.commentId
+
+  const existingComment = await CommentModel.findOne({ _id: commentId })
+  if (!existingComment) {
+    return response.status(404).json({ message: 'Comment not found' })
+  }
+
+  if ('text' in body && existingComment.user.toString() !== user.id.toString()) {
+    return response.status(403).json({ message: 'Comment can only be edited by its creator' })
   }
 
   const updatedCommentModel = await CommentModel
-    .findByIdAndUpdate({ issue: issueId }, comment, { new: true })
+    .findByIdAndUpdate(id,
+      { $push: { versions: { text, timestamp: new Date() } } }, // Append new version
+      { new: true })
     .populate('user', { name: 1 })
+
   response.json(updatedCommentModel)
 })
 
