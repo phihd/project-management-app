@@ -53,6 +53,91 @@ body {
   color: #fff;
 }
 
+.navigation-links ul {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+
+.navigation-links ul li {
+  display: inline-block;
+  margin-right: 20px;
+}
+
+.navigation-links ul li a {
+  text-decoration: none;
+  color: #fff;
+}
+
+.notification {
+  display: flex;
+  align-items: center;
+}
+
+.notification-btn {
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  color: #fff;
+  font-size: 20px;
+  margin-left: 10px;
+  padding: 0;
+}
+
+.notification-btn img {
+  width: 30px; /* Adjust the width and height as needed */
+  height: 30px;
+}
+
+.notification-btn:hover {
+  color: yellow; /* Change color on hover */
+}
+
+.notification-popup {
+  position: absolute;
+  top: 50px; /* Adjust as needed */
+  right: 10px; /* Adjust as needed */
+  background-color: rgb(8, 13, 3); 
+  border: 1px solid #ccc;
+  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2);
+  z-index: 999;
+}
+
+.notification-panel {
+  max-height: 300px; /* Adjust as needed */
+  overflow-y: auto;
+  padding: 10px;
+}
+
+/* Additional styles for better appearance */
+.notification-panel div {
+  padding: 5px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.notification-panel div:last-child {
+  border-bottom: none;
+}
+
+.notification-link {
+  text-decoration: none;
+  color: black;
+}
+
+.notification-link:hover {
+  background-color: #f0f0f0;
+}
+
+.notification-link.read {
+  background-color: #353542; /* Subdued background for read notifications */
+  color: #777; /* Dim text color for read notifications */
+}
+
+.notification-link.unread {
+  background-color: #9e1414; /* Bright background for unread notifications */
+  color: #fff; /* White text for better readability on the bright background */
+}
+
 /* Navbar link styles */
 .navbar a {
   color: #fff;

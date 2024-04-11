@@ -123,6 +123,9 @@ issuesRouter.put('/:issueId', async (request, response, next) => {
     if (['createdDate', 'creator', 'project'].some(field => field in body)) {
       return response.status(400).json({ message: 'Immutable field cannot be updated' })
     }
+    if ('dueDate' in body) {
+      body.dueDate = new Date(body.dueDate)
+    }
 
     const existingIssue = await Issue.findOne({ _id: issueId })
     if (!existingIssue) {
