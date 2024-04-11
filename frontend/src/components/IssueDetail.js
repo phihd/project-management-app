@@ -32,6 +32,9 @@ const IssueDetail = ({ projects }) => {
   const [assigneeHistory, setAssigneeHistory] = useState([])
   const [dueDateHistory, setDueDateHistory] = useState([])
   const [statusHistory, setStatusHistory] = useState([])
+  const [editingCommentId, setEditingCommentId] = useState(null);
+  const [editedCommentText, setEditedCommentText] = useState("");
+
 
 
   // Find the project data based on the projectId
@@ -147,6 +150,25 @@ const IssueDetail = ({ projects }) => {
       setCommentInput('')
       setFiles([])
     }
+  }
+
+  const toggleEditComment = (commentId, text) => {
+    setEditingCommentId(commentId)
+    setEditedCommentText(text)
+  }
+
+  const saveEditedComment = (commentId) => {
+    // Update the comment in the local state
+    setComments(comments.map(comment => {
+      if (comment.id === commentId) {
+        return { ...comment, text: editedCommentText };
+      }
+      return comment;
+    }));
+  
+    // Reset editing state
+    setEditingCommentId(null);
+    setEditedCommentText("");
   }
 
   const updateDueDate = async (newDueDate) => {
@@ -472,12 +494,25 @@ const IssueDetail = ({ projects }) => {
               comments.map((comment, index) => (
                 <div className="comment" key={index}>
                   <p className="comment-user">{comment.user.name} commented on {formatTimestamp(comment.timestamp)}</p>
-                  <p className="comment-text">{comment.text}</p>
-                  {comment.files && comment.files.map((file, index) => (
-                    <a key={index} href={file} download={`file${index}`}>
-                      Download File {index + 1}
-                    </a>
-                  ))}
+                  {
+                    editingCommentId === comment.id ? (
+                      <textarea
+                        value={editedCommentText}
+                        onChange={(e) => setEditedCommentText(e.target.value)}
+                      />
+                    ) : (
+                      <p className="comment-text">{comment.text}</p>
+                    )
+                  }
+                  {
+                    user.id === comment.user.id && (
+                      editingCommentId === comment.id ? (
+                        <button onClick={() => saveEditedComment(comment.id)}>Save</button>
+                      ) : (
+                        <button onClick={() => toggleEditComment(comment.id, comment.text)}>Edit</button>
+                      )
+                    )
+                  }
                 </div>
               ))
             )}
