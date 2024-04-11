@@ -120,6 +120,10 @@ issuesRouter.put('/:issueId', async (request, response, next) => {
     const { projectId, issueId } = request.params
     const user = request.user
 
+    if ('dueDate' in body) {
+      body.dueDate = new Date(body.dueDate)
+    }
+
     const existingIssue = await Issue.findOne({ _id: issueId, project: projectId });
 
     if (!existingIssue) {

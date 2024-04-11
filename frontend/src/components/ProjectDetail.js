@@ -90,7 +90,7 @@ function ProjectDetail({ projects }) {
           </div>
         </div>
         <div className="project-detail-issue-list">
-          <h2>Issues</h2>
+          <h2>Open Issues</h2>
           <ul className="project-detail-issue-list-container">
             {issues.map((issue) => (
               <li key={issue.id} className="project-detail-issue-item">
