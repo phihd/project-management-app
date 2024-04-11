@@ -82,6 +82,22 @@ body {
   font-size: 20px;
   margin-left: 10px;
   padding: 0;
+  position: relative;
+}
+
+.notification-count {
+  position: absolute;
+  top: -10px;  /* Adjust these values based on your specific layout */
+  right: -10px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: red;
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 12px;
 }
 
 .notification-btn img {

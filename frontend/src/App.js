@@ -90,7 +90,7 @@ const App = () => {
     const fetchNotifications = () => {
       const simulatedNotifications = [
         { id: 1, message: 'New notification 1', read: true },
-        { id: 2, message: 'New notification 2', read: true },
+        { id: 2, message: 'New notification 2', read: false },
         { id: 3, message: 'New notification 3', read: false },
       ]
   
@@ -102,18 +102,38 @@ const App = () => {
       setShowNotifications(!showNotifications)
     }
 
-    // Function to mark a notification as read
+      // Function to mark a notification as read and navigate
+    const handleNotificationLinkClick = (e, id) => {
+      e.preventDefault(); // Prevent the default link behavior
+      
+      // First mark the notification as read
+      markNotificationAsRead(id).then(() => {
+        // After marking as read, navigate to the notification's link
+        window.location.href = `/project/659bcbab51659ac5c226fb12/659bcc7151659ac5c226fb46`;
+      });
+    };
+
+    // Improved function to mark a notification as read
     const markNotificationAsRead = (id) => {
-      setNotifications(prevNotifications =>
-        prevNotifications.map(notification =>
-          notification.id === id ? { ...notification, read: true } : notification
-        )
-      )
-    }
+      return new Promise(resolve => {
+        setNotifications(prevNotifications => {
+          return prevNotifications.map(notification => {
+            if (notification.id === id) {
+              return { ...notification, read: true };
+            }
+            return notification;
+          });
+        });
+        resolve();
+      });
+    };
   
     useEffect(() => {
       fetchNotifications();
     }, []);
+
+      // Calculate the number of unread notifications
+    const numberOfUnreadNotifications = notifications.filter(notification => !notification.read).length
   
     return (
       <nav className="navbar">
@@ -127,6 +147,9 @@ const App = () => {
         <div className="notification">
           <button ref={buttonRef} className="notification-btn" onClick={handleNotificationClick}>
             <img src={noti_img} alt="Notification" />
+            {numberOfUnreadNotifications > 0 && (
+              <span className="notification-count">{numberOfUnreadNotifications}</span>
+            )}
           </button>
           {showNotifications && (
             <div className="notification-popup" style={{ top: buttonRef.current.offsetTop + buttonRef.current.offsetHeight }}>
@@ -136,7 +159,7 @@ const App = () => {
                     key={notification.id}
                     href={`/project/659bcbab51659ac5c226fb12/659bcc7151659ac5c226fb46`}
                     className={`notification-link ${notification.read ? 'read' : 'unread'}`}
-                    onClick={() => markNotificationAsRead(notification.id)}
+                    onClick={(e) => handleNotificationLinkClick(e, notification.id)}
                   >
                     <div>{notification.message}</div>
                   </a>
