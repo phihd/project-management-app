@@ -5,7 +5,7 @@ This is an instruction for window developers.
 git clone git@github.com:phihd/project-management-app.git
 ```
 
-### Step 2: Create a new branch from with configs for windows
+### Step 2: Create a new branch
 ```bash
 git checkout -b <new_branch_name>
 ```
