@@ -12,6 +12,15 @@ const commentVersionSchema = new mongoose.Schema({
 }, { _id: false }); // Prevent separate _id for versions
 
 const commentSchema = new mongoose.Schema({
+  // text and timestamp of the latest version
+  text: {
+    type: String,
+    required: true,
+  },
+  timestamp: {
+    type: Date,
+    default: Date.now,
+  },
   versions: [commentVersionSchema],
   user: {
     type: mongoose.Schema.Types.ObjectId,
