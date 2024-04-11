@@ -47,6 +47,7 @@ commentsRouter.post('/', async (request, response, next) => {
   const issue = await Issue.findById(issueId)
 
   const comment = await new CommentModel({
+    text: body.text,
     issue: issue,
     user: user.id,
     versions: [{ text: body.text }]
@@ -69,8 +70,8 @@ commentsRouter.delete('/:commentId', async (request, response, next) => {
   if (!decodedToken.id) {
     return response.status(401).json({ error: 'token invalid' })
   }
-  const id = request.params.id
-  const comment = await CommentModel.findById(id)
+  const commentId = request.params.commentId
+  const comment = await CommentModel.findById(commentId)
 
   if (!comment) {
     response.status(404).json({ error: 'comment id cannot be found' })
@@ -78,7 +79,7 @@ commentsRouter.delete('/:commentId', async (request, response, next) => {
 
   const user = request.user
   if (comment.user.toString() === user.id.toString()) {
-    await CommentModel.deleteOne({ _id: id })
+    await CommentModel.deleteOne({ _id: commentId })
     response.sendStatus(204).end()
   } else {
     response.status(401).json({ error: 'comment can be deleted only by the user who created the comment' })
@@ -110,9 +111,10 @@ commentsRouter.put('/:commentId', async (request, response, next) => {
   }
 
   const updatedCommentModel = await CommentModel
-    .findByIdAndUpdate(id,
-      { $push: { versions: { text, timestamp: new Date() } } }, // Append new version
-      { new: true })
+    .findByIdAndUpdate(commentId, {
+      $set: { text: body.text, timestamp: new Date() }, // Update latest text and timestamp
+      $push: { versions: { text: body.text, timestamp: new Date() } } // Add new version
+    }, { new: true })
     .populate('user', { name: 1 })
 
   response.json(updatedCommentModel)
