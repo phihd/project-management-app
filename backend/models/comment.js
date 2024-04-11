@@ -1,6 +1,6 @@
 const mongoose = require('mongoose')
 
-const commentSchema = new mongoose.Schema({
+const commentVersionSchema = new mongoose.Schema({
   text: {
     type: String,
     required: true,
@@ -8,14 +8,11 @@ const commentSchema = new mongoose.Schema({
   timestamp: {
     type: Date,
     default: Date.now,
-  },
-  // files: [
-  //   {
-  //     filename: String,
-  //     contentType: String,
-  //     fileId: mongoose.Schema.Types.ObjectId, // Reference to the file in GridFS
-  //   },
-  // ],
+  }
+}, { _id: false }); // Prevent separate _id for versions
+
+const commentSchema = new mongoose.Schema({
+  versions: [commentVersionSchema],
   user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
@@ -25,7 +22,14 @@ const commentSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Issue',
     required: true,
-  }
+  },
+  // files: [
+  //   {
+  //     filename: String,
+  //     contentType: String,
+  //     fileId: mongoose.Schema.Types.ObjectId, // Reference to the file in GridFS
+  //   },
+  // ],
 })
 
 commentSchema.set('toJSON', {
