@@ -32,8 +32,9 @@ const IssueDetail = ({ projects }) => {
   const [assigneeHistory, setAssigneeHistory] = useState([])
   const [dueDateHistory, setDueDateHistory] = useState([])
   const [statusHistory, setStatusHistory] = useState([])
-  const [editingCommentId, setEditingCommentId] = useState(null);
-  const [editedCommentText, setEditedCommentText] = useState("");
+  const [editingCommentId, setEditingCommentId] = useState(null)
+  const [editedCommentText, setEditedCommentText] = useState("")
+  const [commentFiles, setCommentFiles] = useState([])
 
 
 
@@ -123,11 +124,10 @@ const IssueDetail = ({ projects }) => {
   }
 
   const createComment = async (newComment) => {
-    // Attach file URLs to comment before creating
     newComment.files = files.map(file => URL.createObjectURL(file))
     const comment = await commentService.create(projectId, issueId, newComment)
     setComments(comments.concat(comment))
-    setFiles([]) // Clear files after comment creation
+    setFiles([])
   }
 
   
@@ -135,20 +135,21 @@ const IssueDetail = ({ projects }) => {
     setCommentInput(event.target.value)
   }
 
-  const handleFileUpload = (event) => {
-    const selectedFiles = Array.from(event.target.files)
-    setFiles(selectedFiles)
+  const handleCommentFileUpload = (event) => {
+    setCommentFiles(event.target.files)
   }
 
   const handleAddComment = () => {
     if (commentInput.trim() !== '') {
       const newComment = {
         text: commentInput,
-        timestamp: new Date().toLocaleString(), 
+        timestamp: new Date().toLocaleString(),
+        files: commentFiles,
+        user: user,
       }
-      createComment(newComment)
+      setComments(comments.concat(newComment));
       setCommentInput('')
-      setFiles([])
+      setCommentFiles([])
     }
   }
 
@@ -158,17 +159,14 @@ const IssueDetail = ({ projects }) => {
   }
 
   const saveEditedComment = (commentId) => {
-    // Update the comment in the local state
     setComments(comments.map(comment => {
       if (comment.id === commentId) {
         return { ...comment, text: editedCommentText };
       }
       return comment;
-    }));
-  
-    // Reset editing state
-    setEditingCommentId(null);
-    setEditedCommentText("");
+    }))
+    setEditingCommentId(null)
+    setEditedCommentText("")
   }
 
   const updateDueDate = async (newDueDate) => {
@@ -298,8 +296,8 @@ const IssueDetail = ({ projects }) => {
           </ul>
         )}
       </div>
-    );
-  };
+    )
+  }
 
   const formatTimestamp = (timestamp) => {
     const date = new Date(timestamp);
@@ -513,6 +511,21 @@ const IssueDetail = ({ projects }) => {
                       )
                     )
                   }
+                  {/* Display attached files with download links */}
+                  {comment.files && comment.files.length > 0 && (
+                    <div className="comment-files">
+                      <strong>Attached Files:</strong>
+                      <ul>
+                        {Array.from(comment.files).map((file, fileIdx) => (
+                          <li key={fileIdx}>
+                            <a href={URL.createObjectURL(file)} download={file.name}>
+                              {file.name}
+                            </a>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
                 </div>
               ))
             )}
@@ -531,7 +544,7 @@ const IssueDetail = ({ projects }) => {
               type="file"
               multiple
               accept=".pdf,.doc,.docx,.jpg,.png"
-              onChange={handleFileUpload}
+              onChange={handleCommentFileUpload}
             />
           </div>
           <button className="comment-button" onClick={handleAddComment}>Comment</button>
