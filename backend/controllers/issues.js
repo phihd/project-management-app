@@ -3,7 +3,6 @@ const helper = require('../utils/helper')
 const issuesRouter = require('express').Router({ mergeParams: true }) // Use mergeParams to access the parent route params
 const Issue = require('../models/issue')
 const Project = require('../models/project')
-const CommentModel = require('../models/comment')
 
 issuesRouter.get('/', async (request, response) => {
   try {
