@@ -81,7 +81,7 @@ issuesRouter.post('/', async (request, response, next) => {
     })
   ])
 
-  await performDueIssueCheck()
+  await performDueIssueCheck(savedIssue._id)
 
   response.status(201).json(savedIssue)
 })
@@ -158,6 +158,7 @@ issuesRouter.put('/:issueId', async (request, response, next) => {
     if (!updatedIssue) {
       return response.status(404).json({ message: 'Issue not found after update attempt' })
     }
+    await performDueIssueCheck(updatedIssue._id)
 
     response.json(updatedIssue)
   } catch (error) {
