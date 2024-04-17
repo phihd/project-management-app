@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import DatePicker from 'react-datepicker'
 import 'react-datepicker/dist/react-datepicker.css'
 import userService from '../services/users'
+import { set } from 'date-fns'
 
 function NewIssueForm({ handleCreateIssue, handleCloseForm }) {
   const [issueTitle, setIssueTitle] = useState('')
@@ -23,6 +24,13 @@ function NewIssueForm({ handleCreateIssue, handleCloseForm }) {
     })
   }, [])
 
+  function formatDate(date) {
+    const endOfDay = set(date, { hours: 23, minutes: 59, seconds: 59 })
+    console.log(endOfDay.toISOString())
+    return endOfDay.toISOString()
+  }
+
+
   const handleAssigneeSelection = (e) => {
     const selectedOptions = Array.from(e.target.selectedOptions, (option) => option.value)
     setSelectedAssignees(selectedOptions)
@@ -33,7 +41,7 @@ function NewIssueForm({ handleCreateIssue, handleCloseForm }) {
     const newIssue = {
       title: issueTitle,
       description: issueDescription,
-      dueDate: dueDate ? dueDate.toISOString().split('T')[0] : '', // Format date before sending
+      dueDate: dueDate ? formatDate(dueDate) : '', // Format date before sending
       assignees: selectedAssignees
     }
     handleCreateIssue(newIssue)
