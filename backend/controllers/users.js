@@ -136,4 +136,44 @@ usersRouter.post('/', async (request, response) => {
   response.status(201).json(savedUser)
 })
 
+usersRouter.put('/:userId', async (request, response) => {
+  if (!request.token) {
+    return response.status(401).json({ error: 'token missing' })
+  }
+
+  const decodedToken = jwt.verify(request.token, process.env.SECRET)
+  if (!decodedToken.id) {
+    return response.status(401).json({ error: 'token invalid' })
+  }
+
+  const { name, email } = request.body
+  const { userId } = request.params
+  const request_user = request.user
+
+  if (userId.toString() != request_user._id.toString()) {
+    return response.status(403).json({ message: 'Invalid permission' })
+  }
+
+  try {
+    const updatedUser = await User
+      .findByIdAndUpdate(
+        userId,
+        { name, email },
+        { new: true, runValidators: true, context: 'query' } // Ensuring validation and returning the updated object
+      )
+      .populate('projects', { name: 1 })
+      .populate('createdIssues', { title: 1 })
+      .populate('assignedIssues', { title: 1 })
+
+    if (!updatedUser) {
+      return response.status(404).json({ error: 'User not found' })
+    }
+
+    response.json(updatedUser)
+  } catch (error) {
+    response.status(400).json({ error: error.message })
+  }
+})
+
+
 module.exports = usersRouter
