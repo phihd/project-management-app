@@ -11,6 +11,9 @@ const projectsRouter = require('./controllers/projects')
 const issuesRouter = require('./controllers/issues')
 const commentRouter = require('./controllers/comments')
 const homeRouter = require('./controllers/home')
+const notificationRouter = require('./controllers/notification')
+
+const { daily_job } = require('./schedules/schedule')
 
 const middleware = require('./utils/middleware')
 const logger = require('./utils/logger')
@@ -24,18 +27,19 @@ logger.info('connecting to', config.MONGODB_URI)
 mongoose.connect(config.MONGODB_URI)
   .then(() => {
     logger.info('connected to MongoDB')
+    daily_job()
   })
   .catch((error) => {
     logger.error('error connecting to MongoDB:', error.message)
   })
 
-// Initialize GridFS
-const connection = mongoose.connection
-let gfs
-connection.once('open', () => {
-  gfs = Grid(connection.db, mongoose.mongo)
-  gfs.collection('files-upload')
-})
+// // Initialize GridFS
+// const connection = mongoose.connection
+// let gfs
+// connection.once('open', () => {
+//   gfs = Grid(connection.db, mongoose.mongo)
+//   gfs.collection('files-upload')
+// })
 
 app.use(cors())
 app.use(express.static('build'))
@@ -48,6 +52,7 @@ app.use(middleware.requestLogger)
 app.use('/api', homeRouter)
 app.use('/api/users', usersRouter)
 app.use('/api/login', loginRouter)
+app.use('/api/notification', notificationRouter)
 app.use('/api/projects', projectsRouter)
 app.use('/api/projects/:projectId/issues', issuesRouter)
 app.use('/api/projects/:projectId/issues/:issueId/comments', commentRouter)
