@@ -2,7 +2,9 @@ const jwt = require('jsonwebtoken')
 const helper = require('../utils/helper')
 const issuesRouter = require('express').Router({ mergeParams: true }) // Use mergeParams to access the parent route params
 const Issue = require('../models/issue')
+const User = require('../models/user')
 const Project = require('../models/project')
+const performDueIssueCheck = require('../schedules/jobs/dueIssueCheck')
 
 issuesRouter.get('/', async (request, response) => {
   try {
@@ -65,14 +67,21 @@ issuesRouter.post('/', async (request, response, next) => {
   })
 
   const savedIssue = await issue.save()
-  user.createdIssues = user.createdIssues.concat(savedIssue._id)
-  savedIssue.assignees = savedIssue.assignees.map(assignee => ({
-    ...assignee,
-    assignedIssues: [...assignee.assignedIssues, savedIssue._id]
-  }))
-  await user.save()
-  project.issues = project.issues.concat(savedIssue._id)
-  await project.save()
+  await Promise.all([
+    ...savedIssue.assignees.map(assigneeId =>
+      User.findByIdAndUpdate(assigneeId, {
+        $push: { assignedIssues: savedIssue._id }
+      })
+    ),
+    User.findByIdAndUpdate(user._id, {
+      $push: { createdIssues: savedIssue._id }
+    }),
+    Project.findByIdAndUpdate(projectId, {
+      $push: { issues: savedIssue._id }
+    })
+  ])
+
+  await performDueIssueCheck()
 
   response.status(201).json(savedIssue)
 })
@@ -119,10 +128,10 @@ issuesRouter.put('/:issueId', async (request, response, next) => {
     const { projectId, issueId } = request.params
     const user = request.user
 
-    const existingIssue = await Issue.findOne({ _id: issueId, project: projectId });
+    const existingIssue = await Issue.findOne({ _id: issueId, project: projectId })
 
     if (!existingIssue) {
-      return response.status(404).json({ message: 'Issue not found' });
+      return response.status(404).json({ message: 'Issue not found' })
     }
 
     const update = { ...body }
@@ -136,10 +145,10 @@ issuesRouter.put('/:issueId', async (request, response, next) => {
     if ('dueDate' in body && !helper.areDatesSameDay(body.dueDate, existingIssue.dueDate) && existingIssue.creator.toString() !== user.id.toString()) {
       return response.status(403).json({ message: 'Only creator can change due date' })
     }
-    
+
     const updatedIssue = await Issue.findOneAndUpdate(
       { _id: issueId, project: projectId },
-      body,
+      update,
       {
         new: true,
         runValidators: true,
@@ -147,7 +156,7 @@ issuesRouter.put('/:issueId', async (request, response, next) => {
     )
 
     if (!updatedIssue) {
-      return response.status(404).json({ message: 'Issue not found after update attempt' });
+      return response.status(404).json({ message: 'Issue not found after update attempt' })
     }
 
     response.json(updatedIssue)
