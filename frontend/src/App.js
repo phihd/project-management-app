@@ -50,8 +50,10 @@ const App = () => {
   const [showSignUp, setShowSignUp] = useState(false)
 
   const { user, setUser } = useContext(UserContext)
+  const [isSidebarVisible, setIsSidebarVisible] = useState(true)
   const [notifications, setNotifications] = useState([])
   const [showNotifications, setShowNotifications] = useState(false)
+  const sidebarRef = useRef(null)
   
 
   useEffect(() => {
@@ -81,10 +83,11 @@ const App = () => {
 
 
 
-  function NavigationBar() {
+  function NavigationBar({ toggleSidebar }) {
     const [showNotifications, setShowNotifications] = useState(false);
     const [notifications, setNotifications] = useState([])
     const buttonRef = useRef(null)
+    
   
     // Function to simulate fetching notifications from the server
     const fetchNotifications = () => {
@@ -137,6 +140,10 @@ const App = () => {
   
     return (
       <nav className="navbar">
+        {/* Toggle Sidebar Button */}
+        <button className="sidebar-toggle-btn" onClick={toggleSidebar}>
+          Toggle Sidebar
+        </button>
         <div className="navigation-links">
           <ul>
             <li><a href="#">Dự án & Phòng ban</a></li>
@@ -172,7 +179,7 @@ const App = () => {
     );
   }
 
-  function Sidebar() {
+  function Sidebar({ isVisible }) {
     const [selectedView, setSelectedView] = useState('projects')
 
     const handleItemClick = (view) => {
@@ -181,7 +188,7 @@ const App = () => {
     }
 
     return (
-      <aside className="sidebar">
+      <aside className={`sidebar ${!isVisible ? 'hidden' : ''}`}>
         <div className="logo">
           <Link to="/" onClick={() => handleItemClick('')}>
             <img src={scqcLogo} alt="SCQC Logo" />
@@ -292,16 +299,17 @@ const App = () => {
   }
 
 
-  function Footer() {
+  function Footer({ children }) {
     return (
-      <footer className="footer">
-        <div className="footer-content">
-          <a href="https://www.linkedin.com/in/phihd/">Visit PhiThienTai</a>
-          <p>Copyright © 2023 PhiThientai. All rights reserved.</p>
-        </div>
-      </footer>
+        <footer className="footer">
+            {children}
+            <div className="footer-content">
+                <a href="https://www.linkedin.com/in/phihd/">Visit PhiThienTai</a>
+                <p>Copyright © 2023 PhiThientai. All rights reserved.</p>
+            </div>
+        </footer>
     )
-  }
+}
 
   const UserDropdown = ({ user, handleLogout }) => {
     const [isOpen, setIsOpen] = useState(false)
@@ -513,34 +521,30 @@ const App = () => {
       {
         user && <div>
           <div className="App">
-            <div className="sidebar-wrapper">
-              <Sidebar />
-            </div>
-            <UserDropdown user={user} handleLogout={handleLogout} />
-            <div className="content-wrapper">
-              <NavigationBar />
-              <Notification text={message.text} isError={message.isError} />
-              <div className="main-content">
-                  <Routes>
-                    <Route path="/" element={<Main />} />
-                    <Route path="/project" element={<Project />} />
-                    <Route
-                      path="/project/:projectId"
-                      element={<ProjectDetail projects={projects} />} />
-                    <Route path="/department" element={<Department />} />
-                    <Route
-                      path="/project/:projectId/:issueId"
-                      element={<IssueDetail projects={projects} />}
-                    />
-                    <Route path="/procedure" element={<Procedure />} />
-                    <Route path="/procedure/:templateId" element={<TemplateDetail />} />
-                    <Route path="/procedure/:templateId/:stepId" element={<StepDetail />} />
-                  </Routes>
-              </div>
-              <Footer />
-            </div>
-
-          </div>
+      <div className="navbar">
+        <NavigationBar toggleSidebar={() => setIsSidebarVisible(prev => !prev)} />
+      </div>
+      <div className={`sidebar-wrapper ${isSidebarVisible ? '' : 'hidden'}`}>
+        <Sidebar isVisible={isSidebarVisible} />
+      </div>
+      <div className={`content-wrapper ${isSidebarVisible ? 'shifted' : ''}`}>
+        <div className="main-content">
+          <Routes>
+            <Route path="/" element={<Main />} />
+            <Route path="/project" element={<Project />} />
+            <Route path="/project/:projectId" element={<ProjectDetail projects={projects} />} />
+            <Route path="/department" element={<Department />} />
+            <Route path="/project/:projectId/:issueId" element={<IssueDetail projects={projects} />} />
+            <Route path="/procedure" element={<Procedure />} />
+            <Route path="/procedure/:templateId" element={<TemplateDetail />} />
+            <Route path="/procedure/:templateId/:stepId" element={<StepDetail />} />
+          </Routes>
+        </div>
+        </div>
+          <Footer>
+              <UserDropdown user={user} handleLogout={handleLogout} />
+          </Footer>
+        </div>
         </div>
       }
     </div>
