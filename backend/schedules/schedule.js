@@ -10,6 +10,7 @@ const getTimeForCron = (hour, timezone) => {
 const cronTime = getTimeForCron(6, 'Asia/Ho_Chi_Minh') // Get cron time for 6 AM in HCMC
 
 const daily_job = () => {
+  console.log('Schedule for daily job is set')
   // Run at 6AM every day
   cron.schedule(cronTime, async () => {
     console.log('Daily Cron job triggered')
