@@ -1,5 +1,5 @@
 /* eslint-disable */
-import React, { useState, useEffect, useContext } from 'react'
+import React, { useState, useEffect, useContext, useRef } from 'react'
 import './App.css'
 import {
   Routes,
@@ -14,6 +14,8 @@ import scqcLogo from './img/LOGO-SCQC-ISO.png'
 import user_phihd from './img/user_phihd.jpeg'
 import default_avatar from './img/default_avatar.jpg'
 import delete_button from './img/delete.png'
+import noti_img from './img/noti_img.png'
+import noti_yes from './img/noti-yes-img.png'
 
 import ProjectDetail from './components/ProjectDetail'
 import Dashboard from './components/Dashboard'
@@ -48,6 +50,11 @@ const App = () => {
   const [showSignUp, setShowSignUp] = useState(false)
 
   const { user, setUser } = useContext(UserContext)
+  const [isSidebarVisible, setIsSidebarVisible] = useState(true)
+  const [notifications, setNotifications] = useState([])
+  const [showNotifications, setShowNotifications] = useState(false)
+  const sidebarRef = useRef(null)
+  
 
   useEffect(() => {
     const loggedUserJSON = window.localStorage.getItem('loggedProjectappUser')
@@ -75,9 +82,68 @@ const App = () => {
 
 
 
-  function NavigationBar() {
+
+  function NavigationBar({ toggleSidebar }) {
+    const [showNotifications, setShowNotifications] = useState(false);
+    const [notifications, setNotifications] = useState([])
+    const buttonRef = useRef(null)
+    
+  
+    // Function to simulate fetching notifications from the server
+    const fetchNotifications = () => {
+      const simulatedNotifications = [
+        { id: 1, message: 'New notification 1', read: true },
+        { id: 2, message: 'New notification 2', read: false },
+        { id: 3, message: 'New notification 3', read: false },
+      ]
+  
+      setNotifications(simulatedNotifications);
+    }
+  
+    // Function to handle notification button click
+    const handleNotificationClick = () => {
+      setShowNotifications(!showNotifications)
+    }
+
+      // Function to mark a notification as read and navigate
+    const handleNotificationLinkClick = (e, id) => {
+      e.preventDefault(); // Prevent the default link behavior
+      
+      // First mark the notification as read
+      markNotificationAsRead(id).then(() => {
+        // After marking as read, navigate to the notification's link
+        window.location.href = `/project/659bcbab51659ac5c226fb12/659bcc7151659ac5c226fb46`;
+      });
+    };
+
+    // Improved function to mark a notification as read
+    const markNotificationAsRead = (id) => {
+      return new Promise(resolve => {
+        setNotifications(prevNotifications => {
+          return prevNotifications.map(notification => {
+            if (notification.id === id) {
+              return { ...notification, read: true };
+            }
+            return notification;
+          });
+        });
+        resolve();
+      });
+    };
+  
+    useEffect(() => {
+      fetchNotifications();
+    }, []);
+
+      // Calculate the number of unread notifications
+    const numberOfUnreadNotifications = notifications.filter(notification => !notification.read).length
+  
     return (
       <nav className="navbar">
+        {/* Toggle Sidebar Button */}
+        <button className="sidebar-toggle-btn" onClick={toggleSidebar}>
+          Toggle Sidebar
+        </button>
         <div className="navigation-links">
           <ul>
             <li><a href="#">Dự án & Phòng ban</a></li>
@@ -85,11 +151,35 @@ const App = () => {
             <li><a href="#">Thảo luận</a></li>
           </ul>
         </div>
+        <div className="notification">
+          <button ref={buttonRef} className="notification-btn" onClick={handleNotificationClick}>
+            <img src={noti_img} alt="Notification" />
+            {numberOfUnreadNotifications > 0 && (
+              <span className="notification-count">{numberOfUnreadNotifications}</span>
+            )}
+          </button>
+          {showNotifications && (
+            <div className="notification-popup" style={{ top: buttonRef.current.offsetTop + buttonRef.current.offsetHeight }}>
+              <div className="notification-panel">
+                {notifications.map(notification => (
+                  <a
+                    key={notification.id}
+                    href={`/project/659bcbab51659ac5c226fb12/659bcc7151659ac5c226fb46`}
+                    className={`notification-link ${notification.read ? 'read' : 'unread'}`}
+                    onClick={(e) => handleNotificationLinkClick(e, notification.id)}
+                  >
+                    <div>{notification.message}</div>
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
       </nav>
-    )
+    );
   }
 
-  function Sidebar() {
+  function Sidebar({ isVisible }) {
     const [selectedView, setSelectedView] = useState('projects')
 
     const handleItemClick = (view) => {
@@ -98,7 +188,7 @@ const App = () => {
     }
 
     return (
-      <aside className="sidebar">
+      <aside className={`sidebar ${!isVisible ? 'hidden' : ''}`}>
         <div className="logo">
           <Link to="/" onClick={() => handleItemClick('')}>
             <img src={scqcLogo} alt="SCQC Logo" />
@@ -128,12 +218,10 @@ const App = () => {
   function Table({ projects }) {
     const navigate = useNavigate()
 
-    // Function to handle status change
     const handleStatusChange = (projectId, newStatus, event) => {
       event.stopPropagation()
       projectId
       newStatus
-      // pass
     }
 
     const handleRowClick = (projectId) => {
@@ -211,49 +299,80 @@ const App = () => {
   }
 
 
-  function Footer() {
+  function Footer({ children }) {
     return (
-      <footer className="footer">
-        <div className="footer-content">
-          <a href="https://www.linkedin.com/in/phihd/">Visit PhiThienTai</a>
-          <p>Copyright © 2023 PhiThientai. All rights reserved.</p>
-        </div>
-      </footer>
+        <footer className="footer">
+            {children}
+            <div className="footer-content">
+                <a href="https://www.linkedin.com/in/phihd/">Visit PhiThienTai</a>
+                <p>Copyright © 2023 PhiThientai. All rights reserved.</p>
+            </div>
+        </footer>
     )
-  }
+}
 
   const UserDropdown = ({ user, handleLogout }) => {
     const [isOpen, setIsOpen] = useState(false)
-
+    const [isOpenEmailForm, setIsOpenEmailForm] = useState(false)
+    const [email, setEmail] = useState('')
+  
     const toggleDropdown = () => {
       setIsOpen(!isOpen)
     }
-
+  
     const handleItemClick = (action) => {
-      // Perform action based on selected item
-      if (action === 'logout') {
+      if (action === 'settings') {
+        toggleEmailForm()
+      } else if (action === 'logout') {
         handleLogout()
       }
-      // You can add more actions for other options if needed
-      setIsOpen(false) // Close the dropdown after action
+      setIsOpen(false)
+    }
+  
+    const toggleEmailForm = () => {
+      setIsOpenEmailForm(!isOpenEmailForm)
+    }
+  
+    const handleEmailChange = (event) => {
+      setEmail(event.target.value)
+    }
+  
+    const handleSubmitEmail = (event) => {
+      event.preventDefault();
+      console.log('Email submitted:', email)
+      setEmail('')
+      setIsOpenEmailForm(false)
     }
 
+    const handleCloseForm = () => {
+      setIsOpenEmailForm(false)
+    }
+  
     return (
       <div className="user-info">
         <button className="user-info-btn" onClick={toggleDropdown}>
           <span>{user.name}</span>
-          <img src={user.name == 'Phi Dang' ? user_phihd : default_avatar} alt="User Icon" />
+          <img src={user.name === 'Phi Dang' ? user_phihd : default_avatar} alt="User Icon" />
         </button>
         {isOpen && (
           <div className="dropdown-content">
             <button onClick={() => handleItemClick('settings')}>Settings</button>
             <button onClick={() => handleItemClick('logout')}>Log Out</button>
-            {/* Add more options as needed */}
+          </div>
+        )}
+        {isOpenEmailForm && (
+          <div className="email-form">
+            <button className="close-btn" onClick={handleCloseForm}>X</button>
+            <form onSubmit={handleSubmitEmail}>
+              <input type="email" value={email} onChange={handleEmailChange} placeholder="Enter email" />
+              <button type="submit">Submit</button>
+            </form>
           </div>
         )}
       </div>
     )
   }
+  
 
   function Project() {
     const handleNewProjectClick = () => {
@@ -306,9 +425,6 @@ const App = () => {
       <Dashboard currentUser={user} />
     )
   }
-
-
-
 
 
   const handleLogin = async (event) => {
@@ -405,34 +521,30 @@ const App = () => {
       {
         user && <div>
           <div className="App">
-            <div className="sidebar-wrapper">
-              <Sidebar />
-            </div>
-            <UserDropdown user={user} handleLogout={handleLogout} />
-            <div className="content-wrapper">
-              <NavigationBar />
-              <Notification text={message.text} isError={message.isError} />
-              <div className="main-content">
-                  <Routes>
-                    <Route path="/" element={<Main />} />
-                    <Route path="/project" element={<Project />} />
-                    <Route
-                      path="/project/:projectId"
-                      element={<ProjectDetail projects={projects} />} />
-                    <Route path="/department" element={<Department />} />
-                    <Route
-                      path="/project/:projectId/:issueId"
-                      element={<IssueDetail projects={projects} />}
-                    />
-                    <Route path="/procedure" element={<Procedure />} />
-                    <Route path="/procedure/:templateId" element={<TemplateDetail />} />
-                    <Route path="/procedure/:templateId/:stepId" element={<StepDetail />} />
-                  </Routes>
-              </div>
-              <Footer />
-            </div>
-
-          </div>
+      <div className="navbar">
+        <NavigationBar toggleSidebar={() => setIsSidebarVisible(prev => !prev)} />
+      </div>
+      <div className={`sidebar-wrapper ${isSidebarVisible ? '' : 'hidden'}`}>
+        <Sidebar isVisible={isSidebarVisible} />
+      </div>
+      <div className={`content-wrapper ${isSidebarVisible ? 'shifted' : ''}`}>
+        <div className="main-content">
+          <Routes>
+            <Route path="/" element={<Main />} />
+            <Route path="/project" element={<Project />} />
+            <Route path="/project/:projectId" element={<ProjectDetail projects={projects} />} />
+            <Route path="/department" element={<Department />} />
+            <Route path="/project/:projectId/:issueId" element={<IssueDetail projects={projects} />} />
+            <Route path="/procedure" element={<Procedure />} />
+            <Route path="/procedure/:templateId" element={<TemplateDetail />} />
+            <Route path="/procedure/:templateId/:stepId" element={<StepDetail />} />
+          </Routes>
+        </div>
+        </div>
+          <Footer>
+              <UserDropdown user={user} handleLogout={handleLogout} />
+          </Footer>
+        </div>
         </div>
       }
     </div>

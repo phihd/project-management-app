@@ -23,8 +23,8 @@ issuesRouter.get('/', async (request, response) => {
 
 issuesRouter.get('/:issueId', async (request, response) => {
   try {
-    const { projectId, issueId } = request.params
-    const issue = await Issue.findOne({ _id: issueId, project: projectId })
+    const issueId = request.params.issueId
+    const issue = await Issue.findOne({ _id: issueId })
     if (!issue) {
       return response.status(404).json({ message: 'Issue not found' })
     }
@@ -125,17 +125,27 @@ issuesRouter.put('/:issueId', async (request, response, next) => {
     }
 
     const body = request.body
-    const { projectId, issueId } = request.params
+    const issueId = request.params.issueId
     const user = request.user
 
-    const existingIssue = await Issue.findOne({ _id: issueId, project: projectId })
+    if (['createdDate', 'creator', 'project'].some(field => field in body)) {
+      return response.status(400).json({ message: 'Immutable field cannot be updated' })
+    }
+    if ('dueDate' in body) {
+      body.dueDate = new Date(body.dueDate)
+    }
+
+    const existingIssue = await Issue.findOne({ _id: issueId })
 
     if (!existingIssue) {
       return response.status(404).json({ message: 'Issue not found' })
     }
 
-    const update = { ...body }
+    if ('dueDate' in body) {
+      body.dueDate = new Date(body.dueDate)
+    }
 
+    // Field that only creator can modify
     if ('status' in body && body.status != existingIssue.status && existingIssue.creator.toString() !== user.id.toString()) {
       return response.status(403).json({ message: 'Only creator can close or reopen an issue' })
     }
@@ -145,10 +155,10 @@ issuesRouter.put('/:issueId', async (request, response, next) => {
     if ('dueDate' in body && !helper.areDatesSameDay(body.dueDate, existingIssue.dueDate) && existingIssue.creator.toString() !== user.id.toString()) {
       return response.status(403).json({ message: 'Only creator can change due date' })
     }
-
+    
     const updatedIssue = await Issue.findOneAndUpdate(
       { _id: issueId, project: projectId },
-      update,
+      body,
       {
         new: true,
         runValidators: true,

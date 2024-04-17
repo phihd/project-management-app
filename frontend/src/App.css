@@ -7,50 +7,167 @@
 
 /* Apply Segoe UI font to the entire app */
 body {
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  background-color: #353542;
-  color: #fff;
+  font-family: 'Montserrat', sans-serif;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Be Vietnam', sans-serif;
 }
 
 /* App container */
 .App {
   display: flex;
   height: 100vh;
-  overflow: hidden;
+  flex-direction: column;
 }
 
 /* Content wrapper */
 .content-wrapper {
   flex: 1; /* Let the content-wrapper take remaining space */
   overflow-y: auto;
-  padding: 25px;
+  margin-left: 0;
   display: flex;
   flex-direction: column;
   background-color: #353542;
   color: #fff;
+  transition: margin-left 0.5s ease; 
+}
+
+.content-wrapper.shifted {
+  margin-left: 250px; /* Shift right when sidebar is visible */
+  width: calc(100% - 250px)
 }
 
 /* Sidebar wrapper */
 .sidebar-wrapper {
   display: flex;
   flex-direction: column;
-  height:  100%;;
-  background-color: #000000; /* Set background color for the sidebar */
-  min-width: 150px; /* Set a minimum width for the sidebar */
-  max-width: 280px; /* Set a maximum width for the sidebar */
-  height: 100vh; /* Make sidebar wrapper full height */
-  overflow-y: auto; /* Enable vertical scrolling if content exceeds sidebar height */
-  color: #fff; /* Text color for the sidebar */
+  height: calc(100vh - 70px);
+  background-color: #000000;
+  overflow: hidden;
+  color: #fff;
+  z-index: 5;
+  transition: all 0.5s ease; /* Smooth transition for hiding/showing */
+}
+
+.sidebar-wrapper.hidden {
+  transform: translateX(-100%); /* Hide by moving left */
+  position: absolute; /* Takes it out of normal flow, preventing it from taking up space */
 }
 
 /* Navbar styles */
 .navbar {
+  width: 100%;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  height: 70px;
   padding: 15px;
   background-color: #353542;
   color: #fff;
+  z-index: 10; /* Ensure navbar is above sidebar */
+}
+
+
+.navigation-links ul {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+
+.navigation-links ul li {
+  display: inline-block;
+  margin-right: 20px;
+}
+
+.navigation-links ul li a {
+  text-decoration: none;
+  color: #fff;
+}
+
+.notification {
+  display: flex;
+  align-items: center;
+}
+
+.notification-btn {
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  color: #fff;
+  font-size: 20px;
+  margin-left: 10px;
+  padding: 0;
+  position: relative;
+}
+
+.notification-count {
+  position: absolute;
+  top: -10px;  /* Adjust these values based on your specific layout */
+  right: -10px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: red;
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 12px;
+}
+
+.notification-btn img {
+  width: 30px; /* Adjust the width and height as needed */
+  height: 30px;
+}
+
+.notification-btn:hover {
+  color: yellow; /* Change color on hover */
+}
+
+.notification-popup {
+  position: absolute;
+  top: 50px; /* Adjust as needed */
+  right: 10px; /* Adjust as needed */
+  background-color: rgb(8, 13, 3); 
+  border: 1px solid #ccc;
+  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2);
+  z-index: 999;
+}
+
+.notification-panel {
+  max-height: 300px; /* Adjust as needed */
+  overflow-y: auto;
+  padding: 10px;
+}
+
+/* Additional styles for better appearance */
+.notification-panel div {
+  padding: 5px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.notification-panel div:last-child {
+  border-bottom: none;
+}
+
+.notification-link {
+  text-decoration: none;
+  color: black;
+}
+
+.notification-link:hover {
+  background-color: #f0f0f0;
+}
+
+.notification-link.read {
+  background-color: #353542; /* Subdued background for read notifications */
+  color: #777; /* Dim text color for read notifications */
+}
+
+.notification-link.unread {
+  background-color: #9e1414; /* Bright background for unread notifications */
+  color: #fff; /* White text for better readability on the bright background */
 }
 
 /* Navbar link styles */
@@ -158,23 +275,8 @@ body {
   padding: 18px; /* Add padding to the sidebar */
 }
 
-/* Apply hidden style when the hidden class is added */
 .sidebar.hidden {
-transform: translateX(-100%); /* Move the sidebar off-screen */
-}
-
-/* Adjust width of sidebar */
-@media (max-width: 768px) {
-  .sidebar-wrapper {
-    width: 200px; /* Adjust width for smaller screens */
-  }
-}
-
-/* Media query for even smaller screens */
-@media (max-width: 576px) {
-  .sidebar-wrapper {
-    width: 150px; /* Further adjust width for even smaller screens */
-  }
+  display: none;
 }
 
 
@@ -206,9 +308,11 @@ transform: translateX(-100%); /* Move the sidebar off-screen */
   flex: 1;
   overflow-y: auto;
   background-color: #353542;
-  /* Light gray background */
+  height: calc(100vh - 70px);
+  padding: 10px;
   color: #fff;
-  /* Text color */
+  width: 100%;
+
 }
 
 /* Dashboard Styles */
@@ -244,12 +348,10 @@ th {
 /* Footer Styles */
 .footer {
   background-color: #353542;
-  /* Light gray background */
   color: #fff;
   /* Text color */
   padding: 15px;
   text-align: left;
-  /* Change text alignment to left */
 }
 
 /* Center the content within the footer */
