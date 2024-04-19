@@ -15,7 +15,6 @@ import user_phihd from './img/user_phihd.jpeg'
 import default_avatar from './img/default_avatar.jpg'
 import delete_button from './img/delete.png'
 import noti_img from './img/noti_img.png'
-import noti_yes from './img/noti-yes-img.png'
 
 import ProjectDetail from './components/ProjectDetail'
 import Dashboard from './components/Dashboard'
@@ -51,7 +50,9 @@ const App = () => {
   const [showSignUp, setShowSignUp] = useState(false)
 
   const { user, setUser } = useContext(UserContext)
-  const [isSidebarVisible, setIsSidebarVisible] = useState(true)
+  const [isSidebarVisible, setIsSidebarVisible] = useState(false)
+  const [notifications, setNotifications] = useState([])
+  const [showNotifications, setShowNotifications] = useState(false)
   const sidebarRef = useRef(null)
 
 
@@ -138,6 +139,11 @@ const App = () => {
 
     return (
       <nav className="navbar">
+        <div className="logo">
+          <Link to="/" onClick={() => handleItemClick('')}>
+            <img src={scqcLogo} alt="SCQC Logo" />
+          </Link>
+        </div>
         {/* Toggle Sidebar Button */}
         <button className="sidebar-toggle-btn" onClick={toggleSidebar}>
           Toggle Sidebar
@@ -187,11 +193,6 @@ const App = () => {
 
     return (
       <aside className={`sidebar ${!isVisible ? 'hidden' : ''}`}>
-        <div className="logo">
-          <Link to="/" onClick={() => handleItemClick('')}>
-            <img src={scqcLogo} alt="SCQC Logo" />
-          </Link>
-        </div>
         <ul className="sidebar-content-list">
           <li className={selectedView === 'project' ? 'selected' : ''}>
             <Link to="/project" onClick={() => handleItemClick('project')}>
@@ -298,16 +299,16 @@ const App = () => {
 
 
   function Footer({ children }) {
-    return (
-      <footer className="footer">
-        {children}
-        <div className="footer-content">
-          <a href="https://www.linkedin.com/in/phihd/">Visit PhiThienTai</a>
-          <p>Copyright © 2023 PhiThientai. All rights reserved.</p>
-        </div>
-      </footer>
-    )
-  }
+  return (
+    <footer className="footer">
+      <div className="footer-content">
+        {/* <a href="https://www.linkedin.com/in/phihd/">Visit PhiThienTai</a> */}
+        {/* <p>Copyright © 2023 PhiThientai. All rights reserved.</p> */}
+      </div>
+      <div className="user-dropdown">{children}</div>
+    </footer>
+  );
+}
 
   const UserDropdown = ({ handleLogout }) => {
     const [isOpen, setIsOpen] = useState(false)
@@ -354,7 +355,7 @@ const App = () => {
     return (
       <div className="user-info">
         <button className="user-info-btn" onClick={toggleDropdown}>
-          <span>{user.name}</span>
+          <p className="monsteratt-font">{user.name}</p>
           <img src={user.name === 'Phi Dang' ? user_phihd : default_avatar} alt="User Icon" />
         </button>
         {isOpen && (
