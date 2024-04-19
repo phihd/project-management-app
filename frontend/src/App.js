@@ -34,6 +34,7 @@ import loginService from './services/login'
 import projectService from './services/projects'
 import homeService from './services/home'
 import userService from './services/users'
+import notiService from './services/notifications'
 import { setToken } from './services/tokenmanager'
 
 const App = () => {
@@ -46,15 +47,13 @@ const App = () => {
   const [projects, setProjects] = useState([])
   const [showProjectForm, setShowProjectForm] = useState(false)
   const [refreshProjects, setRefreshProjects] = useState(false)
-  const [showLogin, setShowLogin] = useState(true);
+  const [showLogin, setShowLogin] = useState(true)
   const [showSignUp, setShowSignUp] = useState(false)
 
   const { user, setUser } = useContext(UserContext)
   const [isSidebarVisible, setIsSidebarVisible] = useState(true)
-  const [notifications, setNotifications] = useState([])
-  const [showNotifications, setShowNotifications] = useState(false)
   const sidebarRef = useRef(null)
-  
+
 
   useEffect(() => {
     const loggedUserJSON = window.localStorage.getItem('loggedProjectappUser')
@@ -80,41 +79,44 @@ const App = () => {
     )
   }, [refreshProjects])
 
+  const useNotifications = () => {
+    const [notifications, setNotifications] = useState([])
+    const { user } = useContext(UserContext)
 
+    useEffect(() => {
+      if (user) {
+        notiService.getAll().then(data => {
+          const notiByUser = data.filter(noti => noti.user === user.id)
+          setNotifications(notiByUser)
+        }).catch(error => console.error('Failed to fetch notifications:', error))
+      }
+    }, [user])  // Depend on user to refetch when user changes
+
+    return { notifications, setNotifications }
+  }
 
 
   function NavigationBar({ toggleSidebar }) {
-    const [showNotifications, setShowNotifications] = useState(false);
-    const [notifications, setNotifications] = useState([])
+    const { notifications, setNotifications } = useNotifications()
+    const [showNotifications, setShowNotifications] = useState(false)
     const buttonRef = useRef(null)
-    
-  
-    // Function to simulate fetching notifications from the server
-    const fetchNotifications = () => {
-      const simulatedNotifications = [
-        { id: 1, message: 'New notification 1', read: true },
-        { id: 2, message: 'New notification 2', read: false },
-        { id: 3, message: 'New notification 3', read: false },
-      ]
-  
-      setNotifications(simulatedNotifications);
-    }
-  
+
+
     // Function to handle notification button click
     const handleNotificationClick = () => {
       setShowNotifications(!showNotifications)
     }
 
-      // Function to mark a notification as read and navigate
+    // Function to mark a notification as read and navigate
     const handleNotificationLinkClick = (e, id) => {
-      e.preventDefault(); // Prevent the default link behavior
-      
+      e.preventDefault() // Prevent the default link behavior
+
       // First mark the notification as read
       markNotificationAsRead(id).then(() => {
         // After marking as read, navigate to the notification's link
-        window.location.href = `/project/659bcbab51659ac5c226fb12/659bcc7151659ac5c226fb46`;
-      });
-    };
+        window.location.href = `/project/659bcbab51659ac5c226fb12/659bcc7151659ac5c226fb46`
+      })
+    }
 
     // Improved function to mark a notification as read
     const markNotificationAsRead = (id) => {
@@ -122,22 +124,18 @@ const App = () => {
         setNotifications(prevNotifications => {
           return prevNotifications.map(notification => {
             if (notification.id === id) {
-              return { ...notification, read: true };
+              return { ...notification, read: true }
             }
-            return notification;
-          });
-        });
-        resolve();
-      });
-    };
-  
-    useEffect(() => {
-      fetchNotifications();
-    }, []);
+            return notification
+          })
+        })
+        resolve()
+      })
+    }
 
-      // Calculate the number of unread notifications
+    // Calculate the number of unread notifications
     const numberOfUnreadNotifications = notifications.filter(notification => !notification.read).length
-  
+
     return (
       <nav className="navbar">
         {/* Toggle Sidebar Button */}
@@ -176,7 +174,7 @@ const App = () => {
           )}
         </div>
       </nav>
-    );
+    )
   }
 
   function Sidebar({ isVisible }) {
@@ -230,12 +228,12 @@ const App = () => {
 
     const handleDeleteProject = async (projectId, event) => {
       event.stopPropagation()
-      const confirmDelete = window.confirm('Are you sure you want to delete this project?');
+      const confirmDelete = window.confirm('Are you sure you want to delete this project?')
 
       if (confirmDelete) {
-        await projectService.remove(projectId);
+        await projectService.remove(projectId)
         // Filter out the deleted project and update the projects list
-        setProjects((prevProjects) => prevProjects.filter((project) => project.id !== projectId));
+        setProjects((prevProjects) => prevProjects.filter((project) => project.id !== projectId))
       }
     }
 
@@ -301,25 +299,25 @@ const App = () => {
 
   function Footer({ children }) {
     return (
-        <footer className="footer">
-            {children}
-            <div className="footer-content">
-                <a href="https://www.linkedin.com/in/phihd/">Visit PhiThienTai</a>
-                <p>Copyright © 2023 PhiThientai. All rights reserved.</p>
-            </div>
-        </footer>
+      <footer className="footer">
+        {children}
+        <div className="footer-content">
+          <a href="https://www.linkedin.com/in/phihd/">Visit PhiThienTai</a>
+          <p>Copyright © 2023 PhiThientai. All rights reserved.</p>
+        </div>
+      </footer>
     )
-}
+  }
 
-  const UserDropdown = ({ user, handleLogout }) => {
+  const UserDropdown = ({ handleLogout }) => {
     const [isOpen, setIsOpen] = useState(false)
     const [isOpenEmailForm, setIsOpenEmailForm] = useState(false)
     const [email, setEmail] = useState('')
-  
+
     const toggleDropdown = () => {
       setIsOpen(!isOpen)
     }
-  
+
     const handleItemClick = (action) => {
       if (action === 'settings') {
         toggleEmailForm()
@@ -328,26 +326,31 @@ const App = () => {
       }
       setIsOpen(false)
     }
-  
+
     const toggleEmailForm = () => {
       setIsOpenEmailForm(!isOpenEmailForm)
     }
-  
+
     const handleEmailChange = (event) => {
       setEmail(event.target.value)
     }
-  
+
     const handleSubmitEmail = (event) => {
-      event.preventDefault();
-      console.log('Email submitted:', email)
-      setEmail('')
-      setIsOpenEmailForm(false)
+      event.preventDefault()
+      console.log(user.id)
+      userService.update(user.id.toString(), { email: email })
+        .then(response => {
+          console.log('Email submitted:', email)
+          setEmail('')
+          setIsOpenEmailForm(false)
+        })
+        .catch(error => console.error('Failed to update email:', error))
     }
 
     const handleCloseForm = () => {
       setIsOpenEmailForm(false)
     }
-  
+
     return (
       <div className="user-info">
         <button className="user-info-btn" onClick={toggleDropdown}>
@@ -372,7 +375,7 @@ const App = () => {
       </div>
     )
   }
-  
+
 
   function Project() {
     const handleNewProjectClick = () => {
@@ -458,14 +461,14 @@ const App = () => {
 
   const loginForm = () => {
     const handleShowSignUp = () => {
-      setShowLogin(false);
-      setShowSignUp(true);
-    };
+      setShowLogin(false)
+      setShowSignUp(true)
+    }
 
     const handleShowLogin = () => {
-      setShowSignUp(false);
-      setShowLogin(true);
-    };
+      setShowSignUp(false)
+      setShowLogin(true)
+    }
 
     const handleSignUp = async (name, username, password) => {
       try {
@@ -521,30 +524,30 @@ const App = () => {
       {
         user && <div>
           <div className="App">
-      <div className="navbar">
-        <NavigationBar toggleSidebar={() => setIsSidebarVisible(prev => !prev)} />
-      </div>
-      <div className={`sidebar-wrapper ${isSidebarVisible ? '' : 'hidden'}`}>
-        <Sidebar isVisible={isSidebarVisible} />
-      </div>
-      <div className={`content-wrapper ${isSidebarVisible ? 'shifted' : ''}`}>
-        <div className="main-content">
-          <Routes>
-            <Route path="/" element={<Main />} />
-            <Route path="/project" element={<Project />} />
-            <Route path="/project/:projectId" element={<ProjectDetail projects={projects} />} />
-            <Route path="/department" element={<Department />} />
-            <Route path="/project/:projectId/:issueId" element={<IssueDetail projects={projects} />} />
-            <Route path="/procedure" element={<Procedure />} />
-            <Route path="/procedure/:templateId" element={<TemplateDetail />} />
-            <Route path="/procedure/:templateId/:stepId" element={<StepDetail />} />
-          </Routes>
-        </div>
-        </div>
-          <Footer>
+            <div className="navbar">
+              <NavigationBar toggleSidebar={() => setIsSidebarVisible(prev => !prev)} />
+            </div>
+            <div className={`sidebar-wrapper ${isSidebarVisible ? '' : 'hidden'}`}>
+              <Sidebar isVisible={isSidebarVisible} />
+            </div>
+            <div className={`content-wrapper ${isSidebarVisible ? 'shifted' : ''}`}>
+              <div className="main-content">
+                <Routes>
+                  <Route path="/" element={<Main />} />
+                  <Route path="/project" element={<Project />} />
+                  <Route path="/project/:projectId" element={<ProjectDetail projects={projects} />} />
+                  <Route path="/department" element={<Department />} />
+                  <Route path="/project/:projectId/:issueId" element={<IssueDetail projects={projects} />} />
+                  <Route path="/procedure" element={<Procedure />} />
+                  <Route path="/procedure/:templateId" element={<TemplateDetail />} />
+                  <Route path="/procedure/:templateId/:stepId" element={<StepDetail />} />
+                </Routes>
+              </div>
+            </div>
+            <Footer>
               <UserDropdown user={user} handleLogout={handleLogout} />
-          </Footer>
-        </div>
+            </Footer>
+          </div>
         </div>
       }
     </div>
