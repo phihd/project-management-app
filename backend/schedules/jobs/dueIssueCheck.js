@@ -8,7 +8,7 @@ const performDueIssueCheck = async (issueId = null) => {
     const now = new Date()
     const twentyFourHoursLater = new Date(now.getTime() + 24 * 60 * 60 * 1000)
 
-    const query = {
+    let query = {
       dueDate: { $gte: now, $lte: twentyFourHoursLater },
       status: 'Open',
     }

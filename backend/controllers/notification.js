@@ -36,9 +36,7 @@ notificationRouter.get('/', async (request, response) => {
       return response.status(401).json({ error: 'token invalid' })
     }
 
-    const userId = request.user.id
-
-    const notifications = await Notification.find({ user: userId })
+    const notifications = await Notification.find({})
       .sort({ createdAt: -1 }) // Get most recent notifications first
       .limit(50) // Limit to 50 notifications for fetching
 
@@ -61,10 +59,12 @@ notificationRouter.post('/', async (request, response) => {
     }
 
     const body = request.body
-    const user = request.user
+    if (body.user.toString() != request.user.id.toString()) {
+      return response.status(403).json({ message: 'No permission' })
+    }
 
     const newNotification = new Notification({
-      user: user.id,
+      user: body.user,
       message: body.message,
       url: body.url
     })
@@ -72,7 +72,7 @@ notificationRouter.post('/', async (request, response) => {
     await newNotification.save()
 
     // Ensure only the latest notifications are kept
-    await maintainNotificationLimit(user.id)
+    await maintainNotificationLimit(body.user.id)
 
     response.status(201).json(newNotification)
   } catch (error) {

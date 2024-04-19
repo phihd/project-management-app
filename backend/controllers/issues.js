@@ -124,9 +124,18 @@ issuesRouter.put('/:issueId', async (request, response, next) => {
       return response.status(401).json({ error: 'token invalid' })
     }
 
+    const projectId = request.params.projectId
     const body = request.body
     const issueId = request.params.issueId
     const user = request.user
+
+    // Fetch the project to verify if the user is a member  
+    const project = await Project.findById(projectId)
+    if (!project || !project.members.includes(user._id)) {
+      return response.status(403).json({ error: 'Unauthorized access' })
+    }
+
+    
 
     if (['createdDate', 'creator', 'project'].some(field => field in body)) {
       return response.status(400).json({ message: 'Immutable field cannot be updated' })
