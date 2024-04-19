@@ -161,12 +161,30 @@ const IssueDetail = ({ projects }) => {
   const saveEditedComment = (commentId) => {
     setComments(comments.map(comment => {
       if (comment.id === commentId) {
-        return { ...comment, text: editedCommentText };
+        const editRecord = {
+          editedBy: user.name,
+          editedAt: new Date().toISOString(),
+          oldText: comment.text,
+          newText: editedCommentText,
+        };
+        // Check if 'edits' exists, if not, initialize it
+        const edits = comment.edits ? [...comment.edits, editRecord] : [editRecord];
+        return { ...comment, text: editedCommentText, edits };
       }
       return comment;
-    }))
-    setEditingCommentId(null)
-    setEditedCommentText("")
+    }));
+    setEditingCommentId(null);
+    setEditedCommentText("");
+  }
+
+  const toggleEditHistory = (commentId) => {
+    setComments(prevComments => prevComments.map(comment => {
+      if (comment.id === commentId) {
+        // Toggle the showHistory property
+        return {...comment, showHistory: !comment.showHistory};
+      }
+      return comment;
+    }));
   }
 
   const updateDueDate = async (newDueDate) => {
@@ -511,6 +529,20 @@ const IssueDetail = ({ projects }) => {
                       )
                     )
                   }
+                  {/* Button to toggle edit history visibility */}
+                  {comment.edits && comment.edits.length > 0 && (
+                    <button onClick={() => toggleEditHistory(comment.id)}>Toggle Edit History</button>
+                  )}
+                  {/* Display edit history if available */}
+                  {comment.showHistory && comment.edits && (
+                    <ul>
+                      {comment.edits.map((edit, idx) => (
+                        <li key={idx}>
+                          <strong>{edit.editedBy}</strong> edited on {formatTimestamp(edit.editedAt)}: from "{edit.oldText}" to "{edit.newText}"
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                   {/* Display attached files with download links */}
                   {comment.files && comment.files.length > 0 && (
                     <div className="comment-files">
@@ -530,6 +562,7 @@ const IssueDetail = ({ projects }) => {
               ))
             )}
           </div>
+
 
 
           <div className="add-comment">

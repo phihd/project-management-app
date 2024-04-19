@@ -10,6 +10,10 @@ body {
   font-family: 'Montserrat', sans-serif;
 }
 
+.monsteratt-font {
+  font-family: 'Montserrat', sans-serif;
+}
+
 h1, h2, h3, h4, h5, h6 {
   font-family: 'Be Vietnam', sans-serif;
 }
@@ -28,7 +32,7 @@ h1, h2, h3, h4, h5, h6 {
   margin-left: 0;
   display: flex;
   flex-direction: column;
-  background-color: #353542;
+  background-color: #3D405B;
   color: #fff;
   transition: margin-left 0.5s ease; 
 }
@@ -62,8 +66,7 @@ h1, h2, h3, h4, h5, h6 {
   justify-content: space-between;
   align-items: center;
   height: 70px;
-  padding: 15px;
-  background-color: #353542;
+  background-color: #3D405B;
   color: #fff;
   z-index: 10; /* Ensure navbar is above sidebar */
 }
@@ -114,11 +117,13 @@ h1, h2, h3, h4, h5, h6 {
   justify-content: center;
   align-items: center;
   font-size: 12px;
+  margin-right: 35px;
 }
 
 .notification-btn img {
   width: 30px; /* Adjust the width and height as needed */
   height: 30px;
+  margin-right: 30px;
 }
 
 .notification-btn:hover {
@@ -161,7 +166,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .notification-link.read {
-  background-color: #353542; /* Subdued background for read notifications */
+  background-color: #3D405B; /* Subdued background for read notifications */
   color: #777; /* Dim text color for read notifications */
 }
 
@@ -180,7 +185,7 @@ h1, h2, h3, h4, h5, h6 {
 .logo img {
   width: 180px;
   height: auto;
-  margin-bottom: 20px;
+  padding-left: 20px;
 }
 
 /* Navigation links styles */
@@ -215,7 +220,6 @@ h1, h2, h3, h4, h5, h6 {
   display: flex;
   align-items: center;
   border-radius: 5px;
-  padding: 10px;
 }
 
 .user-info-btn {
@@ -226,35 +230,33 @@ h1, h2, h3, h4, h5, h6 {
   align-items: center;
   color: #fff;
   text-decoration: none;
-  padding: 10px 15px;
+  position: relative;
 }
 
 .user-info-btn:hover {
-  background-color: #353542;
-}
-
-.user-info-btn span {
-  margin-right: 8px;
-  font-weight: bold;
+  background-color: #1e1e22;
+  border-radius: 8px;
 }
 
 .user-info-btn img {
   width: 30px;
   height: 30px;
   border-radius: 50%;
+  margin-left: 10px;
 }
 
 /* Styles for the dropdown content */
 .dropdown-content {
   position: absolute;
-  top: calc(-100% - 5px);
-  right: 0;
-  background-color: #353542;
+  bottom: calc(100% + 5px); /* Show the dropdown below the button */
+  left: 0; /* Position it to the right of the button */
+  background-color: #8f8fa3;
   border-radius: 4px;
   display: flex;
   flex-direction: column;
   z-index: 1;
   box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  width: 100%;
 }
 
 .dropdown-content button {
@@ -262,12 +264,12 @@ h1, h2, h3, h4, h5, h6 {
   border: none;
   background: none;
   cursor: pointer;
-  text-align: left;
   color: #fff;
 }
 
 .dropdown-content button:hover {
   background-color: #9d8f8f;
+  border-radius: 4px;
 }
 
 /* Sidebar styles */
@@ -307,12 +309,28 @@ h1, h2, h3, h4, h5, h6 {
 .main-content {
   flex: 1;
   overflow-y: auto;
-  background-color: #353542;
+  background-color: #3D405B;
   height: calc(100vh - 70px);
-  padding: 10px;
+  padding: 15px;
   color: #fff;
   width: 100%;
+}
 
+/* Styles the scrollbar track */
+.main-content::-webkit-scrollbar {
+  width: 8px;  /* or the width you prefer */
+  height: 8px; /* needed for horizontal scroll */
+}
+
+/* Styles the scrollbar handle */
+.main-content::-webkit-scrollbar-thumb {
+  background-color: #2c2c2e; /* scrollbar color */
+  border-radius: 4px;        /* optional, for rounded corners */
+}
+
+/* Optional: Styles the scrollbar track */
+.main-content::-webkit-scrollbar-track {
+  background: #3D405B; /* color of the track, could be same as app background */
 }
 
 /* Dashboard Styles */
@@ -335,7 +353,7 @@ td {
 }
 
 th {
-  background-color: #353542;
+  background-color: #3D405B;
 }
 
 .row-link {
@@ -347,11 +365,13 @@ th {
 
 /* Footer Styles */
 .footer {
-  background-color: #353542;
+  background-color: #3D405B;
   color: #fff;
   /* Text color */
   padding: 15px;
   text-align: left;
+  position: relative;
+  height: 70px;
 }
 
 /* Center the content within the footer */
@@ -369,22 +389,10 @@ th {
   /* Change color on hover */
 }
 
-/* Dashboard hover effect */
-.dashboard:hover {
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-  /* Add shadow effect on hover */
-}
-
 /* Table hover effect */
 .table tr:hover {
   background-color: #4d4c4c;
   /* Darker row hover background color */
-}
-
-/* Footer hover effect */
-.footer:hover {
-  background-color: #212121;
-  border-radius: 8px;
 }
 
 .status-button:hover {
@@ -558,6 +566,7 @@ h2 {
   font-size: 1.5rem;
   margin-bottom: 20px;
   text-align: center;
+  color: white;
 }
 
 label {
