@@ -53,5 +53,15 @@ const create = async (name, username, password) => {
   return response.data
 }
 
+const update = (userId, newObject) => {
+  const token = getToken()
+  const config = {
+    headers: { Authorization: token },
+  }
+
+  const request = axios.put(`${baseUrl}/${userId}`, newObject, config)
+  return request.then(response => response.data)
+}
+
 // eslint-disable-next-line
-export default { getAll, getProjects, getCreatedIssues, getAssignedIssues, create }
+export default { getAll, getProjects, getCreatedIssues, getAssignedIssues, create, update }
