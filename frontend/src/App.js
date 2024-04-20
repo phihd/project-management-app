@@ -244,8 +244,8 @@ const App = () => {
           <thead>
             <tr>
               <th>Project Name</th>
-              <th>Status</th>
-              <th>Department</th>
+              {/* <th>Status</th>
+              <th>Department</th> */}
               <th>Members</th>
             </tr>
           </thead>
@@ -253,7 +253,7 @@ const App = () => {
             {projects.map((project) => (
               <tr key={project.id} onClick={() => handleRowClick(project.id)}>
                 <td>{project.name}</td>
-                <td>
+                {/* <td>
                   <div className="status-buttons">
                     <button
                       onClick={(e) => handleStatusChange(project.id, project.status.activityStatus, e)}
@@ -274,8 +274,8 @@ const App = () => {
                       {project.status.completionStatus}
                     </button>
                   </div>
-                </td>
-                <td>{project.department}</td>
+                </td> */}
+                {/* <td>{project.department}</td> */}
                 <td>
                   {project.members.map((member) => (
                     <span key={member.id}>
