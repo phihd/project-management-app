@@ -220,6 +220,7 @@ h1, h2, h3, h4, h5, h6 {
   display: flex;
   align-items: center;
   border-radius: 5px;
+  display: inline-block;
 }
 
 .user-info-btn {
@@ -231,6 +232,7 @@ h1, h2, h3, h4, h5, h6 {
   color: #fff;
   text-decoration: none;
   position: relative;
+  z-index: 1010;
 }
 
 .user-info-btn:hover {
@@ -270,6 +272,15 @@ h1, h2, h3, h4, h5, h6 {
 .dropdown-content button:hover {
   background-color: #9d8f8f;
   border-radius: 4px;
+}
+
+.email-form {
+  position: absolute;
+  left: 100%; /* Positions the form to the right of the button */
+  white-space: nowrap; /* Prevents wrapping of elements inside the form */
+  padding: 10px;
+  z-index: 1000; /* Ensure the form is above other content */
+  top: -5em;
 }
 
 /* Sidebar styles */
