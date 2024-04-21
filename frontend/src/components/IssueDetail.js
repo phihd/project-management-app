@@ -7,6 +7,7 @@ import issueService from '../services/issues'
 import userService from '../services/users'
 import commentService from '../services/comments'
 import UserContext from './UserContext'
+import { useNavigate} from 'react-router-dom';
 
 const IssueDetail = ({ projects }) => {
 
@@ -35,6 +36,7 @@ const IssueDetail = ({ projects }) => {
   const [editingCommentId, setEditingCommentId] = useState(null)
   const [editedCommentText, setEditedCommentText] = useState("")
   const [commentFiles, setCommentFiles] = useState([])
+  const navigate = useNavigate()
 
 
 
@@ -328,9 +330,17 @@ const IssueDetail = ({ projects }) => {
     return `${hours}:${minutes} ${day}/${month}/${year}`
   }
 
+  const handleBackToProject = () => {
+    navigate(`/project/${projectId}`)
+  }
+
   return (
     <div className="issue-detail">
       {issue && <div>
+
+        <button onClick={handleBackToProject} className="back-to-project-btn">
+            Back to Project
+          </button>
         <div className="issue-header">
           
           <h2 className="issue-header">

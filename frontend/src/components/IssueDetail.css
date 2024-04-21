@@ -92,6 +92,20 @@
   font-size: 12px;
 }
 
+.back-to-project-btn {
+  padding: 10px 15px;
+  margin-bottom: 20px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.back-to-project-btn:hover {
+  background-color: #45a049;
+}
+
 .assignee,
 .milestone {
   margin-bottom: 10px;
