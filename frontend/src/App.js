@@ -15,6 +15,7 @@ import user_phihd from './img/user_phihd.jpeg'
 import default_avatar from './img/default_avatar.jpg'
 import delete_button from './img/delete.png'
 import noti_img from './img/noti_img.png'
+import sidebar_img from './img/sidebar_img.png'
 
 import ProjectDetail from './components/ProjectDetail'
 import Dashboard from './components/Dashboard'
@@ -53,7 +54,7 @@ const App = () => {
   const [notifications, setNotifications] = useState([])
   const [showNotifications, setShowNotifications] = useState(false)
   const sidebarRef = useRef(null)
-  
+
   const toggleSidebar = useCallback(() => {
     setIsSidebarVisible(prev => !prev)
   }, [])
@@ -148,10 +149,6 @@ const App = () => {
             <img src={scqcLogo} alt="SCQC Logo" />
           </Link>
         </div>
-        {/* Toggle Sidebar Button */}
-        <button className="sidebar-toggle-btn" onClick={toggleSidebar}>
-          Toggle Sidebar
-        </button>
         <div className="navigation-links">
           <ul>
             <li><a href="#">Dự án & Phòng ban</a></li>
@@ -159,32 +156,38 @@ const App = () => {
             <li><a href="#">Thảo luận</a></li>
           </ul>
         </div>
-        <div className="notification">
-          <button ref={buttonRef} className="notification-btn" onClick={handleNotificationClick}>
-            <img src={noti_img} alt="Notification" />
-            {numberOfUnreadNotifications > 0 && (
-              <span className="notification-count">{numberOfUnreadNotifications}</span>
-            )}
+        <div className="toolbar-buttons">
+          {/* Toggle Sidebar Button */}
+          <button className="sidebar-toggle-btn" onClick={toggleSidebar}>
+            <img src={sidebar_img} alt="Toggle Sidebar" />
           </button>
-          {showNotifications && (
-            <div className="notification-popup" style={{ top: buttonRef.current.offsetTop + buttonRef.current.offsetHeight }}>
-              <div className="notification-panel">
-                {notifications.map(notification => (
-                  <a
-                    key={notification.id}
-                    href={`/project/659bcbab51659ac5c226fb12/659bcc7151659ac5c226fb46`}
-                    className={`notification-link ${notification.read ? 'read' : 'unread'}`}
-                    onClick={(e) => handleNotificationLinkClick(e, notification.id)}
-                  >
-                    <div>{notification.message}</div>
-                  </a>
-                ))}
+          <div className="notification">
+            <button ref={buttonRef} className="notification-btn" onClick={handleNotificationClick}>
+              <img src={noti_img} alt="Notification" />
+              {numberOfUnreadNotifications > 0 && (
+                <span className="notification-count">{numberOfUnreadNotifications}</span>
+              )}
+            </button>
+            {showNotifications && (
+              <div className="notification-popup" style={{ top: buttonRef.current.offsetTop + buttonRef.current.offsetHeight }}>
+                <div className="notification-panel">
+                  {notifications.map(notification => (
+                    <a
+                      key={notification.id}
+                      href={`/project/659bcbab51659ac5c226fb12/659bcc7151659ac5c226fb46`}
+                      className={`notification-link ${notification.read ? 'read' : 'unread'}`}
+                      onClick={(e) => handleNotificationLinkClick(e, notification.id)}
+                    >
+                      <div>{notification.message}</div>
+                    </a>
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </nav>
-    );
+    )    
   }
 
   function Sidebar({ isVisible }) {
