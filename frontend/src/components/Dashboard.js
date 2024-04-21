@@ -8,24 +8,17 @@ function Dashboard({ currentUser }) {
   const [openIssues, setOpenIssues] = useState([])
 
   useEffect(() => {
-    // Fetch open issues involving the current user
     const fetchOpenIssues = async () => {
-      try {
-        const issues = await userService.getAssignedIssues(currentUser.id)
-        const openIssues = issues
-          .filter(issue => issue.status === 'Open')
-          .sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate)) // Sorting open issues by due date
-
-        setOpenIssues(openIssues)
-      } catch (error) {
-        console.error('Error fetching open issues:', error)
+      if (currentUser) {
+        const issues = await userService.getAssignedIssues(currentUser.id);
+        const filteredIssues = issues.filter(issue => issue.status === 'Open')
+                                     .sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
+        setOpenIssues(filteredIssues);
       }
-    }
+    };
 
-    if (currentUser) {
-      fetchOpenIssues()
-    }
-  }, [currentUser])
+    fetchOpenIssues();
+  }, [currentUser]);
 
   return (
     <div className="dashboard">
@@ -61,4 +54,4 @@ function Dashboard({ currentUser }) {
   )
 }
 
-export default Dashboard
+export default React.memo(Dashboard)

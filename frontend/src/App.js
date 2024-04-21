@@ -1,5 +1,5 @@
 /* eslint-disable */
-import React, { useState, useEffect, useContext, useRef } from 'react'
+import React, { useState, useEffect, useContext, useRef, useCallback } from 'react'
 import './App.css'
 import {
   Routes,
@@ -53,6 +53,10 @@ const App = () => {
   const [notifications, setNotifications] = useState([])
   const [showNotifications, setShowNotifications] = useState(false)
   const sidebarRef = useRef(null)
+  
+  const toggleSidebar = useCallback(() => {
+    setIsSidebarVisible(prev => !prev)
+  }, [])
   
 
   useEffect(() => {
@@ -188,7 +192,7 @@ const App = () => {
 
     const handleItemClick = (view) => {
       setSelectedView(view)
-
+      toggleSidebar()
     }
 
     return (
@@ -419,11 +423,9 @@ const App = () => {
     )
   }
 
-  const Main = () => {
-    return (
-      <Dashboard currentUser={user} />
-    )
-  }
+  const Main = useCallback(() => {
+    return <Dashboard currentUser={user} />
+  }, [user])
 
 
   const handleLogin = async (event) => {
