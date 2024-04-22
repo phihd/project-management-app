@@ -5,6 +5,9 @@
   box-sizing: border-box;
 }
 
+@import url('https://fonts.googleapis.com/css?family=Montserrat:400,700');
+
+
 /* Apply Segoe UI font to the entire app */
 body {
   font-family: 'Montserrat', sans-serif;
@@ -15,7 +18,7 @@ body {
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: 'Be Vietnam', sans-serif;
+  font-family: 'Montserrat', sans-serif;
 }
 
 /* App container */
@@ -32,7 +35,7 @@ h1, h2, h3, h4, h5, h6 {
   margin-left: 0;
   display: flex;
   flex-direction: column;
-  background-color: #3D405B;
+  background-color: #171b27;
   color: #fff;
   transition: margin-left 0.5s ease; 
 }
@@ -65,10 +68,12 @@ h1, h2, h3, h4, h5, h6 {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  height: 70px;
-  background-color: #3D405B;
+  height: 12%;
+  background-color: #1d222e;
   color: #fff;
   z-index: 10; /* Ensure navbar is above sidebar */
+  border-bottom: 0.3px solid #5d5151; 
+  box-sizing: border-box;
 }
 
 
@@ -96,17 +101,20 @@ h1, h2, h3, h4, h5, h6 {
 .notification-btn, .sidebar-toggle-btn {
   background-color: transparent;
   border: none;
+  display: flex;
   cursor: pointer;
   color: #fff;
   font-size: 20px;
   margin-left: 10px;
   padding: 0;
   position: relative;
+  align-items: center; /* Centers the content of the button vertically */
+  justify-content: center; /* Centers the content of the button horizontally */
 }
 
 .notification-count {
   position: absolute;
-  top: -10px;  /* Adjust these values based on your specific layout */
+  top: -7px;
   right: -10px;
   width: 20px;
   height: 20px;
@@ -193,10 +201,18 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* Logo styles */
+
+.logo {
+  display: flex;
+  align-items: center; /* Center the logo vertically within this div */
+}
+
 .logo img {
   width: 180px;
   height: auto;
+  max-height: 100%;
   padding-left: 20px;
+  position: relative;
 }
 
 /* Navigation links styles */
@@ -331,7 +347,7 @@ h1, h2, h3, h4, h5, h6 {
 .main-content {
   flex: 1;
   overflow-y: auto;
-  background-color: #3D405B;
+  background-color: #171b27;
   height: calc(100vh - 70px);
   padding: 15px;
   color: #fff;
@@ -346,13 +362,13 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Styles the scrollbar handle */
 .main-content::-webkit-scrollbar-thumb {
-  background-color: #2c2c2e; /* scrollbar color */
+  background-color: #444452; /* scrollbar color */
   border-radius: 4px;        /* optional, for rounded corners */
 }
 
 /* Optional: Styles the scrollbar track */
 .main-content::-webkit-scrollbar-track {
-  background: #3D405B; /* color of the track, could be same as app background */
+  background: #171b27; /* color of the track, could be same as app background */
 }
 
 /* Dashboard Styles */
@@ -375,7 +391,7 @@ td {
 }
 
 th {
-  background-color: #3D405B;
+  background-color: #171b27;
 }
 
 .row-link {
@@ -387,7 +403,7 @@ th {
 
 /* Footer Styles */
 .footer {
-  background-color: #3D405B;
+  background-color: #171b27;
   color: #fff;
   /* Text color */
   padding: 15px;

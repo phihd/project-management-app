@@ -56,3 +56,15 @@
 .project-detail-issue-item:last-child {
   margin-bottom: 0;
 }
+
+.delete-button {
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.delete-button-img {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+}

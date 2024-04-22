@@ -5,6 +5,7 @@ import { useParams, Link } from 'react-router-dom'
 import issueService from '../services/issues'
 import UserContext from './UserContext'
 import NewIssueForm from './NewIssueForm'
+import delete_button from '../img/delete.png'
 
 function ProjectDetail({ projects }) {
   const [showIssueForm, setShowIssueForm] = useState(false)
@@ -37,6 +38,16 @@ function ProjectDetail({ projects }) {
     if (newIssue.title != '') {
       const issue = await issueService.create(projectId, newIssue)
       setIssues(issues.concat(issue))
+    }
+  }
+
+  const handleDeleteIssue = async (issueId, event) => {
+    event.stopPropagation()
+    const confirmDelete = window.confirm('Are you sure you want to delete this issue?');
+  
+    if (confirmDelete) {
+      await issueService.remove(projectId, issueId)
+      setIssues((prevIssues) => prevIssues.filter((issue) => issue.id !== issueId))
     }
   }
 
@@ -102,6 +113,9 @@ function ProjectDetail({ projects }) {
                     </span>
                   </div>
                 </Link>
+                <button className="delete-button" onClick={(e) => handleDeleteIssue(issue.id, e)}>
+                  <img className="delete-button-img" src={delete_button} alt="Delete" />
+                </button>
               </li>
             ))}
           </ul>

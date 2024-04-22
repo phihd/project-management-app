@@ -6,7 +6,6 @@ import {
   Route,
   Link,
   useParams,
-  // useMatch,
   useNavigate
 } from 'react-router-dom'
 
@@ -143,19 +142,19 @@ const App = () => {
     const numberOfUnreadNotifications = notifications.filter(notification => !notification.read).length
   
     return (
-      <nav className="navbar">
+      <div className="navbar">
         <div className="logo">
           <Link to="/" onClick={() => handleItemClick('')}>
-            <img src={scqcLogo} alt="SCQC Logo" />
+            <img className='logo' src={scqcLogo} alt="SCQC Logo" />
           </Link>
         </div>
-        <div className="navigation-links">
+        {/* <div className="navigation-links">
           <ul>
             <li><a href="#">Dự án & Phòng ban</a></li>
             <li><a href="#">Hoạt động</a></li>
             <li><a href="#">Thảo luận</a></li>
           </ul>
-        </div>
+        </div> */}
         <div className="toolbar-buttons">
           {/* Toggle Sidebar Button */}
           <button className="sidebar-toggle-btn" onClick={toggleSidebar}>
@@ -186,8 +185,8 @@ const App = () => {
             )}
           </div>
         </div>
-      </nav>
-    )    
+      </div>
+    ) 
   }
 
   function Sidebar({ isVisible }) {
@@ -525,9 +524,7 @@ const App = () => {
       {
         user && <div>
           <div className="App">
-      <div className="navbar">
         <NavigationBar toggleSidebar={() => setIsSidebarVisible(prev => !prev)} />
-      </div>
       <div className={`sidebar-wrapper ${isSidebarVisible ? '' : 'hidden'}`}>
         <Sidebar isVisible={isSidebarVisible} />
       </div>
