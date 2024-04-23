@@ -1,6 +1,6 @@
 import axios from 'axios'
 const baseUrl = '/api/users'
-import { getToken } from './tokenmanager'
+import { setToken, getToken } from './tokenmanager'
 
 const getAll = () => {
   const token = getToken()
@@ -42,6 +42,22 @@ const getAssignedIssues = (userId) => {
   return request.then(response => response.data)
 }
 
+const getUserFromLocalStorage = () => {
+  const userData = localStorage.getItem('loggedProjectappUser')
+
+  if (!userData) {
+    return Promise.reject(new Error('No user data found'))
+  }
+
+  try {
+    const user = JSON.parse(userData)
+    setToken(user.token)
+    return Promise.resolve(user)
+  } catch (error) {
+    return Promise.reject(new Error('Failed to parse user data'))
+  }
+}
+
 const create = async (name, username, password) => {
   const newUser = {
     name: name,
@@ -64,4 +80,4 @@ const update = (userId, newObject) => {
 }
 
 // eslint-disable-next-line
-export default { getAll, getProjects, getCreatedIssues, getAssignedIssues, create, update }
+export default { getAll, getProjects, getCreatedIssues, getAssignedIssues, getUserFromLocalStorage, create, update }
