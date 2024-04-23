@@ -8,6 +8,11 @@ const getAll = (projectId) => {
   return request.then(response => response.data)
 }
 
+const get = (projectId, issueId) => {
+  const request = axios.get(`${baseUrl}/${projectId}/issues/${issueId}`)
+  return request.then(response => response.data)
+}
+
 const create = async (projectId, newObject) => {
   const token = getToken()
   const config = {
@@ -39,4 +44,4 @@ const remove = async (projectId, issueId) => {
 }
 
 // eslint-disable-next-line
-export default { getAll, create, update, remove }
+export default { getAll, get, create, update, remove }

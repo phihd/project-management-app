@@ -42,7 +42,10 @@ const issueSchema = new mongoose.Schema({
     type: Date,
     default: Date.now()
   },
-  isNotified: Boolean,
+  isNotified: {
+    type: Boolean,
+    default: false
+  }
 })
 
 issueSchema.set('toJSON', {
