@@ -1,61 +1,80 @@
-.project-detail-issue-list {
-  margin-top: 20px;
+
+.project-detail {
+  color: #fff;
+  background-color: #171b27;
 }
 
-.project-detail-issue-list-container {
+.project-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0px;
+  padding: 10px;
+}
+
+.project-title {
+  font-size: 36px;
+  color:  #DBCA49;
+  margin: 0;
+}
+
+.header-buttons button {
+  margin-left: 10px;
+}
+
+.project-info {
+  margin-top: 10px;
+  background-color: #171b27; /* Optional: Sets a background color for the section */
+  border-radius: 8px; /* Optional: Adds rounded corners */
+  margin-bottom: 20px; /* Space between sections */
+}
+
+.project-section h3 {
+  color: #DBCA49; /* Gold color for headers, adjust as needed */
+  margin-bottom: 5px; /* Less space below headers */
+  background-color: transparent;
+}
+
+.project-section p {
+  margin-top: 0; /* Aligns text closer to the header */
+  color: #844d4d; /* White text for readability */
+  line-height: 1.6; /* Improves line spacing */
+}
+
+.project-section {
+  background-color: #262a37;
+}
+
+.project-section:hover {
+  display: none;
+}
+
+
+.issue-controls {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 20px;
+}
+
+.issue-list {
   list-style: none;
   padding: 0;
 }
 
-.project-detail-issue-item {
-  margin-bottom: 15px;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.project-detail-1);
-  transition: transform 0.project-detail-3s ease-in-out;
-  cursor: pointer;
-}
-
-.project-detail-issue-item:hover {
-  transform: translateY(-3px);
-}
-
-.project-detail-issue-link {
-  text-decoration: none;
-  color: #ffffff;
-  display: block;
+.issue-item {
+  background: #131623;
   padding: 15px;
-}
-
-.dashboard-project-link {
-  text-decoration: none;
-  color: #ffffff;
-  display: block;
-  padding: 20px;
-}
-
-.dashboard-project-link:hover {
-  color: rgb(43, 88, 170)
-}
-
-.project-detail-issue-info {
+  margin: 10px 0;
+  border-radius: 8px;
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
-.project-detail-issue-title {
-  font-size: 17px;
-  margin-bottom: 5px;
+.issue-item h4 {
+  margin-top: 0;
 }
 
-.project-detail-issue-due-date {
-  color: #888;
-  font-size: 14px;
-}
-
-.project-detail-issue-item:last-child {
-  margin-bottom: 0;
-}
 
 .delete-button {
   background-color: transparent;

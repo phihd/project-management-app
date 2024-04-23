@@ -439,7 +439,7 @@ const IssueDetail = ({ projects }) => {
             )}
           </div>
 
-          <div className="issue-details">
+          <div classNdame="issue-details">
             <h3>Assignees</h3>
 
             {issue.creator.id != user.id && <div className="assignee">
