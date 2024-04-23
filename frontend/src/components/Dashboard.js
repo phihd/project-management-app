@@ -1,31 +1,34 @@
 /* eslint-disable */
 import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
+import { useQuery } from 'react-query'
+import { useContext } from 'react'
 import userService from '../services/users'
 import './ProjectDetail.css'
+import UserContext from './UserContext'
 
-function Dashboard({ currentUser }) {
-  const [openIssues, setOpenIssues] = useState([])
+function Dashboard() {
+  const { user } = useContext(UserContext)
 
-  useEffect(() => {
-    // Fetch open issues involving the current user
-    const fetchOpenIssues = async () => {
-      try {
-        const issues = await userService.getAssignedIssues(currentUser.id)
-        const openIssues = issues
-          .filter(issue => issue.status === 'Open')
-          .sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate)) // Sorting open issues by due date
-
-        setOpenIssues(openIssues)
-      } catch (error) {
-        console.error('Error fetching open issues:', error)
+  const { data: openIssues, isLoading, isError, error } = useQuery(
+    ['openIssues', user?.id], // Adjust the query key to depend on user.id
+    () => {
+      if (user) {
+        return userService.getAssignedIssues(user.id)
+          .then(issues => issues
+            .filter(issue => issue.status === 'Open')
+            .sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate))
+          )
       }
+      return []
+    },
+    {
+      enabled: !!user
     }
+  )
 
-    if (currentUser) {
-      fetchOpenIssues()
-    }
-  }, [currentUser])
+  if (isLoading) return <div>Loading open issues...</div>;
+  if (isError) return <div>Error: {error.message}</div>;
 
   return (
     <div className="dashboard">
