@@ -2,7 +2,6 @@
 import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import userService from '../services/users'
-// import './ProjectDetail.css'
 import './Dashboard.css'
 
 function Dashboard({ currentUser }) {

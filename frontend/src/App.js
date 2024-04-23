@@ -15,6 +15,7 @@ import default_avatar from './img/default_avatar.jpg'
 import delete_button from './img/delete.png'
 import noti_img from './img/noti_img.png'
 import sidebar_img from './img/sidebar_img.png'
+import add_img from './img/addnew.png'
 
 import ProjectDetail from './components/ProjectDetail'
 import Dashboard from './components/Dashboard'
@@ -220,88 +221,66 @@ const App = () => {
     )
   }
 
-  function Table({ projects }) {
-    const navigate = useNavigate()
+  // function Table({ projects }) {
 
-    const handleStatusChange = (projectId, newStatus, event) => {
-      event.stopPropagation()
-      projectId
-      newStatus
-    }
-
-    const handleRowClick = (projectId) => {
-      navigate(`/project/${projectId}`)
-    }
-
-    const handleDeleteProject = async (projectId, event) => {
-      event.stopPropagation()
-      const confirmDelete = window.confirm('Are you sure you want to delete this project?');
-
-      if (confirmDelete) {
-        await projectService.remove(projectId);
-        // Filter out the deleted project and update the projects list
-        setProjects((prevProjects) => prevProjects.filter((project) => project.id !== projectId));
-      }
-    }
-
-    return (
-      <section className="table">
-        <table>
-          <thead>
-            <tr>
-              <th>Project Name</th>
-              {/* <th>Status</th>
-              <th>Department</th> */}
-              <th>Members</th>
-            </tr>
-          </thead>
-          <tbody>
-            {projects.map((project) => (
-              <tr key={project.id} onClick={() => handleRowClick(project.id)}>
-                <td>{project.name}</td>
-                {/* <td>
-                  <div className="status-buttons">
-                    <button
-                      onClick={(e) => handleStatusChange(project.id, project.status.activityStatus, e)}
-                      className={`status-button ${project.status.activityStatus.toLowerCase()}`}
-                    >
-                      {project.status.activityStatus}
-                    </button>
-                    <button
-                      onClick={(e) => handleStatusChange(project.id, project.status.progressStatus, e)}
-                      className={`status-button ${project.status.progressStatus.toLowerCase().replace(/\s/g, '')}`}
-                    >
-                      {project.status.progressStatus}
-                    </button>
-                    <button
-                      onClick={(e) => handleStatusChange(project.id, project.status.completionStatus, e)}
-                      className={`status-button ${project.status.completionStatus.toLowerCase()}`}
-                    >
-                      {project.status.completionStatus}
-                    </button>
-                  </div>
-                </td> */}
-                {/* <td>{project.department}</td> */}
-                <td>
-                  {project.members.map((member) => (
-                    <span key={member.id}>
-                      {member.name}
-                      {member !== project.members[project.members.length - 1] && ', '}
-                    </span>
-                  ))}
-                </td>
-                <td>
-                  <button className="delete-button" onClick={(e) => handleDeleteProject(project.id, e)}>
-                    <img className="delete-button-img" src={delete_button} alt="Delete" />
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </section>
-    )
-  }
+  //   return (
+  //     <section className="table">
+  //       <table>
+  //         <thead>
+  //           <tr>
+  //             <th>Project Name</th>
+  //             {/* <th>Status</th>
+  //             <th>Department</th> */}
+  //             <th>Members</th>
+  //           </tr>
+  //         </thead>
+  //         <tbody>
+  //           {projects.map((project) => (
+  //             <tr key={project.id} onClick={() => handleRowClick(project.id)}>
+  //               <td>{project.name}</td>
+  //               {/* <td>
+  //                 <div className="status-buttons">
+  //                   <button
+  //                     onClick={(e) => handleStatusChange(project.id, project.status.activityStatus, e)}
+  //                     className={`status-button ${project.status.activityStatus.toLowerCase()}`}
+  //                   >
+  //                     {project.status.activityStatus}
+  //                   </button>
+  //                   <button
+  //                     onClick={(e) => handleStatusChange(project.id, project.status.progressStatus, e)}
+  //                     className={`status-button ${project.status.progressStatus.toLowerCase().replace(/\s/g, '')}`}
+  //                   >
+  //                     {project.status.progressStatus}
+  //                   </button>
+  //                   <button
+  //                     onClick={(e) => handleStatusChange(project.id, project.status.completionStatus, e)}
+  //                     className={`status-button ${project.status.completionStatus.toLowerCase()}`}
+  //                   >
+  //                     {project.status.completionStatus}
+  //                   </button>
+  //                 </div>
+  //               </td> */}
+  //               {/* <td>{project.department}</td> */}
+  //               <td>
+  //                 {project.members.map((member) => (
+  //                   <span key={member.id}>
+  //                     {member.name}
+  //                     {member !== project.members[project.members.length - 1] && ', '}
+  //                   </span>
+  //                 ))}
+  //               </td>
+  //               <td>
+  //                 <button className="delete-button" onClick={(e) => handleDeleteProject(project.id, e)}>
+  //                   <img className="delete-button-img" src={delete_button} alt="Delete" />
+  //                 </button>
+  //               </td>
+  //             </tr>
+  //           ))}
+  //         </tbody>
+  //       </table>
+  //     </section>
+  //   )
+  // }
 
 
   function Footer({ children }) {
@@ -379,42 +358,86 @@ const App = () => {
   }
   
 
-  function Project() {
-    const handleNewProjectClick = () => {
-      setShowProjectForm(true)
-    }
+    function Project() {
 
-    const handleCloseForm = () => {
-      setShowProjectForm(false)
-    }
+      const navigate = useNavigate()
 
-    const handleCreateProject = async (newProject) => {
-      if (newProject.name != '') {
-        const project = await projectService.create(newProject)
-        setProjects(projects.concat(project))
-        setRefreshProjects((prev) => !prev)
+      const handleStatusChange = (projectId, newStatus, event) => {
+        event.stopPropagation()
+        projectId
+        newStatus
       }
-    }
 
-    return (
-      <div>
-        <div className="new-project-button">
-          <button onClick={handleNewProjectClick}>Create New Project</button>
-        </div>
-        {showProjectForm && (
-          <div className="overlay">
-            <div className="modal">
-              <button onClick={handleCloseForm}>Close</button>
-              <NewProjectForm handleCloseForm={handleCloseForm} handleCreateProject={handleCreateProject} />
-            </div>
+      const handleDeleteProject = async (projectId, event) => {
+        event.stopPropagation()
+        const confirmDelete = window.confirm('Are you sure you want to delete this project?');
+
+        if (confirmDelete) {
+          await projectService.remove(projectId);
+          // Filter out the deleted project and update the projects list
+          setProjects((prevProjects) => prevProjects.filter((project) => project.id !== projectId));
+        }
+      }
+
+      const handleNewProjectClick = () => {
+        setShowProjectForm(true)
+      }
+
+      const handleCloseForm = () => {
+        setShowProjectForm(false)
+      }
+      
+      const handleRowClick = (projectId) => {
+        navigate(`/project/${projectId}`)
+      }
+
+      const handleCreateProject = async (newProject) => {
+        if (newProject.name != '') {
+          const project = await projectService.create(newProject)
+          setProjects(projects.concat(project))
+          setRefreshProjects((prev) => !prev)
+        }
+      }
+
+      return (
+        <div className="project-page">
+          <div className="project-header">
+            <h2>Project Dashboard</h2>
+            <button onClick={handleNewProjectClick} className="create-project-btn">
+              <img src={add_img} alt="Add" style = {{marginRight: '8px'}} />
+              <span className="monsteratt-font">Add New</span>
+            </button>
           </div>
-        )}
-        <Table
-          projects={projects}
-        />
-      </div>
-    )
-  }
+          {showProjectForm && (
+            <div className="overlay">
+              <div className="modal">
+                <button onClick={handleCloseForm}>Close</button>
+                <NewProjectForm handleCloseForm={handleCloseForm} handleCreateProject={handleCreateProject} />
+              </div>
+            </div>
+          )}
+          <div className="issue-container">
+            <div className="issue-row header-row">
+              <div className="issue-column">Project Name</div>
+              <div className="issue-column">Members</div>
+            </div>
+            {projects.map((project) => (
+              <div className="issue-row" key={project.id} onClick={() => handleRowClick(project.id)}>
+                <div className="issue-column">{project.name}</div>
+                <div className="issue-column">
+                  {project.members.map((member, index) => (
+                    <span key={index}>{member.name}{index < project.members.length - 1 ? ', ' : ''}</span>
+                  ))}
+                </div>
+                  <button className="delete-button" onClick={(e) => handleDeleteProject(project.id, e)}>
+                    <img className="delete-button-img" src={delete_button} alt="Delete" />
+                  </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )
+    }
 
   function Department() {
 

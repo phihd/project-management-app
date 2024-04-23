@@ -61,6 +61,20 @@
   border-radius: 8px;
 }
 
+.issue-container::-webkit-scrollbar {
+  width: 10px;
+}
+
+.issue-container::-webkit-scrollbar-track {
+  background: #171b27;
+}
+
+.issue-container::-webkit-scrollbar-thumb {
+  background-color: #2e3141;
+  border-radius: 8px;
+  border: 2px solid #171b27;
+}
+
 .issue-column {
   flex: 1; /* Equal width for each column */
   padding: 0 10px; /* Spacing for readability */
