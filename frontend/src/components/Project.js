@@ -1,107 +1,14 @@
-/* eslint-disable */
-import React, { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import React, { useState } from 'react'
+import { useQuery, useQueryClient } from 'react-query'
 import NewProjectForm from './NewProjectForm'
 import projectService from '../services/projects'
-
-import delete_button from '../img/delete.png'
-
-
-function Table({ projects }) {
-  const navigate = useNavigate()
-
-  const handleStatusChange = (projectId, newStatus, event) => {
-    event.stopPropagation()
-    projectId
-    newStatus
-  }
-
-  const handleRowClick = (projectId) => {
-    navigate(`/project/${projectId}`)
-  }
-
-  const handleDeleteProject = async (projectId, event) => {
-    event.stopPropagation()
-    const confirmDelete = window.confirm('Are you sure you want to delete this project?')
-
-    if (confirmDelete) {
-      await projectService.remove(projectId)
-      // Filter out the deleted project and update the projects list
-      setProjects((prevProjects) => prevProjects.filter((project) => project.id !== projectId))
-    }
-  }
-
-  return (
-    <section className="table">
-      <table>
-        <thead>
-          <tr>
-            <th>Project Name</th>
-            <th>Status</th>
-            <th>Department</th>
-            <th>Members</th>
-          </tr>
-        </thead>
-        <tbody>
-          {projects.map((project) => (
-            <tr key={project.id} onClick={() => handleRowClick(project.id)}>
-              <td>{project.name}</td>
-              <td>
-                <div className="status-buttons">
-                  <button
-                    onClick={(e) => handleStatusChange(project.id, project.status.activityStatus, e)}
-                    className={`status-button ${project.status.activityStatus.toLowerCase()}`}
-                  >
-                    {project.status.activityStatus}
-                  </button>
-                  <button
-                    onClick={(e) => handleStatusChange(project.id, project.status.progressStatus, e)}
-                    className={`status-button ${project.status.progressStatus.toLowerCase().replace(/\s/g, '')}`}
-                  >
-                    {project.status.progressStatus}
-                  </button>
-                  <button
-                    onClick={(e) => handleStatusChange(project.id, project.status.completionStatus, e)}
-                    className={`status-button ${project.status.completionStatus.toLowerCase()}`}
-                  >
-                    {project.status.completionStatus}
-                  </button>
-                </div>
-              </td>
-              <td>{project.department}</td>
-              <td>
-                {project.members.map((member) => (
-                  <span key={member.id}>
-                    {member.name}
-                    {member !== project.members[project.members.length - 1] && ', '}
-                  </span>
-                ))}
-              </td>
-              <td>
-                <button className="delete-button" onClick={(e) => handleDeleteProject(project.id, e)}>
-                  <img className="delete-button-img" src={delete_button} alt="Delete" />
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </section>
-  )
-}
+import Table from './Table' // Assuming Table is a separate component
 
 const Project = () => {
   const [showProjectForm, setShowProjectForm] = useState(false)
-  const [projects, setProjects] = useState([])
-  const [refreshProjects, setRefreshProjects] = useState(false)
+  const queryClient = useQueryClient()
 
-
-  useEffect(() => {
-    projectService.getAll().then(projects => {
-      setProjects(projects)
-    }
-    )
-  }, [refreshProjects])
+  const { data: projects, isLoading, isError, error } = useQuery('projects', projectService.getAll, {})
 
   const handleNewProjectClick = () => {
     setShowProjectForm(true)
@@ -113,11 +20,13 @@ const Project = () => {
 
   const handleCreateProject = async (newProject) => {
     if (newProject.name !== '') {
-      const project = await projectService.create(newProject)
-      setProjects(prev => [...prev, project])
-      setRefreshProjects(prev => !prev)
+      const updatedProject = await projectService.create(newProject)
+      queryClient.setQueryData('projects', old => [...old, updatedProject])
     }
   }
+
+  if (isLoading) return <div>Loading projects...</div>
+  if (isError) return <div>Error: {error.message}</div>
 
   return (
     <div>
@@ -132,7 +41,7 @@ const Project = () => {
           </div>
         </div>
       )}
-      <Table projects={projects} />
+      <Table projects={projects || []} queryClient={queryClient} />
     </div>
   )
 }
