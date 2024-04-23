@@ -97,6 +97,7 @@ usersRouter.get('/:userId/assignedIssues', async (request, response) => {
   const issues = await Issue
     .find({ _id: { $in: issueIds } }) // get all issues based on provided issue ids
     .populate('project', { name: 1 })
+    .populate('assignees', { name:1 })
   response.json(issues)
 })
 
