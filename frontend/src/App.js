@@ -1,5 +1,6 @@
 /* eslint-disable */
 import React, { useState, useEffect, useContext, useRef } from 'react'
+import { useQuery, useQueryClient } from 'react-query'
 import './App.css'
 import {
   Routes,
@@ -20,7 +21,7 @@ import Dashboard from './components/Dashboard'
 import NewProjectForm from './components/NewProjectForm'
 import IssueDetail from './components/IssueDetail'
 import Notification from './components/Notification'
-import Login from './components/Login'
+import LoginForm from './components/LoginForm'
 import SignUpForm from './components/SignUpForm'
 import Procedure from './components/Procedure'
 import TemplateDetail from './components/TemplateDetail'
@@ -47,51 +48,44 @@ const App = () => {
   const [showLogin, setShowLogin] = useState(true)
   const [showSignUp, setShowSignUp] = useState(false)
 
-  const { user, setUser } = useContext(UserContext)
   const [isSidebarVisible, setIsSidebarVisible] = useState(false)
-  const [notifications, setNotifications] = useState([])
   const [showNotifications, setShowNotifications] = useState(false)
   const sidebarRef = useRef(null)
+  const { user, setUser } = useContext(UserContext)
+  const queryClient = useQueryClient()
 
 
-  useEffect(() => {
-    const loggedUserJSON = window.localStorage.getItem('loggedProjectappUser')
-    if (loggedUserJSON) {
-      const user = JSON.parse(loggedUserJSON)
-      setToken(user.token)
+  // Fetch user
+  const { isLoading: userLoading, isError: userError, error: userErrorMessage } = useQuery('user', userService.getUserFromLocalStorage, {
+    onSuccess: (userData) => {
+      setUser(userData)
+      setShowLogin(false)
+    },
+    onError: () => {
+      handleLogout()
+      setShowLogin(true)
+    },
+    enabled: !!localStorage.getItem('loggedProjectappUser'),
+    retry: false,
+    refetchOnWindowFocus: false
+  })
 
-      homeService.getAll().then(response => {
-        if (response === 'OK') {
-          setUser(user)
-        } else {
-          setUser(null)
-          setToken(null)
-        }
-      })
+  // Fetch notifications
+  const { data: notifications, isLoading: notificationsLoading } = useQuery(
+    'notifications',
+    () => notiService.getAll(user.id),
+    {
+      enabled: !!user,
+      onError: (error) => console.error('Error fetching notifications:', error),
+      refetchIntervalInBackground: false,
+      refetchOnWindowFocus: false,
     }
-  }, [])
+  )
 
-
-
-  const useNotifications = () => {
-    const [notifications, setNotifications] = useState([])
-    const { user } = useContext(UserContext)
-
-    useEffect(() => {
-      if (user) {
-        notiService.getAll().then(data => {
-          const notiByUser = data.filter(noti => noti.user === user.id)
-          setNotifications(notiByUser)
-        }).catch(error => console.error('Failed to fetch notifications:', error))
-      }
-    }, [user])  // Depend on user to refetch when user changes
-
-    return { notifications, setNotifications }
-  }
-
+  if (userLoading) return <div>Loading user data...</div>
+  if (notificationsLoading) return <div>Loading notifications...</div>
 
   function NavigationBar({ toggleSidebar }) {
-    const { notifications, setNotifications } = useNotifications()
     const [showNotifications, setShowNotifications] = useState(false)
     const buttonRef = useRef(null)
 
@@ -207,20 +201,20 @@ const App = () => {
     )
   }
 
-  
+
 
 
   function Footer({ children }) {
-  return (
-    <footer className="footer">
-      <div className="footer-content">
-        {/* <a href="https://www.linkedin.com/in/phihd/">Visit PhiThienTai</a> */}
-        {/* <p>Copyright © 2023 PhiThientai. All rights reserved.</p> */}
-      </div>
-      <div className="user-dropdown">{children}</div>
-    </footer>
-  );
-}
+    return (
+      <footer className="footer">
+        <div className="footer-content">
+          {/* <a href="https://www.linkedin.com/in/phihd/">Visit PhiThienTai</a> */}
+          {/* <p>Copyright © 2023 PhiThientai. All rights reserved.</p> */}
+        </div>
+        <div className="user-dropdown">{children}</div>
+      </footer>
+    )
+  }
 
   const UserDropdown = ({ handleLogout }) => {
     const [isOpen, setIsOpen] = useState(false)
@@ -300,7 +294,7 @@ const App = () => {
 
   const Main = () => {
     return (
-      <Dashboard currentUser={user} />
+      <Dashboard />
     )
   }
 
@@ -318,7 +312,7 @@ const App = () => {
       )
 
       setToken(user.token)
-      setUser(user)
+      queryClient.setQueryData('user', user)
       setUsername('')
       setPassword('')
     } catch (exception) {
@@ -331,7 +325,9 @@ const App = () => {
 
   const handleLogout = () => {
     window.localStorage.removeItem('loggedProjectappUser')
+    queryClient.removeQueries('user');
     setUser(null)
+    setShowLogin(true)
   }
 
   const loginForm = () => {
@@ -359,7 +355,7 @@ const App = () => {
     return (
       <div>
         {showLogin &&
-          <Login
+          <LoginForm
             username={username}
             password={password}
             handleUsernameChange={({ target }) => setUsername(target.value)}
@@ -395,9 +391,9 @@ const App = () => {
                 <Routes>
                   <Route path="/" element={<Main />} />
                   <Route path="/project" element={<Project />} />
-                  <Route path="/project/:projectId" element={<ProjectDetail projects={projects} />} />
+                  <Route path="/project/:projectId" element={<ProjectDetail />} />
                   <Route path="/department" element={<Department />} />
-                  <Route path="/project/:projectId/:issueId" element={<IssueDetail projects={projects} />} />
+                  <Route path="/project/:projectId/:issueId" element={<IssueDetail />} />
                   <Route path="/procedure" element={<Procedure />} />
                   <Route path="/procedure/:templateId" element={<TemplateDetail />} />
                   <Route path="/procedure/:templateId/:stepId" element={<StepDetail />} />
@@ -413,8 +409,5 @@ const App = () => {
     </div>
   )
 }
-
-// Implement other components such as NavigationBar, Sidebar, Dashboard, Table, Filters, CreateProjectModal, CreateDepartmentModal, and Footer.
-// Each component will contain its specific structure and functionality based on the descriptions provided.
 
 export default App
