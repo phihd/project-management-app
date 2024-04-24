@@ -26,7 +26,11 @@ const performDueIssueCheck = async (issueId = null) => {
       await Promise.all(issue.assignees.map(async (assignee) => {
         if (assignee.email) {
           await sendEmailNotification(assignee.email, `Issue "${issue.title}" is due soon.`)
-          await createAppNotification(assignee.id, `Issue "${issue.title}" is due within 24 hours.`)
+          await createAppNotification({
+            user: assignee.id,
+            message: `Issue "${issue.title}" is due within 24 hours.`,
+            url: 'www.google.com'
+          })
         }
       }))
 
