@@ -362,15 +362,16 @@ h1, h2, h3, h4, h5, h6 {
   background-color: #9b8f30;
 }
 
-.issue-container {
+.project-container {
   flex: 1; /* Takes remaining height */
   overflow-y: auto; /* Allows scrolling */
   display: flex;
   flex-direction: column;
   min-height: 0;
+  width: 100%;
 }
 
-.issue-container .issue-row {
+.project-container .project-row {
   min-height: 12vh;
   background-color: #131623;
   margin-bottom: 5px;
@@ -384,25 +385,31 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 
-.issue-container .header-row {
+.project-container .header-row {
   min-height: 8vh; /* Smaller height for the header row */
   font-weight: bold;
   background-color: #171b27;
   color: #ffffff;
   border-radius: 8px;
+  align-items: center;
+  justify-content: space-between;
+  display: flex;
 }
 
-.issue-column {
-  flex: 1;
-  padding: 0 10px;
+.project-column {
+  flex: 1; /* Gives equal space to each column */
+  padding: 0 10px; /* Adds padding for spacing */
+  display: flex; /* Aligns items in a flexible layout */
+  align-items: center; /* Vertically centers items */
+  flex-wrap: wrap; /* Allows items to wrap within the column */
 }
 
-.issue-container .issue-row:hover {
-  background-color: #31384b; /* Darker background on hover */
+.project-container .project-row:not(.header-row):hover {
+  background-color: #2a2e35; /* Changed color for better visibility */
 }
 
-.issue-container .header-row:hover {
-  display: none;
+.members-element {
+  margin-right: 4px;
 }
 
 

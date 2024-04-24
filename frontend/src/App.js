@@ -416,17 +416,17 @@ const App = () => {
               </div>
             </div>
           )}
-          <div className="issue-container">
-            <div className="issue-row header-row">
-              <div className="issue-column">Project Name</div>
-              <div className="issue-column">Members</div>
+          <div className="project-container">
+            <div className="project-row header-row">
+              <div className="project-column">Project Name</div>
+              <div className="project-column">Members</div>
             </div>
             {projects.map((project) => (
-              <div className="issue-row" key={project.id} onClick={() => handleRowClick(project.id)}>
-                <div className="issue-column">{project.name}</div>
-                <div className="issue-column">
+              <div className="project-row" key={project.id} onClick={() => handleRowClick(project.id)}>
+                <div className="project-column">{project.name}</div>
+                <div className="project-column">
                   {project.members.map((member, index) => (
-                    <span key={index}>{member.name}{index < project.members.length - 1 ? ', ' : ''}</span>
+                    <div className='members-element' key={index}>{member.name}{index < project.members.length - 1 ? ',' : ''}</div>
                   ))}
                 </div>
                   <button className="delete-button" onClick={(e) => handleDeleteProject(project.id, e)}>

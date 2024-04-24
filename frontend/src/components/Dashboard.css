@@ -61,6 +61,10 @@
   border-radius: 8px;
 }
 
+.issue-container .issue-row:not(.header-row):hover {
+  background-color: #2a2e35;
+}
+
 .issue-container::-webkit-scrollbar {
   width: 10px;
 }
