@@ -1,5 +1,5 @@
 /* eslint-disable */
-import React, { useState, useEffect, useContext, useRef } from 'react'
+import React, { useState, useEffect, useContext, useRef, useCallback } from 'react'
 import { useQuery, useQueryClient } from 'react-query'
 import './App.css'
 import {
@@ -15,6 +15,7 @@ import scqcLogo from './img/LOGO-SCQC-ISO.png'
 import user_phihd from './img/user_phihd.jpeg'
 import default_avatar from './img/default_avatar.jpg'
 import noti_img from './img/noti_img.png'
+import sidebar_img from './img/sidebar_img.png'
 
 import ProjectDetail from './components/ProjectDetail'
 import Dashboard from './components/Dashboard'
@@ -44,6 +45,8 @@ const App = () => {
     text: null,
     isError: false,
   })
+
+  const [projects, setProjects] = useState([])
   const [showProjectForm, setShowProjectForm] = useState(false)
   const [showLogin, setShowLogin] = useState(true)
   const [showSignUp, setShowSignUp] = useState(false)
@@ -54,6 +57,13 @@ const App = () => {
   const { user, setUser } = useContext(UserContext)
   const queryClient = useQueryClient()
 
+
+  const handleLogout = () => {
+    window.localStorage.removeItem('loggedProjectappUser')
+    queryClient.removeQueries('user');
+    setUser(null)
+    setShowLogin(true)
+  }
 
   // Fetch user
   const { isLoading: userLoading, isError: userError, error: userErrorMessage } = useQuery('user', userService.getUserFromLocalStorage, {
@@ -75,8 +85,13 @@ const App = () => {
     'notifications',
     () => notiService.getAll(user.id),
     {
-      enabled: !!user,
-      onError: (error) => console.error('Error fetching notifications:', error),
+      enabled: !!user && !!user.token,
+      onError: (error) => {
+        if (error.response && error.response.status === 401) { // Handle unauthorized access (e.g., token expiration)
+          handleLogout()
+          setShowLogin(true)
+        }
+      },
       refetchIntervalInBackground: false,
       refetchOnWindowFocus: false,
     }
@@ -125,23 +140,17 @@ const App = () => {
     const numberOfUnreadNotifications = notifications.filter(notification => !notification.read).length
 
     return (
-      <nav className="navbar">
+      <div className="navbar">
         <div className="logo">
           <Link to="/" onClick={() => handleItemClick('')}>
-            <img src={scqcLogo} alt="SCQC Logo" />
+            <img className='logo' src={scqcLogo} alt="SCQC Logo" />
           </Link>
         </div>
+        <div className="toolbar-buttons">
         {/* Toggle Sidebar Button */}
         <button className="sidebar-toggle-btn" onClick={toggleSidebar}>
-          Toggle Sidebar
+            <img src={sidebar_img} alt="Toggle Sidebar" />
         </button>
-        <div className="navigation-links">
-          <ul>
-            {/* <li><a href="#">Dự án & Phòng ban</a></li>
-            <li><a href="#">Hoạt động</a></li>
-            <li><a href="#">Thảo luận</a></li> */}
-          </ul>
-        </div>
         <div className="notification">
           <button ref={buttonRef} className="notification-btn" onClick={handleNotificationClick}>
             <img src={noti_img} alt="Notification" />
@@ -166,7 +175,8 @@ const App = () => {
             </div>
           )}
         </div>
-      </nav>
+        </div>
+      </div>
     )
   }
 
@@ -175,7 +185,7 @@ const App = () => {
 
     const handleItemClick = (view) => {
       setSelectedView(view)
-
+      toggleSidebar()
     }
 
     return (
@@ -213,18 +223,18 @@ const App = () => {
         </div>
         <div className="user-dropdown">{children}</div>
       </footer>
-    )
+    );
   }
 
-  const UserDropdown = ({ handleLogout }) => {
+  const UserDropdown = ({ user, handleLogout }) => {
     const [isOpen, setIsOpen] = useState(false)
     const [isOpenEmailForm, setIsOpenEmailForm] = useState(false)
     const [email, setEmail] = useState('')
-
+  
     const toggleDropdown = () => {
       setIsOpen(!isOpen)
     }
-
+  
     const handleItemClick = (action) => {
       if (action === 'settings') {
         toggleEmailForm()
@@ -233,31 +243,26 @@ const App = () => {
       }
       setIsOpen(false)
     }
-
+  
     const toggleEmailForm = () => {
       setIsOpenEmailForm(!isOpenEmailForm)
     }
-
+  
     const handleEmailChange = (event) => {
       setEmail(event.target.value)
     }
-
+  
     const handleSubmitEmail = (event) => {
-      event.preventDefault()
-      console.log(user.id)
-      userService.update(user.id.toString(), { email: email })
-        .then(response => {
-          console.log('Email submitted:', email)
-          setEmail('')
-          setIsOpenEmailForm(false)
-        })
-        .catch(error => console.error('Failed to update email:', error))
+      event.preventDefault();
+      console.log('Email submitted:', email)
+      setEmail('')
+      setIsOpenEmailForm(false)
     }
 
     const handleCloseForm = () => {
       setIsOpenEmailForm(false)
     }
-
+  
     return (
       <div className="user-info">
         <button className="user-info-btn" onClick={toggleDropdown}>
@@ -323,12 +328,7 @@ const App = () => {
     }
   }
 
-  const handleLogout = () => {
-    window.localStorage.removeItem('loggedProjectappUser')
-    queryClient.removeQueries('user');
-    setUser(null)
-    setShowLogin(true)
-  }
+  
 
   const loginForm = () => {
     const handleShowSignUp = () => {
@@ -380,30 +380,28 @@ const App = () => {
       {
         user && <div>
           <div className="App">
-            <div className="navbar">
-              <NavigationBar toggleSidebar={() => setIsSidebarVisible(prev => !prev)} />
-            </div>
-            <div className={`sidebar-wrapper ${isSidebarVisible ? '' : 'hidden'}`}>
-              <Sidebar isVisible={isSidebarVisible} />
-            </div>
-            <div className={`content-wrapper ${isSidebarVisible ? 'shifted' : ''}`}>
-              <div className="main-content">
-                <Routes>
-                  <Route path="/" element={<Main />} />
-                  <Route path="/project" element={<Project />} />
-                  <Route path="/project/:projectId" element={<ProjectDetail />} />
-                  <Route path="/department" element={<Department />} />
-                  <Route path="/project/:projectId/:issueId" element={<IssueDetail />} />
-                  <Route path="/procedure" element={<Procedure />} />
-                  <Route path="/procedure/:templateId" element={<TemplateDetail />} />
-                  <Route path="/procedure/:templateId/:stepId" element={<StepDetail />} />
-                </Routes>
-              </div>
-            </div>
-            <Footer>
+        <NavigationBar toggleSidebar={() => setIsSidebarVisible(prev => !prev)} />
+      <div className={`sidebar-wrapper ${isSidebarVisible ? '' : 'hidden'}`}>
+        <Sidebar isVisible={isSidebarVisible} />
+      </div>
+      <div className={`content-wrapper ${isSidebarVisible ? 'shifted' : ''}`}>
+        <div className="main-content">
+        <Routes>
+            <Route path="/" element={<Main />} />
+            <Route path="/project" element={<Project />} />
+            <Route path="/project/:projectId" element={<ProjectDetail projects={projects} />} />
+            <Route path="/department" element={<Department />} />
+            <Route path="/project/:projectId/:issueId" element={<IssueDetail projects={projects} />} />
+            <Route path="/procedure" element={<Procedure />} />
+            <Route path="/procedure/:templateId" element={<TemplateDetail />} />
+            <Route path="/procedure/:templateId/:stepId" element={<StepDetail />} />
+          </Routes>
+        </div>
+        </div>
+          <Footer>
               <UserDropdown user={user} handleLogout={handleLogout} />
-            </Footer>
-          </div>
+          </Footer>
+        </div>
         </div>
       }
     </div>

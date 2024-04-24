@@ -8,6 +8,8 @@ import issueService from '../services/issues'
 import UserContext from './UserContext'
 import NewIssueForm from './NewIssueForm'
 
+import delete_button from '../img/delete.png'
+
 function ProjectDetail({ projects }) {
   const { projectId } = useParams()
   const { user } = useContext(UserContext)
@@ -42,6 +44,15 @@ function ProjectDetail({ projects }) {
     setShowIssueForm(false)
   }
 
+  const handleDeleteIssue = async (issueId, event) => {
+    event.stopPropagation()
+    const confirmDelete = window.confirm('Are you sure you want to delete this issue?');
+    if (confirmDelete) {
+      await issueService.remove(projectId, issueId)
+      setIssues((prevIssues) => prevIssues.filter((issue) => issue.id !== issueId))
+    }
+  }
+
   const handleCreateIssue = async (newIssue) => {
     if (newIssue.title != '') {
       const issue = await issueService.create(projectId, newIssue)
@@ -56,31 +67,24 @@ function ProjectDetail({ projects }) {
 
 
   return (
+
     <div className="project-detail">
-      {user && project.members.some(member => member.id === user.id) &&
-        <div className="new-issue-button">
-          <button onClick={handleNewIssueClick}>Create New Issue</button>
+      <div className="project-title-header">
+        <h1 className="project-title">{project.name}</h1>
+        <div className="header-buttons">
+          {/* <button>{project.status.activityStatus}</button> */}
+          <button> Tổ Chức Hành Chính </button>
+          <button> Status </button>
         </div>
-      }
-      {showIssueForm && (
-        <div className="overlay">
-          <div className="modal">
-            <button onClick={handleCloseForm}>Close</button>
-            <NewIssueForm handleCloseForm={handleCloseForm} handleCreateIssue={handleCreateIssue} />
-          </div>
-        </div>
-      )}
-      <h2 className="project-title">{project.name}</h2>
+      </div>
       <div className="project-info">
         <div className="project-section">
-          <h3>Status</h3>
-          <p>{project.status.activityStatus}</p>
-          <p>{project.status.progressStatus}</p>
-          <p>{project.status.completionStatus}</p>
-        </div>
-        <div className="project-section">
-          <h3>Department</h3>
-          <p>{project.department}</p>
+          <h3>Members</h3>
+          <p>
+            {project.members.map((member, index) => (
+              <div key={index}>{member.name}{index < project.members.length - 1 ? ' ' : ''}</div>
+            ))}
+          </p>
         </div>
         <div className="project-section">
           <h3>Description</h3>
@@ -92,32 +96,37 @@ function ProjectDetail({ projects }) {
             <p>No description available</p>
           )}
         </div>
-        <div className="project-section">
-          <h3>Members</h3>
-          <ul>
-            {project.members.map((member, index) => (
-              <li key={index}>{member.name}</li>
-            ))}
-          </ul>
-        </div>
       </div>
-      <div className="project-detail-issue-list">
-        <h2>Open Issues</h2>
-        <ul className="project-detail-issue-list-container">
+      <div className="project-issues">
+        <h2>Project Issues</h2>
+        <div className="issue-controls">
+          <span>{issues.length} Open Issues</span>
+          <button onClick={handleNewIssueClick}>+ New Issue</button>
+        </div>
+        <ul className="issue-list">
           {issues.map((issue) => (
-            <li key={issue.id} className="project-detail-issue-item">
-              <Link to={`/project/${projectId}/${issue.id}`} className="project-detail-issue-link">
-                <div className="project-detail-issue-info">
-                  <span className="project-detail-issue-title">{issue.title}</span>
-                  <span className="project-detail-issue-due-date">
-                    {issue.dueDate ? new Date(issue.dueDate).toLocaleDateString() : 'No due date'}
-                  </span>
-                </div>
-              </Link>
+            <li key={issue.id} className="issue-item">
+              <div>
+                <h4>{issue.title}</h4>
+                <p>Status: {issue.status}</p>
+                <p>{issue.description}</p>
+                <p>Comments: {issue.comments.length}</p>
+              </div>
+              <button className='delete-button' onClick={(e) => handleDeleteIssue(issue.id, e)}>
+                <img className='delete-button-img' src={delete_button} alt="Delete" />
+              </button>
             </li>
           ))}
         </ul>
       </div>
+      {showIssueForm && (
+        <div className="overlay">
+          <div className="modal">
+            <button onClick={handleCloseForm}>Close</button>
+            <NewIssueForm handleCloseForm={handleCloseForm} handleCreateIssue={handleCreateIssue} />
+          </div>
+        </div>
+      )}
     </div>
   )
 }
