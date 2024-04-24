@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { useQuery, useQueryClient } from 'react-query'
+import { useNavigate } from 'react-router-dom'
 import NewProjectForm from './NewProjectForm'
 import projectService from '../services/projects'
 import Table from './Table' // Assuming Table is a separate component
@@ -7,6 +8,7 @@ import Table from './Table' // Assuming Table is a separate component
 const Project = () => {
   const [showProjectForm, setShowProjectForm] = useState(false)
   const queryClient = useQueryClient()
+  const navigate = useNavigate()
 
   const { data: projects, isLoading, isError, error } = useQuery('projects', projectService.getAll, {})
 
@@ -22,6 +24,7 @@ const Project = () => {
     if (newProject.name !== '') {
       const updatedProject = await projectService.create(newProject)
       queryClient.setQueryData('projects', old => [...old, updatedProject])
+      navigate(`/project/${updatedProject.id}`)
     }
   }
 

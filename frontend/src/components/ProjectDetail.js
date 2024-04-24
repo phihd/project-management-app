@@ -2,16 +2,19 @@
 import React, { useState, useEffect, useContext } from 'react'
 import './ProjectDetail.css'
 import { useParams, Link } from 'react-router-dom'
-import { useQuery } from 'react-query'
+import { useQuery, useQueryClient } from 'react-query'
+import { useNavigate } from 'react-router-dom'
 import projectService from '../services/projects'
 import issueService from '../services/issues'
 import UserContext from './UserContext'
 import NewIssueForm from './NewIssueForm'
 
-function ProjectDetail({ projects }) {
+function ProjectDetail() {
   const { projectId } = useParams()
   const { user } = useContext(UserContext)
-  const [showIssueForm, setShowIssueForm] = React.useState(false)
+  const [showIssueForm, setShowIssueForm] = useState(false)
+  const navigate = useNavigate()
+  const queryClient = useQueryClient()
 
   // Fetch project details
   const {
@@ -45,7 +48,8 @@ function ProjectDetail({ projects }) {
   const handleCreateIssue = async (newIssue) => {
     if (newIssue.title != '') {
       const issue = await issueService.create(projectId, newIssue)
-      setIssues(issues.concat(issue))
+      queryClient.setQueryData(['issues', projectId], old => [...old, issue])
+      navigate(`/project/${projectId}/${issue.id}`)
     }
   }
 
