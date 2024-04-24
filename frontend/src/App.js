@@ -55,6 +55,13 @@ const App = () => {
   const queryClient = useQueryClient()
 
 
+  const handleLogout = () => {
+    window.localStorage.removeItem('loggedProjectappUser')
+    queryClient.removeQueries('user');
+    setUser(null)
+    setShowLogin(true)
+  }
+
   // Fetch user
   const { isLoading: userLoading, isError: userError, error: userErrorMessage } = useQuery('user', userService.getUserFromLocalStorage, {
     onSuccess: (userData) => {
@@ -75,8 +82,13 @@ const App = () => {
     'notifications',
     () => notiService.getAll(user.id),
     {
-      enabled: !!user,
-      onError: (error) => console.error('Error fetching notifications:', error),
+      enabled: !!user && !!user.token,
+      onError: (error) => {
+        if (error.response && error.response.status === 401) { // Handle unauthorized access (e.g., token expiration)
+          handleLogout()
+          setShowLogin(true)
+        }
+      },
       refetchIntervalInBackground: false,
       refetchOnWindowFocus: false,
     }
@@ -102,14 +114,14 @@ const App = () => {
       // First mark the notification as read
       markNotificationAsRead(id).then(() => {
         // After marking as read, navigate to the notification's link
-        window.location.href = `/project/659bcbab51659ac5c226fb12/659bcc7151659ac5c226fb46`
+        window.location.href = `project/659bcbab51659ac5c226fb12/659bcc1d51659ac5c226fb2d`
       })
     }
 
     // Improved function to mark a notification as read
     const markNotificationAsRead = (id) => {
       return new Promise(resolve => {
-        setNotifications(prevNotifications => {
+        queryClient.setQueryData('notifications', prevNotifications => {
           return prevNotifications.map(notification => {
             if (notification.id === id) {
               return { ...notification, read: true }
@@ -321,13 +333,6 @@ const App = () => {
         setMessage({ text: null, isError: false })
       }, 5000)
     }
-  }
-
-  const handleLogout = () => {
-    window.localStorage.removeItem('loggedProjectappUser')
-    queryClient.removeQueries('user');
-    setUser(null)
-    setShowLogin(true)
   }
 
   const loginForm = () => {
