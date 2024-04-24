@@ -12,7 +12,9 @@ projectsRouter.get('/', async (request, response) => {
 })
 
 projectsRouter.get('/:id', async (request, response) => {
-  const project = await Project.findById(request.params.id)
+  const project = await Project
+    .findById(request.params.id)
+    .populate('members', { name: 1 })
   if (project) {
     response.json(project)
   } else {
