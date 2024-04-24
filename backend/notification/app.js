@@ -1,10 +1,11 @@
 const Notification = require('../models/notification')
 
-const createAppNotification = async (user, message) => {
+const createAppNotification = async ({ user, message, url }) => {
   try {
     const notification = new Notification({
       user,
       message,
+      url,
     })
 
     await notification.save()
