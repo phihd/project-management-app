@@ -1,5 +1,5 @@
 /* eslint-disable */
-import React, { useState, useEffect, useContext, useRef } from 'react'
+import React, { useState, useEffect, useContext, useRef, useCallback } from 'react'
 import { useQuery, useQueryClient } from 'react-query'
 import './App.css'
 import {
@@ -15,6 +15,7 @@ import scqcLogo from './img/LOGO-SCQC-ISO.png'
 import user_phihd from './img/user_phihd.jpeg'
 import default_avatar from './img/default_avatar.jpg'
 import noti_img from './img/noti_img.png'
+import sidebar_img from './img/sidebar_img.png'
 
 import ProjectDetail from './components/ProjectDetail'
 import Dashboard from './components/Dashboard'
@@ -57,7 +58,7 @@ const App = () => {
 
   const handleLogout = () => {
     window.localStorage.removeItem('loggedProjectappUser')
-    queryClient.removeQueries('user');
+    queryClient.removeQueries('user')
     setUser(null)
     setShowLogin(true)
   }
@@ -137,48 +138,43 @@ const App = () => {
     const numberOfUnreadNotifications = notifications.filter(notification => !notification.read).length
 
     return (
-      <nav className="navbar">
+      <div className="navbar">
         <div className="logo">
           <Link to="/" onClick={() => handleItemClick('')}>
-            <img src={scqcLogo} alt="SCQC Logo" />
+            <img className='logo' src={scqcLogo} alt="SCQC Logo" />
           </Link>
         </div>
-        {/* Toggle Sidebar Button */}
-        <button className="sidebar-toggle-btn" onClick={toggleSidebar}>
-          Toggle Sidebar
-        </button>
-        <div className="navigation-links">
-          <ul>
-            {/* <li><a href="#">Dự án & Phòng ban</a></li>
-            <li><a href="#">Hoạt động</a></li>
-            <li><a href="#">Thảo luận</a></li> */}
-          </ul>
-        </div>
-        <div className="notification">
-          <button ref={buttonRef} className="notification-btn" onClick={handleNotificationClick}>
-            <img src={noti_img} alt="Notification" />
-            {numberOfUnreadNotifications > 0 && (
-              <span className="notification-count">{numberOfUnreadNotifications}</span>
-            )}
+        <div className="toolbar-buttons">
+          {/* Toggle Sidebar Button */}
+          <button className="sidebar-toggle-btn" onClick={toggleSidebar}>
+            <img src={sidebar_img} alt="Toggle Sidebar" />
           </button>
-          {showNotifications && (
-            <div className="notification-popup" style={{ top: buttonRef.current.offsetTop + buttonRef.current.offsetHeight }}>
-              <div className="notification-panel">
-                {notifications.map(notification => (
-                  <a
-                    key={notification.id}
-                    href={`/project/659bcbab51659ac5c226fb12/659bcc7151659ac5c226fb46`}
-                    className={`notification-link ${notification.read ? 'read' : 'unread'}`}
-                    onClick={(e) => handleNotificationLinkClick(e, notification.id)}
-                  >
-                    <div>{notification.message}</div>
-                  </a>
-                ))}
+          <div className="notification">
+            <button ref={buttonRef} className="notification-btn" onClick={handleNotificationClick}>
+              <img src={noti_img} alt="Notification" />
+              {numberOfUnreadNotifications > 0 && (
+                <span className="notification-count">{numberOfUnreadNotifications}</span>
+              )}
+            </button>
+            {showNotifications && (
+              <div className="notification-popup" style={{ top: buttonRef.current.offsetTop + buttonRef.current.offsetHeight }}>
+                <div className="notification-panel">
+                  {notifications.map(notification => (
+                    <a
+                      key={notification.id}
+                      href={`/project/659bcbab51659ac5c226fb12/659bcc7151659ac5c226fb46`}
+                      className={`notification-link ${notification.read ? 'read' : 'unread'}`}
+                      onClick={(e) => handleNotificationLinkClick(e, notification.id)}
+                    >
+                      <div>{notification.message}</div>
+                    </a>
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
-      </nav>
+      </div>
     )
   }
 
@@ -187,7 +183,7 @@ const App = () => {
 
     const handleItemClick = (view) => {
       setSelectedView(view)
-
+      toggleSidebar()
     }
 
     return (
@@ -256,7 +252,6 @@ const App = () => {
 
     const handleSubmitEmail = (event) => {
       event.preventDefault()
-      console.log(user.id)
       userService.update(user.id.toString(), { email: email })
         .then(response => {
           console.log('Email submitted:', email)
@@ -385,9 +380,7 @@ const App = () => {
       {
         user && <div>
           <div className="App">
-            <div className="navbar">
-              <NavigationBar toggleSidebar={() => setIsSidebarVisible(prev => !prev)} />
-            </div>
+            <NavigationBar toggleSidebar={() => setIsSidebarVisible(prev => !prev)} />
             <div className={`sidebar-wrapper ${isSidebarVisible ? '' : 'hidden'}`}>
               <Sidebar isVisible={isSidebarVisible} />
             </div>

@@ -1,7 +1,6 @@
 import React, { useState } from 'react'
 import { useQuery, useQueryClient } from 'react-query'
 import { useNavigate } from 'react-router-dom'
-import NewProjectForm from './NewProjectForm'
 import projectService from '../services/projects'
 import Table from './Table' // Assuming Table is a separate component
 
@@ -33,18 +32,13 @@ const Project = () => {
 
   return (
     <div>
-      <div className="new-project-button">
-        <button onClick={handleNewProjectClick}>Create New Project</button>
-      </div>
-      {showProjectForm && (
-        <div className="overlay">
-          <div className="modal">
-            <button onClick={handleCloseForm}>Close</button>
-            <NewProjectForm handleCloseForm={handleCloseForm} handleCreateProject={handleCreateProject} />
-          </div>
-        </div>
-      )}
-      <Table projects={projects || []} queryClient={queryClient} />
+      <Table
+        projects={projects || []} handleNewProjectClick={handleNewProjectClick}
+        showProjectForm={showProjectForm}
+        handleCloseForm={handleCloseForm}
+        handleCreateProject={handleCreateProject}
+        queryClient={queryClient}
+      />
     </div>
   )
 }
