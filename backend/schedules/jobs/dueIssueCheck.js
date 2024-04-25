@@ -30,7 +30,7 @@ const performDueIssueCheck = async (issueId = null) => {
         await createAppNotification({
           user: assignee.id,
           message: `Issue "${issue.title}" is due within 24 hours.`,
-          url: 'www.google.com'
+          url: `/project/${issue.project.toString()}/${issue._id}`
         })
       }))
 

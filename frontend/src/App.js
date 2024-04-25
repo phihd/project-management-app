@@ -114,14 +114,14 @@ const App = () => {
       // First mark the notification as read
       markNotificationAsRead(id).then(() => {
         // After marking as read, navigate to the notification's link
-        window.location.href = `project/659bcbab51659ac5c226fb12/659bcc1d51659ac5c226fb2d`
+        window.location.href = `/project/659bcbab51659ac5c226fb12/659bcc7151659ac5c226fb46`
       })
     }
 
     // Improved function to mark a notification as read
     const markNotificationAsRead = (id) => {
       return new Promise(resolve => {
-        queryClient.setQueryData('notifications', prevNotifications => {
+        setNotifications(prevNotifications => {
           return prevNotifications.map(notification => {
             if (notification.id === id) {
               return { ...notification, read: true }
