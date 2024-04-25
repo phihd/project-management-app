@@ -23,7 +23,12 @@ issuesRouter.get('/', async (request, response) => {
 issuesRouter.get('/:issueId', async (request, response) => {
   try {
     const issueId = request.params.issueId
-    const issue = await Issue.findOne({ _id: issueId })
+    const issue = await Issue
+      .findOne({ _id: issueId })
+      .populate('creator', { name: 1 })
+      .populate('assignees', { name: 1 })
+      .populate('project', { title: 1 })
+      .populate('comments', { text: 1 })
     if (!issue) {
       return response.status(404).json({ message: 'Issue not found' })
     }

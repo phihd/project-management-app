@@ -3,15 +3,15 @@
 import React, { useState, useEffect, useContext } from 'react'
 import './IssueDetail.css'
 import { useParams, Link } from 'react-router-dom'
-import { useQuery } from 'react-query'
+import { useQuery, useQueryClient } from 'react-query'
 import issueService from '../services/issues'
 import projectService from '../services/projects'
 import commentService from '../services/comments'
 import UserContext from './UserContext'
+import { useNavigate} from 'react-router-dom'
 
 const IssueDetail = ({ projects }) => {
 
-  const [issues, setIssues] = useState([])
   const [files, setFiles] = useState([])
   const [commentInput, setCommentInput] = useState('')
   const { user } = useContext(UserContext)
@@ -34,7 +34,8 @@ const IssueDetail = ({ projects }) => {
   const [editingCommentId, setEditingCommentId] = useState(null)
   const [editedCommentText, setEditedCommentText] = useState("")
   const [commentFiles, setCommentFiles] = useState([])
-
+  const navigate = useNavigate()
+  const queryClient = useQueryClient()
 
 
   // Fetch project details
@@ -54,7 +55,11 @@ const IssueDetail = ({ projects }) => {
     isError: issueError,
     error: issueErrorMessage
   } = useQuery(['issue', issueId], () => issueService.get(projectId, issueId), {
-    enabled: !!issueId
+    enabled: !!issueId,
+    onSuccess: (data) => {
+      // Initialize local status with fetched issue status
+      setCurrentStatus(data.status)
+    }
   })
 
   // Fetch comments for the issue
@@ -77,7 +82,7 @@ const IssueDetail = ({ projects }) => {
     try {
       const assigneeIds = newAssignees.map(assignee => assignee.id)
       await issueService.update(projectId, issueId, { assignees: assigneeIds })
-      setIssue(prevIssue => ({ ...prevIssue, assignees: newAssignees }))
+      queryClient.setQueryData(['issue', issueId], prevIssue => ({ ...prevIssue, assignees: newAssignees }))
       const assigneeNames = newAssignees.map(assignee => assignee.name).join(', ')
       const assignedTo = assigneeNames ? `assigned to ${assigneeNames}` : 'unassigned'
       const editedAssignee = {
@@ -130,7 +135,7 @@ const IssueDetail = ({ projects }) => {
       const newIssues = issues.map(
         issue => issue.id === id ? updatedIssue : issue
       )
-      setIssues(newIssues)
+      // setIssues(newIssues)
     } catch (exception) {
       console.log(exception)
     }
@@ -206,7 +211,7 @@ const IssueDetail = ({ projects }) => {
     try {
       const oldDueDate = issue.dueDate
       await issueService.update(projectId, issueId, { dueDate: newDueDate })
-      setIssue(prevIssue => ({ ...prevIssue, dueDate: newDueDate }))
+      queryClient.setQueryData(['issue', issueId], prevIssue => ({ ...prevIssue, dueDate: newDueDate }))
       const editedDueDate = {
         username: user.name,
         timestamp: new Date().toLocaleString(),
@@ -249,7 +254,8 @@ const IssueDetail = ({ projects }) => {
       // Update the issue title in the backend
       await issueService.update(projectId, issueId, { title: newTitle })
       // // Update the issue due date in the UI
-      setIssue(prevIssue => ({ ...prevIssue, title: newTitle }))
+      queryClient.setQueryData(['issue', issueId], prevIssue => ({ ...prevIssue, title: newTitle }))
+      console.log(issue)
       const editedTitle = {
         username: user.name,
         timestamp: new Date().toLocaleString(),
@@ -281,7 +287,7 @@ const IssueDetail = ({ projects }) => {
       // Update the issue title in the backend
       await issueService.update(projectId, issueId, { description: newDescription })
       // Update the issue due date in the UI
-      setIssue(prevIssue => ({ ...prevIssue, description: newDescription }))
+      queryClient.setQueryData(['issue', issueId], prevIssue => ({ ...prevIssue, description: newDescription }))
     } catch (exception) {
       console.log(exception)
       throw new Error('Failed to update description: ' + exception)
@@ -332,6 +338,10 @@ const IssueDetail = ({ projects }) => {
     )
   }
 
+  const handleBackToProject = () => {
+    navigate(`/project/${projectId}`)
+  }
+
   const formatTimestamp = (timestamp) => {
     const date = new Date(timestamp)
     const hours = date.getHours().toString().padStart(2, '0')
@@ -351,112 +361,117 @@ const IssueDetail = ({ projects }) => {
 
   return (
     <div className="issue-detail">
-      <div className="issue-header">
+      {issue && <div>
 
-        <h2 className="issue-header">
-          {!isTitleEditMode ? (
-            issue.title
-          ) : (
-            <input
-              type="text"
-              value={titleInput}
-              onChange={(e) => setTitleInput(e.target.value)}
-            />
-          )}
-        </h2>
-        {/* Render edit button for the title */}
-        {!isTitleEditMode && (
-          <button onClick={toggleTitleEditMode}>Edit Title</button>
-        )}
-
-        {/* Render update button if in edit mode */}
-        {isTitleEditMode && (
-          <button onClick={handleTitleUpdate}>Update Title</button>
-        )}
-
-
-        {issue.creator.id === user.id && <div>
-          <button
-            className={`issue-status ${currentStatus.toLowerCase()}`}
-            onClick={handleStatusButtonClick}
-          >
-            {currentStatus}
+        <button onClick={handleBackToProject} className="back-to-project-btn">
+            Back to Project
           </button>
-        </div>
-        }
-        {issue.creator.id != user.id && <div>
-          <span className="issue-status"> Open </span>
-        </div>
-        }
-
-        <p classNameI="issue-meta">
-          <span className="issue-info">Opened by {issue.creator.name}</span>
-          <span className="issue-info">Created on {
-            new Date(issue.createdDate).toLocaleDateString('en-GB', {
-              day: '2-digit',
-              month: '2-digit',
-              year: 'numeric',
-            })}</span>
-          <span className="issue-info">
-            Due on {formatDate(issue.dueDate)}
-            {user.id === issue.creator.id && (
-              <span>
-                {!isDueDateEditMode && (
-                  <button onClick={toggleDueDateEditMode}>Edit Due Date</button>
-                )}
-                {isDueDateEditMode && (
-                  <div>
-                    <input
-                      type="date"
-                      value={dueDateInput}
-                      onChange={(e) => setDueDateInput(e.target.value)}
-                    />
-                    <button onClick={handleDueDateUpdate}>Update Due Date</button>
-                  </div>
-                )}
-              </span>
+        <div className="issue-header">
+          
+          <h2 className="issue-header">
+            {!isTitleEditMode ? (
+              issue.title
+            ) : (
+              <input
+                type="text"
+                value={titleInput}
+                onChange={(e) => setTitleInput(e.target.value)}
+              />
             )}
-          </span>
-        </p>
-      </div>
+          </h2>
+          {/* Render edit button for the title */}
+          {!isTitleEditMode &&(
+            <button onClick={toggleTitleEditMode}>Edit Title</button>
+          )}
+          
+          {/* Render update button if in edit mode */}
+          {isTitleEditMode && (
+            <button onClick={handleTitleUpdate}>Update Title</button>
+          )}
 
 
-      <div className="issue-body">
-        <div className="issue-description">
-          <h3> Description {' '}
+          {issue.creator.id === user.id && <div>
+            <button
+              className={`issue-status ${currentStatus.toLowerCase()}`}
+              onClick={handleStatusButtonClick}
+            >
+              {currentStatus}
+          </button>
+          </div>
+          }
+          {issue.creator.id != user.id && <div>
+            <span className = "issue-status"> Open </span>
+            </div>
+          }
+
+          <p classNameI="issue-meta">
+            <span className="issue-info">Opened by {issue.creator.name}</span>
+            <span className="issue-info">Created on {
+              new Date(issue.createdDate).toLocaleDateString('en-GB', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+              })}</span>
+            <span className="issue-info">
+              Due on {formatDate(issue.dueDate)}
+              {user.id === issue.creator.id && (
+                <span>
+                  {!isDueDateEditMode && (
+                    <button onClick={toggleDueDateEditMode}>Edit Due Date</button>
+                  )}
+                  {isDueDateEditMode && (
+                    <div>
+                      <input
+                        type="date"
+                        value={dueDateInput}
+                        onChange={(e) => setDueDateInput(e.target.value)}
+                      />
+                      <button onClick={handleDueDateUpdate}>Update Due Date</button>
+                    </div>
+                  )}
+                </span>
+              )}
+            </span>
+          </p>
+        </div>
+
+
+        <div className="issue-body">
+          <div className="issue-description">
+            <h3> Description {' '}
 
             {!isDescriptionEditMode && (
               <div>
-                <button onClick={toggleDescriptionEditMode}> Edit</button>
-                {renderDescriptionHistory}
+                  <button onClick={toggleDescriptionEditMode}> Edit</button>
+                  {renderDescriptionHistory}
               </div>
             )}
-          </h3>
+            </h3>
 
-          {!isDescriptionEditMode ? (
-            <p className="issue-description-text">{issue.description}</p>
-          ) : (
-            <textarea
-              value={descriptionInput}
-              onChange={(e) => setDescriptionInput(e.target.value)}
-            />
-          )}
-          {isDescriptionEditMode && (
-            <div>
-              <button onClick={handleDescriptionUpdate}> Update </button>
-              {renderDescriptionHistory()}
-            </div>
-          )}
-        </div>
+            {!isDescriptionEditMode ? (
+              <p className="issue-description-text">{issue.description}</p>
+            ) : (
+              <textarea
+                value={descriptionInput}
+                onChange={(e) => setDescriptionInput(e.target.value)}
+              />
+            )}
+            {isDescriptionEditMode && (
+              <div>
+                <button onClick={handleDescriptionUpdate}> Update </button>
+                {renderDescriptionHistory()}
+              </div>
+            )}
+          </div>
 
-        <div className="issue-details">
-          <h3>Assignees</h3>
+          <div classNdame="issue-details">
+            <h3>Assignees</h3>
 
-          {issue.creator.id != user.id && <div className="assignee">
-            <p> {issue.assignees.map(assignee => assignee.name).join(', ')} </p>
-          </div>}
+            {issue.creator.id != user.id && <div className="assignee">
+              <p> {issue.assignees.map(assignee => assignee.name).join(', ')} </p>
+              </div>}
 
-          {issue.creator.id === user.id && (
+            {issue.creator.id === user.id && (
             <div className="assignee">
               <p>{issue.assignees.map(assignee => assignee.name).join(', ')}</p>
               {/* Render edit button for assignee if user is the creator */}
@@ -481,127 +496,128 @@ const IssueDetail = ({ projects }) => {
               )}
             </div>
           )}
-        </div>
+          </div>
 
-        <div className="issue-details">
-          <h3> Detail Actions </h3>
-          {/* Display notifications for description edits */}
-          {descriptionHistory.map((entry, index) => (
-            <div key={index}>
-              {entry.username} edited the description on {entry.timestamp}
-            </div>
-          ))}
+          <div className="issue-details">
+            <h3> Detail Actions </h3>
+            {/* Display notifications for description edits */}
+            {descriptionHistory.map((entry, index) => (
+              <div key={index}>
+                {entry.username} edited the description on {entry.timestamp}
+              </div>
+            ))}
 
-          {/* Display notifications for title edits */}
-          {titleHistory.map((entry, index) => (
-            <div key={index}>
-              {entry.username} edited the title on {entry.timestamp}
-            </div>
-          ))}
+            {/* Display notifications for title edits */}
+            {titleHistory.map((entry, index) => (
+              <div key={index}>
+                {entry.username} edited the title on {entry.timestamp}
+              </div>
+            ))}
 
-          {/* Display notifications for assignee edits */}
-          {assigneeHistory.map((entry, index) => (
-            <div key={index}>
-              {entry.username} {entry.assignee} on {entry.timestamp}
-            </div>
-          ))}
+            {/* Display notifications for assignee edits */}
+            {assigneeHistory.map((entry, index) => (
+              <div key={index}>
+                {entry.username} {entry.assignee} on {entry.timestamp}
+              </div>
+            ))}
 
-          {/*Display notifications for due date edits */}
-          {dueDateHistory.map((entry, index) => (
-            <div key={index}>
-              {entry.username} changed the deadline of this issue from {new Date(entry.oldDueDate).toLocaleDateString('en-GB')} to {new Date(entry.newDueDate).toLocaleDateString('en-GB')} on {entry.timestamp}
-            </div>
-          ))}
+            {/*Display notifications for due date edits */}
+            {dueDateHistory.map((entry, index) => (
+              <div key={index}>
+                {entry.username} changed the deadline of this issue from {new Date(entry.oldDueDate).toLocaleDateString('en-GB')} to {new Date(entry.newDueDate).toLocaleDateString('en-GB')} on {entry.timestamp}
+              </div>
+            ))}
 
-          {/*Display notifications for issue status */}
-          {statusHistory.map((entry, index) => (
-            <div key={index}>
-              {entry.username} {entry.newStatus === 'Open' ? 'opened' : 'closed'} this issue on {entry.timestamp}
-            </div>
-          ))}
+            {/*Display notifications for issue status */}
+            {statusHistory.map((entry, index) => (
+              <div key={index}>
+                {entry.username} {entry.newStatus === 'Open' ? 'opened' : 'closed'} this issue on {entry.timestamp}
+              </div>
+            ))}
+            
+          </div>
 
-        </div>
-
-        <div className="issue-comments">
-          <h3>Comments</h3>
-          {comments.length === 0 ? (
-            <p>No comments yet.</p>
-          ) : (
-            comments.map((comment, index) => (
-              <div className="comment" key={index}>
-                <p className="comment-user">{comment.user.name} commented on {formatTimestamp(comment.timestamp)}</p>
-                {
-                  editingCommentId === comment.id ? (
-                    <textarea
-                      value={editedCommentText}
-                      onChange={(e) => setEditedCommentText(e.target.value)}
-                    />
-                  ) : (
-                    <p className="comment-text">{comment.text}</p>
-                  )
-                }
-                {
-                  user.id === comment.user.id && (
+          <div className="issue-comments">
+            <h3>Comments</h3>
+            {comments.length === 0 ? (
+              <p>No comments yet.</p>
+            ) : (
+              comments.map((comment, index) => (
+                <div className="comment" key={index}>
+                  <p className="comment-user">{comment.user.name} commented on {formatTimestamp(comment.timestamp)}</p>
+                  {
                     editingCommentId === comment.id ? (
-                      <button onClick={() => saveEditedComment(comment.id)}>Save</button>
+                      <textarea
+                        value={editedCommentText}
+                        onChange={(e) => setEditedCommentText(e.target.value)}
+                      />
                     ) : (
-                      <button onClick={() => toggleEditComment(comment.id, comment.text)}>Edit</button>
+                      <p className="comment-text">{comment.text}</p>
                     )
-                  )
-                }
-                {/* Button to toggle edit history visibility */}
-                {comment.edits && comment.edits.length > 0 && (
-                  <button onClick={() => toggleEditHistory(comment.id)}>Toggle Edit History</button>
-                )}
-                {/* Display edit history if available */}
-                {comment.showHistory && comment.edits && (
-                  <ul>
-                    {comment.edits.map((edit, idx) => (
-                      <li key={idx}>
-                        <strong>{edit.editedBy}</strong> edited on {formatTimestamp(edit.editedAt)}: from "{edit.oldText}" to "{edit.newText}"
-                      </li>
-                    ))}
-                  </ul>
-                )}
-                {/* Display attached files with download links */}
-                {comment.files && comment.files.length > 0 && (
-                  <div className="comment-files">
-                    <strong>Attached Files:</strong>
+                  }
+                  {
+                    user.id === comment.user.id && (
+                      editingCommentId === comment.id ? (
+                        <button onClick={() => saveEditedComment(comment.id)}>Save</button>
+                      ) : (
+                        <button onClick={() => toggleEditComment(comment.id, comment.text)}>Edit</button>
+                      )
+                    )
+                  }
+                  {/* Button to toggle edit history visibility */}
+                  {comment.edits && comment.edits.length > 0 && (
+                    <button onClick={() => toggleEditHistory(comment.id)}>Toggle Edit History</button>
+                  )}
+                  {/* Display edit history if available */}
+                  {comment.showHistory && comment.edits && (
                     <ul>
-                      {Array.from(comment.files).map((file, fileIdx) => (
-                        <li key={fileIdx}>
-                          <a href={URL.createObjectURL(file)} download={file.name}>
-                            {file.name}
-                          </a>
+                      {comment.edits.map((edit, idx) => (
+                        <li key={idx}>
+                          <strong>{edit.editedBy}</strong> edited on {formatTimestamp(edit.editedAt)}: from "{edit.oldText}" to "{edit.newText}"
                         </li>
                       ))}
                     </ul>
-                  </div>
-                )}
-              </div>
-            ))
-          )}
+                  )}
+                  {/* Display attached files with download links */}
+                  {comment.files && comment.files.length > 0 && (
+                    <div className="comment-files">
+                      <strong>Attached Files:</strong>
+                      <ul>
+                        {Array.from(comment.files).map((file, fileIdx) => (
+                          <li key={fileIdx}>
+                            <a href={URL.createObjectURL(file)} download={file.name}>
+                              {file.name}
+                            </a>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              ))
+            )}
+          </div>
+
+
+
+          <div className="add-comment">
+            <h3>Add Comment</h3>
+            <textarea
+              className="comment-input"
+              placeholder="Leave a comment"
+              value={commentInput}
+              onChange={handleCommentInput}
+            ></textarea>
+              <input
+              type="file"
+              multiple
+              accept=".pdf,.doc,.docx,.jpg,.png"
+              onChange={handleCommentFileUpload}
+            />
+          </div>
+          <button className="comment-button" onClick={handleAddComment}>Comment</button>
         </div>
-
-
-
-        <div className="add-comment">
-          <h3>Add Comment</h3>
-          <textarea
-            className="comment-input"
-            placeholder="Leave a comment"
-            value={commentInput}
-            onChange={handleCommentInput}
-          ></textarea>
-          <input
-            type="file"
-            multiple
-            accept=".pdf,.doc,.docx,.jpg,.png"
-            onChange={handleCommentFileUpload}
-          />
-        </div>
-        <button className="comment-button" onClick={handleAddComment}>Comment</button>
-      </div>
+      </div>}
     </div>
   )
 }
