@@ -1,6 +1,7 @@
 /* eslint-disable */
 import React, { useState, useEffect, useContext, useRef, useCallback } from 'react'
 import { useQuery, useQueryClient } from 'react-query'
+import axios from 'axios'
 import './App.css'
 import {
   Routes,
@@ -19,9 +20,7 @@ import sidebar_img from './img/sidebar_img.png'
 
 import ProjectDetail from './components/ProjectDetail'
 import Dashboard from './components/Dashboard'
-import NewProjectForm from './components/NewProjectForm'
 import IssueDetail from './components/IssueDetail'
-import Notification from './components/Notification'
 import LoginForm from './components/LoginForm'
 import SignUpForm from './components/SignUpForm'
 import Procedure from './components/Procedure'
@@ -32,8 +31,6 @@ import Project from './components/Project'
 import UserContext from './components/UserContext'
 
 import loginService from './services/login'
-import projectService from './services/projects'
-import homeService from './services/home'
 import userService from './services/users'
 import notiService from './services/notifications'
 import { setToken } from './services/tokenmanager'
@@ -45,13 +42,10 @@ const App = () => {
     text: null,
     isError: false,
   })
-  const [showProjectForm, setShowProjectForm] = useState(false)
   const [showLogin, setShowLogin] = useState(true)
   const [showSignUp, setShowSignUp] = useState(false)
 
   const [isSidebarVisible, setIsSidebarVisible] = useState(false)
-  const [showNotifications, setShowNotifications] = useState(false)
-  const sidebarRef = useRef(null)
   const { user, setUser } = useContext(UserContext)
   const queryClient = useQueryClient()
 
@@ -61,7 +55,26 @@ const App = () => {
     queryClient.removeQueries('user')
     setUser(null)
     setShowLogin(true)
+    queryClient.clear()
   }
+
+  // Interceptor to logout when token expires
+  useEffect(() => {
+    const axiosInterceptor = axios.interceptors.response.use(
+      response => response,
+      error => {
+        if (error.response && error.response.status === 401) {
+          handleLogout()
+        }
+        return Promise.reject(error)
+      }
+    )
+
+    // Cleanup function to remove interceptor when component unmounts
+    return () => {
+      axios.interceptors.response.eject(axiosInterceptor)
+    }
+  }, [])
 
   // Fetch user
   const { isLoading: userLoading, isError: userError, error: userErrorMessage } = useQuery('user', userService.getUserFromLocalStorage, {
@@ -113,25 +126,23 @@ const App = () => {
       e.preventDefault() // Prevent the default link behavior
 
       // First mark the notification as read
-      markNotificationAsRead(id).then(() => {
-        // After marking as read, navigate to the notification's link
-        window.location.href = `/project/659bcbab51659ac5c226fb12/659bcc7151659ac5c226fb46`
-      })
+      markNotificationAsRead(id)
+      // After marking as read, navigate to the notification's link
+
+      window.location.href = notifications.find(noti => noti.id === id).url
     }
 
     // Improved function to mark a notification as read
-    const markNotificationAsRead = (id) => {
-      return new Promise(resolve => {
-        setNotifications(prevNotifications => {
-          return prevNotifications.map(notification => {
-            if (notification.id === id) {
-              return { ...notification, read: true }
-            }
-            return notification
-          })
-        })
-        resolve()
+    const markNotificationAsRead = async (id) => {
+      await notiService.update(id, { read: true })
+      const updatedNotifications = notifications.map(notification => {
+        if (notification.id === id) {
+          return { ...notification, read: true }
+        }
+        return notification
       })
+
+      queryClient.setQueryData('notifications', updatedNotifications)
     }
 
     // Calculate the number of unread notifications
@@ -162,7 +173,6 @@ const App = () => {
                   {notifications.map(notification => (
                     <a
                       key={notification.id}
-                      href={`/project/659bcbab51659ac5c226fb12/659bcc7151659ac5c226fb46`}
                       className={`notification-link ${notification.read ? 'read' : 'unread'}`}
                       onClick={(e) => handleNotificationLinkClick(e, notification.id)}
                     >
