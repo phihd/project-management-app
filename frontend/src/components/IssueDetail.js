@@ -31,6 +31,7 @@ const IssueDetail = ({ projects }) => {
   const [assigneeHistory, setAssigneeHistory] = useState([])
   const [dueDateHistory, setDueDateHistory] = useState([])
   const [statusHistory, setStatusHistory] = useState([])
+  const [actionHistory, setActionHistory] = useState([])
   const [editingCommentId, setEditingCommentId] = useState(null)
   const [editedCommentText, setEditedCommentText] = useState("")
   const [commentFiles, setCommentFiles] = useState([])
@@ -58,6 +59,7 @@ const IssueDetail = ({ projects }) => {
     enabled: !!issueId,
     onSuccess: (data) => {
       setCurrentStatus(data.status)
+      setActionHistory(data.actionHistory)
     }
   })
 
@@ -131,10 +133,7 @@ const IssueDetail = ({ projects }) => {
   const updateIssue = async (projectId, issueId, issueToUpdate) => {
     try {
       const updatedIssue = await issueService.update(projectId, issueId, issueToUpdate)
-      const newIssues = issues.map(
-        issue => issue.id === id ? updatedIssue : issue
-      )
-      // setIssues(newIssues)
+      queryClient.setQueryData('issue', _ => updatedIssue)
     } catch (exception) {
       console.log(exception)
     }
