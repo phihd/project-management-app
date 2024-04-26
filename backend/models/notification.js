@@ -12,7 +12,6 @@ const notificationSchema = new mongoose.Schema({
   },
   url: {
     type: String,
-    unique: true
   },
   read: {
     type: Boolean,
@@ -21,6 +20,14 @@ const notificationSchema = new mongoose.Schema({
   createdAt: {
     type: Date,
     default: Date.now
+  },
+})
+
+notificationSchema.set('toJSON', {
+  transform: (document, returnedObject) => {
+    returnedObject.id = returnedObject._id.toString()
+    delete returnedObject._id
+    delete returnedObject.__v
   },
 })
 

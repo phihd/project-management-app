@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom'
 import { useQuery } from 'react-query'
 import { useContext } from 'react'
 import userService from '../services/users'
-import './ProjectDetail.css'
+import './Dashboard.css'
 import UserContext from './UserContext'
 
 function Dashboard() {
@@ -32,34 +32,48 @@ function Dashboard() {
 
   return (
     <div className="dashboard">
-      {openIssues.length > 0 && <div>
-        <h2>Open Issues</h2>
-        <ul className="project-detail-issue-list">
-          {openIssues.map((issue) => (
-            <li key={issue.id} className="project-detail-issue-item">
-              <Link to={`project/${issue.project.id}/${issue.id}`} className="project-detail-issue-link">
-                <div className="project-detail-issue-info">
-                  <div>
-                    <h3 className="project-detail-issue-title">{issue.title}</h3>
-                    <p className="project-detail-issue-due-date">
-                      Due Date: {
-                        new Date(issue.dueDate).toLocaleDateString('en-GB', {
-                          day: '2-digit',
-                          month: '2-digit',
-                          year: 'numeric',
-                        })}
-                    </p>
-                    <Link to={`/project/${issue.project.id}`} className="dashboard-project-link">
-                      <p>Project: {issue.project.name}</p>
-                    </Link>
-                  </div>
-                </div>
-              </Link>
-            </li>
-          ))}
-        </ul>
+      <div className="dashboard-header">
+        <h2>Issue Dashboard</h2>
+        <div className="search-box">
+          <input type="text" placeholder="Find Issue..." />
+        </div>
       </div>
-      }
+      {openIssues.length > 0 ? (
+        <div className="issue-container">
+          <div className="issue-row header-row" style={{ fontWeight: 'bold', backgroundColor: '#171b27' }}>
+            <div className="issue-column">Issue Name</div>
+            <div className="issue-column">Due Date</div>
+            <div className="issue-column">Project</div>
+            <div className="issue-column">Assignees</div>
+          </div>
+          {openIssues.map((issue) => (
+            <div className="issue-row" key={issue.id}>
+              <div className="issue-column">
+                <Link to={`project/${issue.project.id}/${issue.id}`} className="issue-link">
+                  {issue.title}
+                </Link>
+              </div>
+              <div className="issue-column">
+                {new Date(issue.dueDate).toLocaleDateString('en-GB', {
+                  day: '2-digit',
+                  month: '2-digit',
+                  year: 'numeric',
+                })}
+              </div>
+              <div className="issue-column">
+                <Link to={`/project/${issue.project.id}`} className="issue-link">
+                  {issue.project.name}
+                </Link>
+              </div>
+              <div className="issue-column">
+                {issue.assignees.map(assignee => assignee.name).join(', ')}
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p>Loading...</p>
+      )}
     </div>
   )
 }

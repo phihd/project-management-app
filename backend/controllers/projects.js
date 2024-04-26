@@ -12,7 +12,9 @@ projectsRouter.get('/', async (request, response) => {
 })
 
 projectsRouter.get('/:id', async (request, response) => {
-  const project = await Project.findById(request.params.id)
+  const project = await Project
+    .findById(request.params.id)
+    .populate('members', { name: 1 })
   if (project) {
     response.json(project)
   } else {
@@ -61,42 +63,40 @@ projectsRouter.delete('/:id', async (request, response, next) => {
   }
 
   try {
-    const decodedToken = jwt.verify(token, process.env.SECRET);
+    const decodedToken = jwt.verify(token, process.env.SECRET)
     if (!decodedToken.id) {
-      return response.status(401).json({ error: 'token invalid' });
+      return response.status(401).json({ error: 'token invalid' })
     }
 
-    const id = request.params.id;
-    const project = await Project.findById(id);
+    const id = request.params.id
+    const project = await Project.findById(id)
 
     if (!project) {
-      return response.status(404).json({ error: 'project id cannot be found' });
+      return response.status(404).json({ error: 'project id cannot be found' })
     }
 
-    const user = request.user;
+    const user = request.user
 
     // Check if the user is a member of the project
     if (!project.members.includes(user.id)) {
       return response.status(401).json({
         error: 'project can be deleted only by the members in the project',
-      });
+      })
     }
 
     // Delete project references from users
     await User.updateMany(
       { _id: { $in: project.members } },
       { $pull: { projects: project._id } }
-    );
+    )
 
-    // Delete issues related to the project
-    await Issue.deleteMany({ project: project._id });
+    await Issue.deleteMany({ project: project._id })
 
-    // Finally, delete the project
-    await Project.deleteOne({ _id: id });
+    await Project.deleteOne({ _id: id })
 
-    return response.sendStatus(204).end();
+    return response.sendStatus(204).end()
   } catch (error) {
-    return response.status(500).json({ error: 'An error occurred while deleting the project' });
+    return response.status(500).json({ error: 'An error occurred while deleting the project' })
   }
 })
 

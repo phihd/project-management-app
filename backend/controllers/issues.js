@@ -4,6 +4,7 @@ const issuesRouter = require('express').Router({ mergeParams: true }) // Use mer
 const Issue = require('../models/issue')
 const User = require('../models/user')
 const Project = require('../models/project')
+const CommentModel = require('../models/comment')
 const performDueIssueCheck = require('../schedules/jobs/dueIssueCheck')
 
 issuesRouter.get('/', async (request, response) => {
@@ -24,7 +25,12 @@ issuesRouter.get('/', async (request, response) => {
 issuesRouter.get('/:issueId', async (request, response) => {
   try {
     const issueId = request.params.issueId
-    const issue = await Issue.findOne({ _id: issueId })
+    const issue = await Issue
+      .findOne({ _id: issueId })
+      .populate('creator', { name: 1 })
+      .populate('assignees', { name: 1 })
+      .populate('project', { title: 1 })
+      .populate('comments', { text: 1 })
     if (!issue) {
       return response.status(404).json({ message: 'Issue not found' })
     }
@@ -105,6 +111,7 @@ issuesRouter.delete('/:id', async (request, response, next) => {
 
   const user = request.user
   if (issue.creator.toString() === user.id.toString()) {
+    await CommentModel.deleteMany({ issue: issueId })
     await Issue.deleteOne({ _id: id })
     response.sendStatus(204).end()
   } else {
@@ -135,7 +142,7 @@ issuesRouter.put('/:issueId', async (request, response, next) => {
       return response.status(403).json({ error: 'Unauthorized access' })
     }
 
-    
+
 
     if (['createdDate', 'creator', 'project'].some(field => field in body)) {
       return response.status(400).json({ message: 'Immutable field cannot be updated' })
@@ -164,7 +171,7 @@ issuesRouter.put('/:issueId', async (request, response, next) => {
     if ('dueDate' in body && !helper.areDatesSameDay(body.dueDate, existingIssue.dueDate) && existingIssue.creator.toString() !== user.id.toString()) {
       return response.status(403).json({ message: 'Only creator can change due date' })
     }
-    
+
     const updatedIssue = await Issue.findOneAndUpdate(
       { _id: issueId, project: projectId },
       body,

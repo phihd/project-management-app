@@ -3,15 +3,15 @@
 import React, { useState, useEffect, useContext } from 'react'
 import './IssueDetail.css'
 import { useParams, Link } from 'react-router-dom'
-import { useQuery } from 'react-query'
+import { useQuery, useQueryClient } from 'react-query'
 import issueService from '../services/issues'
 import projectService from '../services/projects'
 import commentService from '../services/comments'
 import UserContext from './UserContext'
+import { useNavigate } from 'react-router-dom'
 
 const IssueDetail = ({ projects }) => {
 
-  const [issues, setIssues] = useState([])
   const [files, setFiles] = useState([])
   const [commentInput, setCommentInput] = useState('')
   const { user } = useContext(UserContext)
@@ -31,10 +31,12 @@ const IssueDetail = ({ projects }) => {
   const [assigneeHistory, setAssigneeHistory] = useState([])
   const [dueDateHistory, setDueDateHistory] = useState([])
   const [statusHistory, setStatusHistory] = useState([])
+  const [actionHistory, setActionHistory] = useState([])
   const [editingCommentId, setEditingCommentId] = useState(null)
   const [editedCommentText, setEditedCommentText] = useState("")
   const [commentFiles, setCommentFiles] = useState([])
-
+  const navigate = useNavigate()
+  const queryClient = useQueryClient()
 
 
   // Fetch project details
@@ -54,7 +56,11 @@ const IssueDetail = ({ projects }) => {
     isError: issueError,
     error: issueErrorMessage
   } = useQuery(['issue', issueId], () => issueService.get(projectId, issueId), {
-    enabled: !!issueId
+    enabled: !!issueId,
+    onSuccess: (data) => {
+      setCurrentStatus(data.status)
+      setActionHistory(data.actionHistory)
+    }
   })
 
   // Fetch comments for the issue
@@ -77,7 +83,7 @@ const IssueDetail = ({ projects }) => {
     try {
       const assigneeIds = newAssignees.map(assignee => assignee.id)
       await issueService.update(projectId, issueId, { assignees: assigneeIds })
-      setIssue(prevIssue => ({ ...prevIssue, assignees: newAssignees }))
+      queryClient.setQueryData(['issue', issueId], prevIssue => ({ ...prevIssue, assignees: newAssignees }))
       const assigneeNames = newAssignees.map(assignee => assignee.name).join(', ')
       const assignedTo = assigneeNames ? `assigned to ${assigneeNames}` : 'unassigned'
       const editedAssignee = {
@@ -127,10 +133,7 @@ const IssueDetail = ({ projects }) => {
   const updateIssue = async (projectId, issueId, issueToUpdate) => {
     try {
       const updatedIssue = await issueService.update(projectId, issueId, issueToUpdate)
-      const newIssues = issues.map(
-        issue => issue.id === id ? updatedIssue : issue
-      )
-      setIssues(newIssues)
+      queryClient.setQueryData('issue', _ => updatedIssue)
     } catch (exception) {
       console.log(exception)
     }
@@ -206,7 +209,7 @@ const IssueDetail = ({ projects }) => {
     try {
       const oldDueDate = issue.dueDate
       await issueService.update(projectId, issueId, { dueDate: newDueDate })
-      setIssue(prevIssue => ({ ...prevIssue, dueDate: newDueDate }))
+      queryClient.setQueryData(['issue', issueId], prevIssue => ({ ...prevIssue, dueDate: newDueDate }))
       const editedDueDate = {
         username: user.name,
         timestamp: new Date().toLocaleString(),
@@ -249,7 +252,7 @@ const IssueDetail = ({ projects }) => {
       // Update the issue title in the backend
       await issueService.update(projectId, issueId, { title: newTitle })
       // // Update the issue due date in the UI
-      setIssue(prevIssue => ({ ...prevIssue, title: newTitle }))
+      queryClient.setQueryData(['issue', issueId], prevIssue => ({ ...prevIssue, title: newTitle }))
       const editedTitle = {
         username: user.name,
         timestamp: new Date().toLocaleString(),
@@ -281,7 +284,7 @@ const IssueDetail = ({ projects }) => {
       // Update the issue title in the backend
       await issueService.update(projectId, issueId, { description: newDescription })
       // Update the issue due date in the UI
-      setIssue(prevIssue => ({ ...prevIssue, description: newDescription }))
+      queryClient.setQueryData(['issue', issueId], prevIssue => ({ ...prevIssue, description: newDescription }))
     } catch (exception) {
       console.log(exception)
       throw new Error('Failed to update description: ' + exception)
@@ -332,6 +335,10 @@ const IssueDetail = ({ projects }) => {
     )
   }
 
+  const handleBackToProject = () => {
+    navigate(`/project/${projectId}`)
+  }
+
   const formatTimestamp = (timestamp) => {
     const date = new Date(timestamp)
     const hours = date.getHours().toString().padStart(2, '0')
@@ -351,6 +358,9 @@ const IssueDetail = ({ projects }) => {
 
   return (
     <div className="issue-detail">
+      <button onClick={handleBackToProject} className="back-to-project-btn">
+        Back to Project
+      </button>
       <div className="issue-header">
 
         <h2 className="issue-header">

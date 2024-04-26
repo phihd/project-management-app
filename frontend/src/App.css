@@ -5,6 +5,9 @@
   box-sizing: border-box;
 }
 
+@import url('https://fonts.googleapis.com/css?family=Montserrat:400,700');
+
+
 /* Apply Segoe UI font to the entire app */
 body {
   font-family: 'Montserrat', sans-serif;
@@ -15,7 +18,7 @@ body {
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: 'Be Vietnam', sans-serif;
+  font-family: 'Montserrat', sans-serif;
 }
 
 /* App container */
@@ -32,7 +35,7 @@ h1, h2, h3, h4, h5, h6 {
   margin-left: 0;
   display: flex;
   flex-direction: column;
-  background-color: #3D405B;
+  background-color: #171b27;
   color: #fff;
   transition: margin-left 0.5s ease; 
 }
@@ -42,21 +45,26 @@ h1, h2, h3, h4, h5, h6 {
   width: calc(100% - 250px)
 }
 
+:root {
+  --navbar-height: 12%;  /* Adjust this value based on your navbar's height */
+}
+
 /* Sidebar wrapper */
 .sidebar-wrapper {
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 70px);
   background-color: #000000;
   overflow: hidden;
   color: #fff;
   z-index: 5;
   transition: all 0.5s ease; /* Smooth transition for hiding/showing */
+  height: calc(100vh - var(--navbar-height));
 }
 
 .sidebar-wrapper.hidden {
   transform: translateX(-100%); /* Hide by moving left */
   position: absolute; /* Takes it out of normal flow, preventing it from taking up space */
+  height: calc(100vh - var(--navbar-height));
 }
 
 /* Navbar styles */
@@ -65,10 +73,12 @@ h1, h2, h3, h4, h5, h6 {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  height: 70px;
-  background-color: #3D405B;
+  height: 12%;
+  background-color: #1d222e;
   color: #fff;
   z-index: 10; /* Ensure navbar is above sidebar */
+  border-bottom: 0.3px solid #5d5151; 
+  box-sizing: border-box;
 }
 
 
@@ -93,20 +103,23 @@ h1, h2, h3, h4, h5, h6 {
   align-items: center;
 }
 
-.notification-btn {
+.notification-btn, .sidebar-toggle-btn {
   background-color: transparent;
   border: none;
+  display: flex;
   cursor: pointer;
   color: #fff;
   font-size: 20px;
   margin-left: 10px;
   padding: 0;
   position: relative;
+  align-items: center; /* Centers the content of the button vertically */
+  justify-content: center; /* Centers the content of the button horizontally */
 }
 
 .notification-count {
   position: absolute;
-  top: -10px;  /* Adjust these values based on your specific layout */
+  top: -7px;
   right: -10px;
   width: 20px;
   height: 20px;
@@ -120,10 +133,21 @@ h1, h2, h3, h4, h5, h6 {
   margin-right: 35px;
 }
 
-.notification-btn img {
-  width: 30px; /* Adjust the width and height as needed */
-  height: 30px;
+.toolbar-buttons {
+  display: flex;
+  align-items: center;
+}
+
+.notification-btn img, .sidebar-toggle-btn img {
+  width: 35px; /* Adjust the width and height as needed */
+  height: 37px;
   margin-right: 30px;
+}
+
+.sidebar-toggle-btn img {
+  width: 35px; /* Adjust the width and height as needed */
+  height: 37px;
+  margin-right: 10px;
 }
 
 .notification-btn:hover {
@@ -182,10 +206,18 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* Logo styles */
+
+.logo {
+  display: flex;
+  align-items: center; /* Center the logo vertically within this div */
+}
+
 .logo img {
   width: 180px;
   height: auto;
+  max-height: 100%;
   padding-left: 20px;
+  position: relative;
 }
 
 /* Navigation links styles */
@@ -220,6 +252,7 @@ h1, h2, h3, h4, h5, h6 {
   display: flex;
   align-items: center;
   border-radius: 5px;
+  display: inline-block;
 }
 
 .user-info-btn {
@@ -231,6 +264,7 @@ h1, h2, h3, h4, h5, h6 {
   color: #fff;
   text-decoration: none;
   position: relative;
+  z-index: 1010;
 }
 
 .user-info-btn:hover {
@@ -272,6 +306,113 @@ h1, h2, h3, h4, h5, h6 {
   border-radius: 4px;
 }
 
+.email-form {
+  position: absolute;
+  left: 100%; /* Positions the form to the right of the button */
+  white-space: nowrap; /* Prevents wrapping of elements inside the form */
+  padding: 10px;
+  z-index: 1000; /* Ensure the form is above other content */
+  top: -5em;
+}
+
+/* Project page styles */
+.project-page {
+  padding: 10px;
+  color: #fff;
+  background-color: #171b27; /* Same as the dashboard background */
+}
+
+.project-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.project-header h2 {
+  margin: 0;
+  color: #DBCA49;
+  font-size: 26px;
+}
+
+.create-project-btn {
+  display: flex;              /* Aligns children (img and span) in a row */
+  align-items: center;        /* Centers the children vertically */
+  justify-content: center;    /* Centers the children horizontally */
+  padding: 6px 12px;          /* Adjust padding as needed */
+  font-size: 14px;            /* Set font size */
+  border: none;               /* Removes border */
+  border-radius: 16px;         /* Adds rounded corners */
+  cursor: pointer;            /* Changes cursor to pointer on hover */
+  color: black;              /* Set text color */
+  background-color: #DBCA49;
+}
+
+.create-project-btn img {
+  vertical-align: middle; /* Aligns the image vertically in the middle of the button text */
+  height: 20px; /* Adjust the size as needed */
+  width: auto; /* Maintain aspect ratio */
+}
+
+.create-project-btn span {
+  font-weight: bold;
+}
+
+.create-project-btn:hover {
+  background-color: #9b8f30;
+}
+
+.project-container {
+  flex: 1; /* Takes remaining height */
+  overflow-y: auto; /* Allows scrolling */
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  width: 100%;
+}
+
+.project-container .project-row {
+  min-height: 12vh;
+  background-color: #131623;
+  margin-bottom: 5px;
+  border-radius: 10px;
+  align-items: center;
+  justify-content: center;
+  display: flex;
+  padding: 10px;
+  box-sizing: border-box;
+  cursor: pointer;
+}
+
+
+.project-container .header-row {
+  min-height: 8vh; /* Smaller height for the header row */
+  font-weight: bold;
+  background-color: #171b27;
+  color: #ffffff;
+  border-radius: 8px;
+  align-items: center;
+  justify-content: space-between;
+  display: flex;
+}
+
+.project-column {
+  flex: 1; /* Gives equal space to each column */
+  padding: 0 10px; /* Adds padding for spacing */
+  display: flex; /* Aligns items in a flexible layout */
+  align-items: center; /* Vertically centers items */
+  flex-wrap: wrap; /* Allows items to wrap within the column */
+}
+
+.project-container .project-row:not(.header-row):hover {
+  background-color: #2a2e35; /* Changed color for better visibility */
+}
+
+.members-element {
+  margin-right: 4px;
+}
+
+
 /* Sidebar styles */
 .sidebar {
   padding: 18px; /* Add padding to the sidebar */
@@ -309,7 +450,7 @@ h1, h2, h3, h4, h5, h6 {
 .main-content {
   flex: 1;
   overflow-y: auto;
-  background-color: #3D405B;
+  background-color: #171b27;
   height: calc(100vh - 70px);
   padding: 15px;
   color: #fff;
@@ -324,13 +465,13 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Styles the scrollbar handle */
 .main-content::-webkit-scrollbar-thumb {
-  background-color: #2c2c2e; /* scrollbar color */
+  background-color: #444452; /* scrollbar color */
   border-radius: 4px;        /* optional, for rounded corners */
 }
 
 /* Optional: Styles the scrollbar track */
 .main-content::-webkit-scrollbar-track {
-  background: #3D405B; /* color of the track, could be same as app background */
+  background: #171b27; /* color of the track, could be same as app background */
 }
 
 /* Dashboard Styles */
@@ -338,34 +479,9 @@ h1, h2, h3, h4, h5, h6 {
   padding: 15px;
 }
 
-/* Table Styles */
-table {
-  margin-top: 20px;
-  width: 100%;
-  border-collapse: collapse;
-}
-
-th,
-td {
-  border: none;
-  padding: 8px;
-  text-align: left;
-}
-
-th {
-  background-color: #3D405B;
-}
-
-.row-link {
-  text-decoration: none;
-  color: inherit;
-  display: block;
-}
-
-
 /* Footer Styles */
 .footer {
-  background-color: #3D405B;
+  background-color: #171b27;
   color: #fff;
   /* Text color */
   padding: 15px;
@@ -478,44 +594,6 @@ th {
   gap: 20px;
 }
 
-.project-section {
-  background-color: #fff;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.project-section {
-  background-color: #fff;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.project-section:hover {
-  filter: brightness(75%);
-  transition: filter 0.3s ease;
-}
-
-.project-section h3 {
-  margin-top: 0;
-  color: #444;
-}
-
-.project-section p {
-  margin: 10px 0;
-  color: #666;
-}
-
-.project-section ul {
-  list-style: none;
-  padding: 0;
-}
-
-.project-section li {
-  margin-bottom: 5px;
-  color: #666;
-}
 
 .overlay {
   position: fixed;
@@ -541,6 +619,7 @@ th {
   background-color: transparent;
   border: none;
   cursor: pointer;
+  margin-right: 5px;
 }
 
 .delete-button-img {
