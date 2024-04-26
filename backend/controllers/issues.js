@@ -4,6 +4,7 @@ const issuesRouter = require('express').Router({ mergeParams: true }) // Use mer
 const Issue = require('../models/issue')
 const User = require('../models/user')
 const Project = require('../models/project')
+const CommentModel = require('../models/comment')
 const performDueIssueCheck = require('../schedules/jobs/dueIssueCheck')
 
 issuesRouter.get('/', async (request, response) => {
@@ -110,6 +111,7 @@ issuesRouter.delete('/:id', async (request, response, next) => {
 
   const user = request.user
   if (issue.creator.toString() === user.id.toString()) {
+    await CommentModel.deleteMany({ issue: issueId })
     await Issue.deleteOne({ _id: id })
     response.sendStatus(204).end()
   } else {

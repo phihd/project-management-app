@@ -52,7 +52,7 @@ function ProjectDetail() {
     const confirmDelete = window.confirm('Are you sure you want to delete this issue?');
     if (confirmDelete) {
       await issueService.remove(projectId, issueId)
-      setIssues((prevIssues) => prevIssues.filter((issue) => issue.id !== issueId))
+      queryClient.setQueryData(['issues', projectId], prevIssues => prevIssues.filter((issue) => issue.id !== issueId))
     }
   }
 
