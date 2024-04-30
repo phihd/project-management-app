@@ -1,6 +1,6 @@
 /* eslint-disable */
 
-import React, { useState, useEffect, useContext } from 'react'
+import React, { useState, useContext, useRef } from 'react'
 import './IssueDetail.css'
 import { useParams, Link } from 'react-router-dom'
 import { useQuery, useQueryClient } from 'react-query'
@@ -45,6 +45,10 @@ const IssueDetail = ({ projects }) => {
   const [showHistoryList, setShowHistoryList] = useState(false)
   const navigate = useNavigate()
   const queryClient = useQueryClient()
+  const historyRef = useRef(null)
+  const [currentTab, setCurrentTab] = useState('Edit')
+  const textAreaRef = useRef(null)
+  const [description, setDescription] = useState('')
 
 
   // Fetch project details
@@ -302,9 +306,24 @@ const IssueDetail = ({ projects }) => {
   }
 
   const toggleDescriptionEditMode = () => {
-    setIsDescriptionEditMode(!isDescriptionEditMode)
+    setIsDescriptionEditMode(prev => {
+        // Toggle the state and set up a callback to focus after the update
+        if (!prev) { // If we are about to enter edit mode
+            setTimeout(() => {
+                // Check if the textarea is rendered and visible:
+                const textarea = textAreaRef.current
+                if (textarea) {
+                    textarea.focus()
+                    // Set the cursor at the end of the text
+                    const length = textarea.value.length
+                    textarea.setSelectionRange(length, length)
+                }
+            }, 0)
+        }
+        return !prev
+    })
     setDescriptionInput(issue.description)
-  }
+}
 
   const handleDescriptionUpdate = async () => {
     try {
@@ -331,9 +350,214 @@ const IssueDetail = ({ projects }) => {
     setCurrentHistoryItem(null)
   }
 
+  const toggleHistoryList = () => {
+    setShowHistoryList(!showHistoryList);
+
+    // If the list is not currently shown, add the click listener
+    if (!showHistoryList) {
+      setTimeout(() => { // Use setTimeout to delay the addition of the event listener
+        document.addEventListener('mousedown', handleClickOutside, true);
+      }, 0)
+    }
+  }
+
+  const handleClickOutside = event => {
+    if (historyRef.current && !historyRef.current.contains(event.target)) {
+      setShowHistoryList(false)
+      document.removeEventListener('mousedown', handleClickOutside, true)
+    }
+  }
+
   const handleBackToProject = () => {
     navigate(`/project/${projectId}`)
   }
+
+  const renderDescription = (description, setDescription) => {
+    const handleCheckboxChange = (index) => {
+      const lines = description.split('\n');
+      const newLines = [...lines];
+      const line = lines[index];
+  
+      if (line.startsWith("- [  ] ")) {
+        newLines[index] = "- [x] " + line.substring(6);
+      } else if (line.startsWith("- [x] ")) {
+        newLines[index] = "- [  ] " + line.substring(6);
+      }
+  
+      const newDescription = newLines.join('\n');
+      setDescription(newDescription)
+    }
+  
+    return (
+      <div className='description-text'>
+        {description.split('\n').map((line, index) => {
+          if (line.startsWith("- [  ] ")) {
+            return (
+              <div key={index} style={{ display: 'flex', alignItems: 'center' }}>
+                <input type="checkbox" onChange={() => handleCheckboxChange(index)} />
+                <span>{line.substring(6)}</span>
+              </div>
+            );
+          } else if (line.startsWith("- [x] ")) {
+            return (
+              <div key={index} style={{ display: 'flex', alignItems: 'center' }}>
+                <input type="checkbox" checked onChange={() => handleCheckboxChange(index)} />
+                <span>{line.substring(6)}</span>
+              </div>
+            );
+          }
+          return <p key={index}>{line}</p>;
+        })}
+      </div>
+    );
+  };
+
+  const insertNumberList = () => {
+    const textarea = textAreaRef.current;
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+  
+    // Split the text into before and after the current cursor position
+    const textBefore = descriptionInput.substring(0, start);
+    const textAfter = descriptionInput.substring(end);
+  
+    // Find if the current line has some content
+    const lastNewLine = textBefore.lastIndexOf('\n');
+    const currentLineContent = textBefore.substring(lastNewLine + 1);
+    const newTextBefore = textBefore.substring(0, lastNewLine + 1);
+  
+    // Check if current line has content, and prepend "1. "
+    if (currentLineContent.trim().length === 0) {
+      // If no content in the current line
+      setDescriptionInput(textBefore + "1. " + textAfter);
+    } else {
+      // If there's content, prepend "1. " to the current line
+      setDescriptionInput(newTextBefore + "1. " + currentLineContent + textAfter);
+    }
+  
+    setTimeout(() => {
+      // Place cursor right after the newly inserted "1. "
+      const newCursorPosition = newTextBefore.length + 3; // +3 for "1. "
+      textarea.selectionStart = textarea.selectionEnd = newCursorPosition;
+      textarea.focus();
+    }, 0);
+  }
+
+  const insertBulletList = () => {
+    const textarea = textAreaRef.current;
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+  
+    // Split the text into before and after the current cursor position
+    const textBefore = descriptionInput.substring(0, start);
+    const textAfter = descriptionInput.substring(end);
+  
+    // Find if the current line has some content
+    const lastNewLine = textBefore.lastIndexOf('\n');
+    const currentLineContent = textBefore.substring(lastNewLine + 1);
+    const newTextBefore = textBefore.substring(0, lastNewLine + 1);
+  
+    // Check if current line has content, and prepend "-" to the current line
+    if (currentLineContent.trim().length === 0) {
+      // If no content in the current line
+      setDescriptionInput(textBefore + "● " + textAfter);
+    } else {
+      // If there's content, prepend "- " to the current line
+      setDescriptionInput(newTextBefore + "- " + currentLineContent + textAfter);
+    }
+  
+    setTimeout(() => {
+      // Place cursor right after the newly inserted "- "
+      const newCursorPosition = newTextBefore.length + 2; // +2 for "- "
+      textarea.selectionStart = textarea.selectionEnd = newCursorPosition;
+      textarea.focus();
+    }, 0);
+  }
+
+  const insertTaskList = () => {
+    const textarea = textAreaRef.current;
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+  
+    const textBefore = descriptionInput.substring(0, start);
+    const textAfter = descriptionInput.substring(end);
+  
+    const lastNewLine = textBefore.lastIndexOf('\n');
+    const currentLineContent = textBefore.substring(lastNewLine + 1);
+    const newTextBefore = textBefore.substring(0, lastNewLine + 1);
+  
+    // Check if current line has content, and prepend "- [ ] " to the current line
+    if (currentLineContent.trim().length === 0) {
+      setDescriptionInput(textBefore + "- [  ] " + textAfter);
+    } else {
+      setDescriptionInput(newTextBefore + "- [ ] " + currentLineContent + textAfter);
+    }
+  
+    setTimeout(() => {
+      // Place cursor right after the newly inserted "- [ ] "
+      const newCursorPosition = newTextBefore.length + 6; // +6 for "- [ ] "
+      textarea.selectionStart = textarea.selectionEnd = newCursorPosition;
+      textarea.focus();
+    }, 0);
+  };
+  
+
+
+  const handleKeyDown = (e) => {
+    const textarea = textAreaRef.current;
+    if (e.key === 'Enter') {
+      e.preventDefault(); // Prevent the default action to manage new line ourselves
+  
+      // Get current cursor position:
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const textBefore = descriptionInput.substring(0, start);
+      const textAfter = descriptionInput.substring(end);
+  
+      // Find the number of the last numbered item
+      const linesBeforeCursor = textBefore.split('\n');
+      const lastLine = linesBeforeCursor[linesBeforeCursor.length - 1];
+      const match = lastLine.match(/^(\d+)\./);
+  
+      if (match) {
+        const number = parseInt(match[1], 10);
+        const newText = textBefore + '\n' + (number + 1) + '. ' + textAfter;
+  
+        setDescriptionInput(newText);
+        setTimeout(() => {
+          // Place cursor after the newly inserted number
+          const position = start + (number + 1).toString().length + 3; // +3 for ". " and "\n"
+          textarea.selectionStart = textarea.selectionEnd = position;
+          textarea.focus();
+        }, 0);
+      } else {
+        // If it's not a numbered list, insert a normal new line
+        setDescriptionInput(textBefore + '\n' + textAfter);
+        setTimeout(() => {
+          const position = start + 1; // Move cursor to the new line
+          textarea.selectionStart = textarea.selectionEnd = position;
+          textarea.focus();
+        }, 0);
+      }
+    }
+    }
+
+  {currentTab === 'Preview' && (
+    <div className="preview">
+      {descriptionInput.split('\n').map((line, index) => {
+        if (line.startsWith("- [ ] ")) {
+          return (
+            <div key={index}>
+              <input type="checkbox" /> {line.substring(6)}
+            </div>
+          );
+        }
+        return <p key={index}>{line}</p>;
+      })}
+    </div>
+  )}
+  
+  
 
   const formatTimestamp = (timestamp) => {
     const date = new Date(timestamp)
@@ -413,15 +637,15 @@ const IssueDetail = ({ projects }) => {
               <h3>Description</h3>
               {descriptionHistory && descriptionHistory.length > 0 && (
                 <>
-                  <button onClick={() => setShowHistoryList(!showHistoryList)} className="history-btn">
+                  <button onClick={toggleHistoryList} className="history-btn">
                     last edited by {descriptionHistory[descriptionHistory.length - 1]?.username}
                     <img src={downArrow} alt="Show History" />
                   </button>
                   {showHistoryList && (
-                    <ul>
-                      {descriptionHistory.map((item, index) => (
+                    <ul className='history-list' ref={historyRef}>
+                      {descriptionHistory.slice().reverse().map((item, index) => (
                         <li key={index} onClick={() => toggleHistoryModal(item)}>
-                          Edited by: {item.username} at {item.timestamp}
+                          {item.username} edited at {item.timestamp}
                         </li>
                       ))}
                     </ul>
@@ -429,18 +653,53 @@ const IssueDetail = ({ projects }) => {
                 </>
               )}
             </div>
+            
               <button onClick={toggleDescriptionEditMode} className="edit-btn">
                 <img src={edit_description_button} alt="Edit Description" />
               </button>
             </div>
             <hr />
             {!isDescriptionEditMode ? (
-              <p className="description-text">{issue.description}</p>
+              renderDescription(issue.description, setDescription)
             ) : (
-              <textarea
-                value={descriptionInput}
-                onChange={(e) => setDescriptionInput(e.target.value)}
-              />
+              <>
+                <div className="tabs">
+                  <button onClick={() => setCurrentTab('Edit')} className={currentTab === 'Edit' ? 'active' : ''}>Edit</button>
+                  <button onClick={() => setCurrentTab('Preview')} className={currentTab === 'Preview' ? 'active' : ''}>Preview</button>
+                </div>
+
+                {currentTab === 'Edit' && (
+                  <div>
+                    <div className="toolbar">
+                      <button onClick={insertNumberList}>Number List</button>
+                      <button onClick={insertBulletList}>Bullet List</button>
+                      <button onClick={insertTaskList}>Task List</button>
+                    </div>
+                    <textarea
+                      ref={textAreaRef}
+                      value={descriptionInput}
+                      onChange={(e) => setDescriptionInput(e.target.value)}
+                      onKeyDown={handleKeyDown}
+                      className="text-input"
+                    />
+                  </div>
+                )}
+
+                {currentTab === 'Preview' && (
+                  <div className="preview">
+                    {descriptionInput.split('\n').map((line, index) => {
+                      if (line.startsWith("- [  ] ")) {
+                        return (
+                          <div key={index}>
+                            <input type="checkbox" /> {line.substring(6)}
+                          </div>
+                        );
+                      }
+                      return <p key={index}>{line}</p>;
+                    })}
+                  </div>
+                )}
+              </>
             )}
             {isDescriptionEditMode && (
               <div className="button-group">
@@ -448,17 +707,18 @@ const IssueDetail = ({ projects }) => {
                 <button onClick={handleDescriptionUpdate} className="save-btn">Update Description</button>
               </div>
             )}
-            {/* {showDescriptionHistory && renderDescriptionHistory()} */}
+
             {showHistoryModal && currentHistoryItem && (
-              <div className="modal">
-                <div className="modal-content">
-                  <span className="close" onClick={closeHistoryModal}>&times;</span>
-                  <p>
-                    Edited by: {currentHistoryItem.username} at {currentHistoryItem.timestamp}
-                  </p>
-                  <p>
-                    Description: {currentHistoryItem.description}
-                  </p>
+              <div className="modal" onClick={closeHistoryModal}>
+                <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                  <div className="modal-header">
+                    <span>{currentHistoryItem.username} edited at {currentHistoryItem.timestamp}</span>
+                    <span className="close" onClick={closeHistoryModal}>&times;</span>
+                  </div>
+                  <hr />
+                  <div className="modal-body">
+                    {currentHistoryItem.description}
+                  </div>
                 </div>
               </div>
             )}

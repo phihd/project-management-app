@@ -325,6 +325,7 @@ p {
   display: flex;
   /* align-items: center; */
   gap: 8px;
+  position: relative;
 }
 
 .description-box h3 {
@@ -393,6 +394,53 @@ p {
   height: auto;
 }
 
+.tabs button {
+  padding: 8px 16px;
+  border: none;
+  background-color: #e0e0e0;
+  cursor: pointer;
+  font-weight: bold;
+  border-radius: 5px;
+}
+
+.tabs button.active {
+  background-color: #d1c6c6;
+}
+
+/* Toolbar Styles */
+.toolbar button {
+  padding: 5px 10px;
+  margin-right: 5px;
+  background-color: #e0e0e0;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+/* Textarea and Preview Styles */
+.text-input {
+  width: 100%;
+  height: 100px;
+  margin-top: 10px;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  resize: vertical;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 14px;
+}
+
+.preview {
+  padding: 20px;
+  background-color: #f1f2dd;
+  color:black;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  margin-top: 10px;
+  font-family: 'Montserrat', sans-serif;
+  white-space: pre-wrap; /* Maintains whitespace formatting from textarea */
+}
+
 .description-box .edit-btn:hover, .description-box .history-btn:hover, .description-box .save-btn:hover, .description-box .cancel-btn:hover {
   opacity: 0.85;
 }
@@ -405,18 +453,28 @@ p {
 }
 
 .history-list {
-  list-style: none;
-  padding: 0;
-  margin: 10px 0;
-  background: #f9f9f9;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%; /* Adjust width as necessary */
+  background-color: white;
   border: 1px solid #ccc;
   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  z-index: 10;
+  list-style-type: none; 
+  padding: 0;
+  margin-top: 5px;
+  display: block;
+  color: black;
+  border-radius: 8px;
 }
 
 .history-list li {
   padding: 8px 16px;
   cursor: pointer;
   border-bottom: 1px solid #ddd;
+  font-size: 12px;
+  border-radius: 8px;
 }
 
 .history-list li:last-child {
@@ -425,6 +483,7 @@ p {
 
 .history-list li:hover {
   background-color: #f0f0f0;
+  border-radius: 8px;
 }
 
 /* Modal styles */
@@ -434,7 +493,7 @@ p {
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(255, 255, 255, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -442,27 +501,60 @@ p {
 }
 
 .modal-content {
-  background-color: #000;
-  padding: 20px;
+  background-color: #fff;
   border-radius: 5px;
   box-shadow: 0 4px 6px rgba(0,0,0,0.1);
   width: 90%;
   max-width: 500px;
+  color: black;
+  text-align: justify;
+  border-radius: 10px;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 14px;
+  font-weight: bold;
+  padding: 15px;
+  background-color: #e1e1c5;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+}
+
+.modal-body {
+  font-size: 12px;
+  padding: 20px;
 }
 
 .close {
   color: #aaaaaa;
   float: right;
-  font-size: 28px;
+  font-size: 20px;
   font-weight: bold;
+  cursor: pointer;
 }
 
 .close:hover,
 .close:focus {
   color: #000;
   text-decoration: none;
-  cursor: pointer;
 }
+
+.close span {
+  padding: 0;
+}
+
+.modal hr {
+  border: 0;
+  height: 1px;
+  background-color: #ccc;
+  margin-top: 0;
+  margin-bottom: 0;
+  width: 100%;
+}
+
 
 .description-box .button-group {
   display: flex;
@@ -473,18 +565,25 @@ p {
 
 .description-box textarea {
   width: 100%;
-  height: 120px; 
-  padding: 25px;
+  height: 150px; 
+  padding: 20px;
   border-radius: 4px;
-  resize: vertical; /* Allows resizing vertically */
+  resize: vertical;
   text-align: justify;
   background-color: #f1f2dd;
+  font-family: 'Montserrat', sans-serif;
 }
 
 .description-box .description-text {
   color: black;
   padding: 25px;
   text-align: justify;
+}
+
+.description-text span {
+  font-size: 14px;
+  font-family: 'Montserrat', sans-serif;
+  margin-left: 5px;
 }
 
 .description-box .save-btn, .description-box .cancel-btn {
