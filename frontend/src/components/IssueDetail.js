@@ -11,6 +11,13 @@ import UserContext from './UserContext'
 import { useNavigate } from 'react-router-dom'
 import { set } from 'date-fns'
 
+import back_project from '../img/left.png'
+import open_status from '../img/open_issue.png'
+import close_status from '../img/close_issue.png'
+import edit_button from '../img/edit_button.png'
+import edit_description_button from '../img/edit_description.png'
+import downArrow from '../img/down-arrow.png'
+
 const IssueDetail = ({ projects }) => {
 
   const [files, setFiles] = useState([])
@@ -27,7 +34,6 @@ const IssueDetail = ({ projects }) => {
   const [isDescriptionEditMode, setIsDescriptionEditMode] = useState(false)
   const [descriptionInput, setDescriptionInput] = useState('')
   const [descriptionHistory, setDescriptionHistory] = useState([])
-  const [showDescriptionHistory, setShowDescriptionHistory] = useState(false)
   const [titleHistory, setTitleHistory] = useState([])
   const [assigneeHistory, setAssigneeHistory] = useState([])
   const [dueDateHistory, setDueDateHistory] = useState([])
@@ -36,6 +42,9 @@ const IssueDetail = ({ projects }) => {
   const [editingCommentId, setEditingCommentId] = useState(null)
   const [editedCommentText, setEditedCommentText] = useState("")
   const [commentFiles, setCommentFiles] = useState([])
+  const [showHistoryModal, setShowHistoryModal] = useState(false)
+  const [currentHistoryItem, setCurrentHistoryItem] = useState(null)
+  const [showHistoryList, setShowHistoryList] = useState(false)
   const navigate = useNavigate()
   const queryClient = useQueryClient()
 
@@ -76,7 +85,6 @@ const IssueDetail = ({ projects }) => {
 
   const toggleAssigneeEditMode = () => {
     setIsAssigneeEditMode(!isAssigneeEditMode)
-    // Set initial value of assignee input field to current assignee
     setAssigneeInput(issue.assignee)
   }
 
@@ -335,28 +343,14 @@ const IssueDetail = ({ projects }) => {
     }
   }
 
-  const toggleDescriptionHistory = () => {
-    setShowDescriptionHistory(!showDescriptionHistory)
+  const toggleHistoryModal = (historyItem) => {
+    setCurrentHistoryItem(historyItem)
+    setShowHistoryModal(true)
   }
 
-  const renderDescriptionHistory = () => {
-    return (
-      <div>
-        <h4>Description History</h4>
-        <button onClick={toggleDescriptionHistory}>
-          {showDescriptionHistory ? 'Hide' : 'Show'} History
-        </button>
-        {showDescriptionHistory && (
-          <ul>
-            {descriptionHistory.map((entry, index) => (
-              <li key={index}>
-                {entry.username} edited at {entry.timestamp}: {entry.description}
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-    )
+  const closeHistoryModal = () => {
+    setShowHistoryModal(false)
+    setCurrentHistoryItem(null)
   }
 
   const handleBackToProject = () => {
@@ -382,149 +376,124 @@ const IssueDetail = ({ projects }) => {
 
   return (
     <div className="issue-detail">
-      <button onClick={handleBackToProject} className="back-to-project-btn">
-        Back to Project
-      </button>
       <div className="issue-header">
-
-        <h2 className="issue-header">
+        <div className="issue-title-container">
           {!isTitleEditMode ? (
-            issue.title
+            <h2 className="issue-title">{issue.title}</h2>
           ) : (
             <input
               type="text"
+              className="title-edit-input"
               value={titleInput}
               onChange={(e) => setTitleInput(e.target.value)}
             />
           )}
-        </h2>
-        {/* Render edit button for the title */}
-        {!isTitleEditMode && (
-          <button onClick={toggleTitleEditMode}>Edit Title</button>
-        )}
-
-        {/* Render update button if in edit mode */}
-        {isTitleEditMode && (
-          <button onClick={handleTitleUpdate}>Update Title</button>
-        )}
-
-
-        {issue.creator.id === user.id && <div>
-          <button
-            className={`issue-status ${currentStatus.toLowerCase()}`}
-            onClick={handleStatusButtonClick}
-          >
-            {currentStatus}
-          </button>
+          {!isTitleEditMode ? (
+            <button onClick={toggleTitleEditMode} className="edit-title-btn">Edit</button>
+          ) : (
+            <div className="button-group">
+              <button onClick={handleTitleUpdate} className="save-title-btn">Save</button>
+              <button onClick={() => setIsTitleEditMode(false)} className="cancel-edit-btn">Cancel</button>
+            </div>
+          )}
         </div>
-        }
-        {issue.creator.id != user.id && <div>
-          <span className="issue-status"> Open </span>
-        </div>
-        }
 
-        <p classNameI="issue-meta">
-          <span className="issue-info">Opened by {issue.creator.name}</span>
-          <span className="issue-info">Created on {
-            new Date(issue.createdDate).toLocaleDateString('en-GB', {
-              day: '2-digit',
-              month: '2-digit',
-              year: 'numeric',
-            })}</span>
-          <span className="issue-info">
-            Due on {formatDate(issue.dueDate)}
-            {user.id === issue.creator.id && (
-              <span>
-                {!isDueDateEditMode && (
-                  <button onClick={toggleDueDateEditMode}>Edit Due Date</button>
-
-                )}
-                {isDueDateEditMode && (
-                  <div>
-                    <input
-                      type="date"
-                      value={dueDateInput}
-                      onChange={(e) => setDueDateInput(e.target.value)}
-                    />
-                    <button onClick={handleDueDateUpdate}>Update Due Date</button>
-                  </div>
-                )}
-              </span>
+        <div className="issue-information">
+          <div className="status-and-info">
+            {issue.creator.id === user.id ? (
+              <button
+                className={`status-btn ${currentStatus.toLowerCase()}`}
+                onClick={handleStatusButtonClick}
+              >
+                <img src={currentStatus === 'Open' ? open_status : close_status} alt={currentStatus} />
+                {currentStatus}
+              </button>
+            ) : (
+              <span className="issue-status">Open</span>
             )}
-          </span>
-        </p>
+            <p className="creator-info">
+              {issue.creator.name} created this issue on {
+                new Date(issue.createdDate).toLocaleDateString('en-GB', {
+                  day: '2-digit',
+                  month: '2-digit',
+                  year: 'numeric',
+                })}   ·   {comments.length} comments
+            </p>
+          </div>
+        </div>
       </div>
 
 
-      <div className="issue-body">
-        <div className="issue-description">
-          <h3> Description {' '}
 
-            {!isDescriptionEditMode && (
-              <div>
-                <button onClick={toggleDescriptionEditMode}> Edit</button>
-                {renderDescriptionHistory}
+
+      <div className="issue-body">
+        <div className="left-section">
+
+          <div className="description-box">
+            <div className="header">
+              <div className="left-header">
+                <h3>Description</h3>
+                {descriptionHistory && descriptionHistory.length > 0 && (
+                  <>
+                    <button onClick={() => setShowHistoryList(!showHistoryList)} className="history-btn">
+                      last edited by {descriptionHistory[descriptionHistory.length - 1]?.username}
+                      <img src={downArrow} alt="Show History" />
+                    </button>
+                    {showHistoryList && (
+                      <ul>
+                        {descriptionHistory.map((item, index) => (
+                          <li key={index} onClick={() => toggleHistoryModal(item)}>
+                            Edited by: {item.username} at {item.timestamp}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </>
+                )}
+              </div>
+              <button onClick={toggleDescriptionEditMode} className="edit-btn">
+                <img src={edit_description_button} alt="Edit Description" />
+              </button>
+            </div>
+            <hr />
+            {!isDescriptionEditMode ? (
+              <p className="description-text">{issue.description}</p>
+            ) : (
+              <textarea
+                value={descriptionInput}
+                onChange={(e) => setDescriptionInput(e.target.value)}
+              />
+            )}
+            {isDescriptionEditMode && (
+              <div className="button-group">
+                <button onClick={() => setIsDescriptionEditMode(false)} className="cancel-btn">Cancel</button>
+                <button onClick={handleDescriptionUpdate} className="save-btn">Update Description</button>
               </div>
             )}
-          </h3>
-
-          {!isDescriptionEditMode ? (
-            <p className="issue-description-text">{issue.description}</p>
-          ) : (
-            <textarea
-              value={descriptionInput}
-              onChange={(e) => setDescriptionInput(e.target.value)}
-            />
-          )}
-          {isDescriptionEditMode && (
-            <div>
-              <button onClick={handleDescriptionUpdate}> Update </button>
-              {renderDescriptionHistory()}
-            </div>
-          )}
-        </div>
-
-        <div className="issue-details">
-          <h3>Assignees</h3>
-
-          {issue.creator.id != user.id && <div className="assignee">
-            <p> {issue.assignees.map(assignee => assignee.name).join(', ')} </p>
-          </div>}
-
-          {issue.creator.id === user.id && (
-            <div className="assignee">
-              <p>{issue.assignees.map(assignee => assignee.name).join(', ')}</p>
-              {/* Render edit button for assignee if user is the creator */}
-              <button onClick={toggleAssigneeEditMode}>Edit Assignee</button>
-              {/* Render select input for assignee if in edit mode */}
-              {isAssigneeEditMode && (
-                <div>
-                  <select
-                    value={assigneeInput}
-                    onChange={(e) => setAssigneeInput(Array.from(e.target.selectedOptions, option => option.value))}
-                    multiple
-                  >
-                    <option value="">Select Assignee</option>
-                    {project.members.map(user => (
-                      <option key={user.id} value={user.name}>
-                        {user.name}
-                      </option>
-                    ))}
-                  </select>
-                  <button onClick={handleAssigneeUpdate}>Update Assignee</button>
+            {/* {showDescriptionHistory && renderDescriptionHistory()} */}
+            {showHistoryModal && currentHistoryItem && (
+              <div className="modal">
+                <div className="modal-content">
+                  <span className="close" onClick={closeHistoryModal}>&times;</span>
+                  <p>
+                    Edited by: {currentHistoryItem.username} at {currentHistoryItem.timestamp}
+                  </p>
+                  <p>
+                    Description: {currentHistoryItem.description}
+                  </p>
                 </div>
-              )}
-            </div>
-          )}
-        </div>
+              </div>
+            )}
+          </div>
 
-        <div className="issue-details">
-          <h3> Detail Actions </h3>
-          {actionHistory.map((entry, index) => (
-            <div key={index}>
-              <strong>{entry.username}</strong> {entry.description} on {formatDate(new Date(entry.timestamp))}
-            </div>
-          ))}
+          <div className="issue-details">
+            <h3> Detail Actions </h3>
+            {actionHistory.map((entry, index) => (
+              <div key={index}>
+                <strong>{entry.username}</strong> {entry.description} on {formatDate(new Date(entry.timestamp))}
+              </div>
+            ))}
+          </div>
         </div>
 
         <div className="issue-comments">
@@ -588,8 +557,6 @@ const IssueDetail = ({ projects }) => {
           )}
         </div>
 
-
-
         <div className="add-comment">
           <h3>Add Comment</h3>
           <textarea
@@ -604,8 +571,72 @@ const IssueDetail = ({ projects }) => {
             accept=".pdf,.doc,.docx,.jpg,.png"
             onChange={handleCommentFileUpload}
           />
+          <button className="comment-button" onClick={handleAddComment}>Comment</button>
         </div>
-        <button className="comment-button" onClick={handleAddComment}>Comment</button>
+      </div>
+
+      <div className="right-section">
+
+        <div className="due-date">
+          <div className="section-header">
+            <h3>Due Date</h3>
+            {user.id === issue.creator.id && (
+              <button onClick={toggleDueDateEditMode} className="edit-btn">
+                <img src={edit_button} alt="Edit" />
+              </button>
+            )}
+          </div>
+          <p>Due on {formatDate(issue.dueDate)}</p>
+          {isDueDateEditMode && (
+            <div>
+              <input
+                type="date"
+                value={dueDateInput}
+                onChange={(e) => setDueDateInput(e.target.value)}
+              />
+              <button onClick={handleDueDateUpdate} className="save-btn">Save</button>
+              <button onClick={() => setIsDueDateEditMode(false)} className="cancel-btn">Cancel</button>
+            </div>
+          )}
+        </div>
+
+        <div className="assignees">
+          <div className="section-header">
+            <h3>Assignees</h3>
+            {issue.creator.id === user.id && (
+              <button onClick={toggleAssigneeEditMode} className="edit-btn">
+                <img src={edit_button} alt="Edit" />
+              </button>
+            )}
+          </div>
+          <p>{issue.assignees.map(assignee => assignee.name).join(', ')}</p>
+          {isAssigneeEditMode && (
+            <div>
+              <select
+                multiple
+                value={assigneeInput}
+                onChange={(e) => setAssigneeInput(Array.from(e.target.selectedOptions, option => option.value))}
+              >
+                {project.members.map(user => (
+                  <option key={user.id} value={user.name}>{user.name}</option>
+                ))}
+              </select>
+              <button onClick={handleAssigneeUpdate} className="save-btn">Save</button>
+              <button onClick={() => setIsAssigneeEditMode(false)} className="cancel-btn">Cancel</button>
+            </div>
+          )}
+        </div>
+
+        <div className="project-details">
+          <div className="section-header">
+            <h3>Project</h3>
+            <button onClick={handleBackToProject} className="back-to-project-btn">
+              <img src={back_project} alt="Back to Project" />
+            </button>
+          </div>
+          <p>{project.name}</p>
+        </div>
+
       </div>
     </div>
   )

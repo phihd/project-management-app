@@ -1,16 +1,83 @@
 .issue-detail {
-  padding: 20px;
+  padding: 10px;
+}
+
+.back-to-project-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.back-to-project-btn img {
+  width: 40px;
+  height: auto;
+  display: block;
 }
 
 .issue-header {
   display: flex;
+  flex-direction: column;
+  padding-bottom: 18px;
+  border-bottom: 0.5px solid #bbb2b2;
+}
+
+.issue-title-container {
+  display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 15px;
 }
 
 .issue-title {
   margin: 0;
-  font-size: 24px;
+  font-size: 26px;
+}
+
+.title-edit-input {
+  flex-grow: 1;
+  padding: 8px;
+  font-size: 12px;
+  font-family: 'Montserrat', sans-serif;
+  color: #605656;
+}
+
+.button-group {
+  display: flex;
+}
+
+.edit-title-btn, .save-title-btn, .cancel-edit-btn {
+  padding: 6px 12px;
+  margin-left: 8px;
+  cursor: pointer;
+  border: none;
+  border-radius: 4px;
+}
+
+.cancel-edit-btn {
+  background-color: #6c757d;
+  font-size: 12px;
+  font-family: 'Montserrat', sans-serif;
+  color: black;
+}
+
+.save-title-btn {
+  font-size: 12px;
+  font-family: 'Montserrat', sans-serif;
+  background-color: #DBCA49;
+  color: black;
+}
+
+.edit-title-btn:hover, .save-title-btn:hover, .cancel-edit-btn:hover {
+  opacity: 0.9;
+}
+
+.edit-title-btn {
+  background-color: #6c757d;
+  font-size: 12px;
+  font-family: 'Montserrat', sans-serif;
+  color: white;
+  border: 1px solid wheat;
 }
 
 .issue-status {
@@ -18,6 +85,181 @@
   border-radius: 5px;
   background-color: #f0f0f0;
   color: #333;
+}
+
+.issue-information .status-btn {
+  padding: 5px 10px;
+  border-radius: 20px;
+  background-color: white; /* Default gray, adjust if needed */
+  color: black;
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  font-family: 'Montserrat', sans-serif;
+  cursor: pointer;
+  margin-right: 20px;
+}
+
+.status-btn.open {
+  border-color: #46e676;
+}
+
+.status-btn.close {
+  border-color: #414141;
+}
+
+.issue-information p {
+  margin: 0;
+  font-size: 14px;
+}
+
+.issue-information {
+  display: flex;
+  align-items: center;
+}
+
+.status-and-info {
+  display: flex;
+  align-items: center;
+}
+
+.info-and-comments {
+  display: flex;
+  align-items: center;
+  margin-left: 10px;
+}
+
+.creator-info, .comment-count {
+  margin: 0 10px 0 0; /* Provides spacing around the text */
+  font-size: 14px;
+}
+
+.comment-count {
+  white-space: nowrap; /* Keeps the comment count on one line */
+}
+
+.issue-body {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+.left-section, .right-section {
+  border: none;
+}
+
+.left-section {
+  padding-right: 15px;
+  flex: 2;
+}
+
+.right-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding-left: 20px;
+  padding-top: 20px;
+  margin-left: 10px;
+}
+
+.right-section .section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.edit-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  margin-left: 10px; /* Space between the header and the button */
+}
+
+.edit-btn img {
+  height: 30px;
+  width: auto;
+}
+
+.due-date, .assignees {
+  border-bottom: 0.3px solid #695959;
+  padding-bottom: 20px;
+}
+
+.due-date input[type="date"] {
+  margin-right: 10px;
+  font-family: 'Montserrat', sans-serif;
+}
+
+.save-btn, .cancel-btn {
+  padding: 5px 10px;
+  margin-right: 5px;
+  font-size: 12px;
+  color: black;
+  border: none;
+  cursor: pointer;
+  border-radius: 4px;
+  font-family: 'Montserrat', sans-serif;
+}
+
+.save-btn {
+  background-color: #DBCA49; /* Bootstrap primary blue */
+}
+
+.cancel-btn {
+  background-color: #6c757d;
+  font-size: 12px;
+}
+
+.save-btn:hover, .cancel-btn:hover {
+  opacity: 0.8;
+}
+
+.due-date p, .assignees p {
+  margin-top: 0;
+}
+
+.assignees select {
+  margin-right: 10px;
+  font-family: 'Montserrat', sans-serif;
+  border-radius: 8px;
+  max-height: 120px;
+}
+
+.assignees select::-webkit-scrollbar {
+  width: 12px; /* Adjust the width of the scrollbar */
+}
+
+.assignees select::-webkit-scrollbar-track {
+  background: #f1f1f1; /* Color of the track */
+  border-radius: 8px; /* Match the border-radius of the select */
+}
+
+.assignees select::-webkit-scrollbar-thumb {
+  background: #888; /* Color of the scrollbar thumb */
+  border-radius: 8px; /* Roundness of the scrollbar thumb */
+}
+
+.assignees select::-webkit-scrollbar-thumb:hover {
+  background: #555; /* Color of the scrollbar thumb on hover */
+}
+
+.assignees option {
+  padding: 10px 10px;
+}
+
+h3 {
+  font-size: 20px;
+}
+
+p {
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+
+.issue-comments, .add-comment, .due-date, .assignees {
+  margin-bottom: 20px;
 }
 
 .issue-box {
@@ -63,16 +305,190 @@
   margin-right: 10px;
 }
 
-.issue-description {
-  margin-top: 20px;
+.description-box {
+  border: none;
+  /* padding: 15px; */
+  border-radius: 8px;
+  margin-bottom: 20px;
+  background-color: rgb(234, 230, 213);
 }
 
-.issue-description h3 {
-  margin-bottom: 10px;
+.description-box .header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px;
+  padding-bottom: 10px;
 }
 
-.issue-description-text {
-  line-height: 1.5;
+.description-box .left-header {
+  display: flex;
+  /* align-items: center; */
+  gap: 8px;
+}
+
+.description-box h3 {
+  margin: 0;
+  padding: 0;
+  color: #333;
+  font-size: 20px;
+  flex-grow: 1;
+}
+
+.description-box .actions {
+  display: flex;
+  gap: 10px;
+}
+
+.description-box .history-btn, .description-box .save-btn, .description-box .cancel-btn {
+  padding: 6px 12px;
+  font-size: 14px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.description-box .save-btn {
+  background-color: #dbca49;
+  font-size: 12px;
+  margin-top: 10px;
+}
+
+.description-box .cancel-btn {
+  background-color: #6c757d;
+  font-size: 12px;
+  margin-top: 10px;
+}
+
+.description-box .history-btn {
+  background: none;
+  border: none;
+  color: #333;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding-left: 0px;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 12px;
+}
+
+.description-box .history-btn img {
+  width: 12px;
+  height: auto;
+}
+
+.description-box .edit-btn {
+  padding: 4px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.description-box .edit-btn img {
+  width: 20px;
+  height: auto;
+}
+
+.description-box .edit-btn:hover, .description-box .history-btn:hover, .description-box .save-btn:hover, .description-box .cancel-btn:hover {
+  opacity: 0.85;
+}
+
+.description-box .header hr {
+  border: 0;
+  height: 1px;
+  background-color: #bbb;
+  margin-top: 0;
+}
+
+.history-list {
+  list-style: none;
+  padding: 0;
+  margin: 10px 0;
+  background: #f9f9f9;
+  border: 1px solid #ccc;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.history-list li {
+  padding: 8px 16px;
+  cursor: pointer;
+  border-bottom: 1px solid #ddd;
+}
+
+.history-list li:last-child {
+  border-bottom: none;
+}
+
+.history-list li:hover {
+  background-color: #f0f0f0;
+}
+
+/* Modal styles */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background-color: #000;
+  padding: 20px;
+  border-radius: 5px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  width: 90%;
+  max-width: 500px;
+}
+
+.close {
+  color: #aaaaaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+  color: #000;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.description-box .button-group {
+  display: flex;
+  gap: 3px;
+  margin-left: 20px;
+  padding-bottom: 12px;
+}
+
+.description-box textarea {
+  width: 100%;
+  height: 120px; 
+  padding: 25px;
+  border-radius: 4px;
+  resize: vertical; /* Allows resizing vertically */
+  text-align: justify;
+  background-color: #f1f2dd;
+}
+
+.description-box .description-text {
+  color: black;
+  padding: 25px;
+  text-align: justify;
+}
+
+.description-box .save-btn, .description-box .cancel-btn {
+  padding: 6px 12px;
 }
 
 .issue-details {

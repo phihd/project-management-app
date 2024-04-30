@@ -39,7 +39,6 @@ const performDueIssueCheck = async (issueId = null) => {
       await Issue.findByIdAndUpdate(issue._id, { isNotified: true })
     }))
     console.log('Due issue check done')
-
   } catch (error) {
     console.error('Error during due issue check:', error)
   }
