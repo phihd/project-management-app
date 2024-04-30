@@ -493,151 +493,155 @@ const IssueDetail = ({ projects }) => {
                 <strong>{entry.username}</strong> {entry.description} on {formatDate(new Date(entry.timestamp))}
               </div>
             ))}
-          </div>
-        </div>
 
-        <div className="issue-comments">
-          <h3>Comments</h3>
-          {comments.length === 0 ? (
-            <p>No comments yet.</p>
-          ) : (
-            comments.map((comment, index) => (
-              <div className="comment" key={index}>
-                <p className="comment-user">{comment.user.name} commented on {formatTimestamp(comment.timestamp)}</p>
-                {
-                  editingCommentId === comment.id ? (
-                    <textarea
-                      value={editedCommentText}
-                      onChange={(e) => setEditedCommentText(e.target.value)}
-                    />
-                  ) : (
-                    <p className="comment-text">{comment.text}</p>
-                  )
-                }
-                {
-                  user.id === comment.user.id && (
+          </div>
+          <div className="issue-comments">
+            <h3>Comments</h3>
+            {comments.length === 0 ? (
+              <p>No comments yet.</p>
+            ) : (
+              comments.map((comment, index) => (
+                <div className="comment" key={index}>
+                  <p className="comment-user">{comment.user.name} commented on {formatTimestamp(comment.timestamp)}</p>
+                  {
                     editingCommentId === comment.id ? (
-                      <button onClick={() => saveEditedComment(comment.id)}>Save</button>
+                      <textarea
+                        value={editedCommentText}
+                        onChange={(e) => setEditedCommentText(e.target.value)}
+                      />
                     ) : (
-                      <button onClick={() => toggleEditComment(comment.id, comment.text)}>Edit</button>
+                      <p className="comment-text">{comment.text}</p>
                     )
-                  )
-                }
-                {/* Button to toggle edit history visibility */}
-                {comment.edits && comment.edits.length > 0 && (
-                  <button onClick={() => toggleEditHistory(comment.id)}>Toggle Edit History</button>
-                )}
-                {/* Display edit history if available */}
-                {comment.showHistory && comment.edits && (
-                  <ul>
-                    {comment.edits.map((edit, idx) => (
-                      <li key={idx}>
-                        <strong>{edit.editedBy}</strong> edited on {formatTimestamp(edit.editedAt)}: from "{edit.oldText}" to "{edit.newText}"
-                      </li>
-                    ))}
-                  </ul>
-                )}
-                {/* Display attached files with download links */}
-                {comment.files && comment.files.length > 0 && (
-                  <div className="comment-files">
-                    <strong>Attached Files:</strong>
+                  }
+                  {
+                    user.id === comment.user.id && (
+                      editingCommentId === comment.id ? (
+                        <button onClick={() => saveEditedComment(comment.id)}>Save</button>
+                      ) : (
+                        <button onClick={() => toggleEditComment(comment.id, comment.text)}>Edit</button>
+                      )
+                    )
+                  }
+                  {/* Button to toggle edit history visibility */}
+                  {comment.edits && comment.edits.length > 0 && (
+                    <button onClick={() => toggleEditHistory(comment.id)}>Toggle Edit History</button>
+                  )}
+                  {/* Display edit history if available */}
+                  {comment.showHistory && comment.edits && (
                     <ul>
-                      {Array.from(comment.files).map((file, fileIdx) => (
-                        <li key={fileIdx}>
-                          <a href={URL.createObjectURL(file)} download={file.name}>
-                            {file.name}
-                          </a>
+                      {comment.edits.map((edit, idx) => (
+                        <li key={idx}>
+                          <strong>{edit.editedBy}</strong> edited on {formatTimestamp(edit.editedAt)}: from "{edit.oldText}" to "{edit.newText}"
                         </li>
                       ))}
                     </ul>
-                  </div>
-                )}
+                  )}
+                  {/* Display attached files with download links */}
+                  {comment.files && comment.files.length > 0 && (
+                    <div className="comment-files">
+                      <strong>Attached Files:</strong>
+                      <ul>
+                        {Array.from(comment.files).map((file, fileIdx) => (
+                          <li key={fileIdx}>
+                            <a href={URL.createObjectURL(file)} download={file.name}>
+                              {file.name}
+                            </a>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              ))
+            )}
+          </div>
+
+          <div className="add-comment">
+            <h3>Add Comment</h3>
+            <textarea
+              className="comment-input"
+              placeholder="Leave a comment"
+              value={commentInput}
+              onChange={handleCommentInput}
+            ></textarea>
+            <input
+              type="file"
+              multiple
+              accept=".pdf,.doc,.docx,.jpg,.png"
+              onChange={handleCommentFileUpload}
+            />
+            <button className="comment-button" onClick={handleAddComment}>Comment</button>
+          </div>
+
+        </div>
+        <div className="right-section">
+
+          <div className="due-date">
+            <div className="section-header">
+              <h3>Due Date</h3>
+              {user.id === issue.creator.id && (
+                <button onClick={toggleDueDateEditMode} className="edit-btn">
+                  <img src={edit_button} alt="Edit" />
+                </button>
+              )}
+            </div>
+            <p>Due on {formatDate(issue.dueDate)}</p>
+            {isDueDateEditMode && (
+              <div>
+                <input
+                  type="date"
+                  value={dueDateInput}
+                  onChange={(e) => setDueDateInput(e.target.value)}
+                />
+                <button onClick={handleDueDateUpdate} className="save-btn">Save</button>
+                <button onClick={() => setIsDueDateEditMode(false)} className="cancel-btn">Cancel</button>
               </div>
-            ))
-          )}
-        </div>
+            )}
+          </div>
 
-        <div className="add-comment">
-          <h3>Add Comment</h3>
-          <textarea
-            className="comment-input"
-            placeholder="Leave a comment"
-            value={commentInput}
-            onChange={handleCommentInput}
-          ></textarea>
-          <input
-            type="file"
-            multiple
-            accept=".pdf,.doc,.docx,.jpg,.png"
-            onChange={handleCommentFileUpload}
-          />
-          <button className="comment-button" onClick={handleAddComment}>Comment</button>
+          <div className="assignees">
+            <div className="section-header">
+              <h3>Assignees</h3>
+              {issue.creator.id === user.id && (
+                <button onClick={toggleAssigneeEditMode} className="edit-btn">
+                  <img src={edit_button} alt="Edit" />
+                </button>
+              )}
+            </div>
+            <p>{issue.assignees.map(assignee => assignee.name).join(', ')}</p>
+            {isAssigneeEditMode && (
+              <div>
+                <select
+                  multiple
+                  value={assigneeInput}
+                  onChange={(e) => setAssigneeInput(Array.from(e.target.selectedOptions, option => option.value))}
+                >
+                  {project.members.map(user => (
+                    <option key={user.id} value={user.name}>{user.name}</option>
+                  ))}
+                </select>
+                <button onClick={handleAssigneeUpdate} className="save-btn">Save</button>
+                <button onClick={() => setIsAssigneeEditMode(false)} className="cancel-btn">Cancel</button>
+              </div>
+            )}
+          </div>
+
+          <div className="project-details">
+            <div className="section-header">
+              <h3>Project</h3>
+              <button onClick={handleBackToProject} className="back-to-project-btn">
+                <img src={back_project} alt="Back to Project" />
+              </button>
+            </div>
+            <p>{project.name}</p>
+          </div>
+
         </div>
       </div>
 
-      <div className="right-section">
 
-        <div className="due-date">
-          <div className="section-header">
-            <h3>Due Date</h3>
-            {user.id === issue.creator.id && (
-              <button onClick={toggleDueDateEditMode} className="edit-btn">
-                <img src={edit_button} alt="Edit" />
-              </button>
-            )}
-          </div>
-          <p>Due on {formatDate(issue.dueDate)}</p>
-          {isDueDateEditMode && (
-            <div>
-              <input
-                type="date"
-                value={dueDateInput}
-                onChange={(e) => setDueDateInput(e.target.value)}
-              />
-              <button onClick={handleDueDateUpdate} className="save-btn">Save</button>
-              <button onClick={() => setIsDueDateEditMode(false)} className="cancel-btn">Cancel</button>
-            </div>
-          )}
-        </div>
 
-        <div className="assignees">
-          <div className="section-header">
-            <h3>Assignees</h3>
-            {issue.creator.id === user.id && (
-              <button onClick={toggleAssigneeEditMode} className="edit-btn">
-                <img src={edit_button} alt="Edit" />
-              </button>
-            )}
-          </div>
-          <p>{issue.assignees.map(assignee => assignee.name).join(', ')}</p>
-          {isAssigneeEditMode && (
-            <div>
-              <select
-                multiple
-                value={assigneeInput}
-                onChange={(e) => setAssigneeInput(Array.from(e.target.selectedOptions, option => option.value))}
-              >
-                {project.members.map(user => (
-                  <option key={user.id} value={user.name}>{user.name}</option>
-                ))}
-              </select>
-              <button onClick={handleAssigneeUpdate} className="save-btn">Save</button>
-              <button onClick={() => setIsAssigneeEditMode(false)} className="cancel-btn">Cancel</button>
-            </div>
-          )}
-        </div>
 
-        <div className="project-details">
-          <div className="section-header">
-            <h3>Project</h3>
-            <button onClick={handleBackToProject} className="back-to-project-btn">
-              <img src={back_project} alt="Back to Project" />
-            </button>
-          </div>
-          <p>{project.name}</p>
-        </div>
-
-      </div>
     </div>
   )
 }
