@@ -9,6 +9,7 @@ import projectService from '../services/projects'
 import commentService from '../services/comments'
 import UserContext from './UserContext'
 import { useNavigate } from 'react-router-dom'
+import { set } from 'date-fns'
 
 const IssueDetail = ({ projects }) => {
 
@@ -246,7 +247,9 @@ const IssueDetail = ({ projects }) => {
     if (new Date(dueDateInput).getTime() !== new Date(issue.dueDate).getTime()) {
       try {
         const actionDescription = `Due date changed from ${formatDate(issue.dueDate)} to ${formatDate(dueDateInput)} by ${user.name}`
-        updateIssue({ dueDate: new Date(dueDateInput) }, actionDescription)
+        const dueDate = Date(dueDateInput)
+        const endOfDay = set(dueDate, { hours: 23, minutes: 59, seconds: 59 })
+        await updateDueDate(endOfDay.toISOString())
         setIsDueDateEditMode(false)
       } catch (error) {
         console.error('Error updating due date:', error)
@@ -434,7 +437,7 @@ const IssueDetail = ({ projects }) => {
               <span>
                 {!isDueDateEditMode && (
                   <button onClick={toggleDueDateEditMode}>Edit Due Date</button>
-                  
+
                 )}
                 {isDueDateEditMode && (
                   <div>

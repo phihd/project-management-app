@@ -94,7 +94,7 @@ const App = () => {
   // Fetch notifications
   const { data: notifications, isLoading: notificationsLoading } = useQuery(
     'notifications',
-    () => notiService.getAll(user.id),
+    () => notiService.get(user.id),
     {
       enabled: !!user && !!user.token,
       onError: (error) => {
