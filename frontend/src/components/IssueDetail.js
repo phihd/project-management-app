@@ -9,6 +9,7 @@ import projectService from '../services/projects'
 import commentService from '../services/comments'
 import UserContext from './UserContext'
 import { useNavigate } from 'react-router-dom'
+import { set } from 'date-fns'
 
 import back_project from '../img/left.png'
 import open_status from '../img/open_issue.png'
@@ -238,7 +239,9 @@ const IssueDetail = ({ projects }) => {
 
   const handleDueDateUpdate = async () => {
     try {
-      await updateDueDate(new Date(dueDateInput))
+      const dueDate = Date(dueDateInput)
+      const endOfDay = set(dueDate, { hours: 23, minutes: 59, seconds: 59 })
+      await updateDueDate(endOfDay.toISOString())
       setIsDueDateEditMode(false)
     } catch (error) {
       console.error('Error updating due date:', error)
@@ -398,7 +401,7 @@ const IssueDetail = ({ projects }) => {
         </div>
       </div>
 
-      
+
 
 
       <div className="issue-body">

@@ -13,6 +13,16 @@ const getAll = () => {
   return request.then(response => response.data)
 }
 
+const get = () => {
+  const token = getToken()
+  const config = {
+    headers: { Authorization: token },
+  }
+
+  const request = axios.get(baseUrl, config)
+  return request.then(response => response.data)
+}
+
 const create = async (projectId, newObject) => {
   const token = getToken()
   const config = {
@@ -44,4 +54,4 @@ const remove = async (notiId) => {
 }
 
 // eslint-disable-next-line
-export default { getAll, create, update, remove }
+export default { getAll, get, create, update, remove }
