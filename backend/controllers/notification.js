@@ -109,7 +109,7 @@ notificationRouter.put('/:notificationId', async (request, response, next) => {
     }
 
     const updatedNotification = await Notification.findOneAndUpdate(
-      { _id: notificationId, project: projectId },
+      { _id: notificationId },
       update,
       { new: true }
     )

@@ -4,6 +4,7 @@ const usersRouter = require('express').Router()
 const User = require('../models/user')
 const Project = require('../models/project')
 const Issue = require('../models/issue')
+const CommentModel = require('../models/comment')
 
 usersRouter.get('/', async (request, response) => {
   const token = request.token
@@ -173,6 +174,50 @@ usersRouter.put('/:userId', async (request, response) => {
     response.json(updatedUser)
   } catch (error) {
     response.status(400).json({ error: error.message })
+  }
+})
+
+usersRouter.delete('/:id', async (request, response) => {
+  if (!request.token) {
+    return response.status(401).json({ error: 'token missing' })
+  }
+
+  const decodedToken = jwt.verify(request.token, process.env.SECRET)
+  if (!decodedToken.id) {
+    return response.status(401).json({ error: 'token invalid' })
+  }
+  
+  try {
+    const userId = request.params.id
+    const user = await User.findById(userId)
+    if (!user) {
+      return response.status(404).json({ error: 'User not found' })
+    }
+
+    await Project.updateMany(
+      { members: userId },
+      { $pull: { members: userId } }
+    )
+
+    await Issue.updateMany(
+      { creator: userId },
+      { $set: { creator: null } }
+    )
+    await Issue.updateMany(
+      { assignees: userId },
+      { $pull: { assignees: userId } }
+    )
+
+    // Remove or anonymize comments made by the user
+    await CommentModel.updateMany(
+      { user: userId },
+      { $set: { user: null, text: "Deleted comment" } }
+    )
+
+    await user.delete()
+    response.sendStatus(204)
+  } catch (error) {
+    response.status(500).json({ error: error.message })
   }
 })
 

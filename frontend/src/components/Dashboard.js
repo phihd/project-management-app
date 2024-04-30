@@ -40,7 +40,7 @@ function Dashboard() {
       </div>
       {openIssues.length > 0 ? (
         <div className="issue-container">
-          <div className="issue-row header-row" style={{fontWeight: 'bold', backgroundColor: '#171b27'}}>
+          <div className="issue-row header-row" style={{ fontWeight: 'bold', backgroundColor: '#171b27' }}>
             <div className="issue-column">Issue Name</div>
             <div className="issue-column">Due Date</div>
             <div className="issue-column">Project</div>

@@ -1,5 +1,21 @@
 const mongoose = require('mongoose')
 
+const actionSchema = new mongoose.Schema({
+  description: {
+    type: String,
+    required: true
+  },
+  timestamp: {
+    type: Date,
+    default: Date.now
+  },
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  }
+})
+
 const issueSchema = new mongoose.Schema({
   title: {
     type: String,
@@ -45,7 +61,8 @@ const issueSchema = new mongoose.Schema({
   isNotified: {
     type: Boolean,
     default: false
-  }
+  },
+  actionHistory: [actionSchema],
 })
 
 issueSchema.set('toJSON', {

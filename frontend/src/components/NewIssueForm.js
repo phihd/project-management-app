@@ -26,7 +26,6 @@ function NewIssueForm({ handleCreateIssue, handleCloseForm }) {
 
   function formatDate(date) {
     const endOfDay = set(date, { hours: 23, minutes: 59, seconds: 59 })
-    console.log(endOfDay.toISOString())
     return endOfDay.toISOString()
   }
 
