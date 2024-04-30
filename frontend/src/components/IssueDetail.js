@@ -72,6 +72,7 @@ const IssueDetail = ({ projects }) => {
     onSuccess: (data) => {
       // Initialize local status with fetched issue status
       setCurrentStatus(data.status)
+      setDescription(data.description)
     }
   })
 
@@ -322,7 +323,7 @@ const IssueDetail = ({ projects }) => {
         }
         return !prev
     })
-    setDescriptionInput(issue.description)
+    setDescriptionInput(description)
 }
 
   const handleDescriptionUpdate = async () => {
@@ -373,7 +374,7 @@ const IssueDetail = ({ projects }) => {
   }
 
   const renderDescription = (description, setDescription) => {
-    const handleCheckboxChange = (index) => {
+    const handleCheckboxChange = async (index) => {
       const lines = description.split('\n');
       const newLines = [...lines];
       const line = lines[index];
@@ -386,6 +387,7 @@ const IssueDetail = ({ projects }) => {
   
       const newDescription = newLines.join('\n');
       setDescription(newDescription)
+      await updateDescription(newDescription)
     }
   
     return (
@@ -660,7 +662,7 @@ const IssueDetail = ({ projects }) => {
             </div>
             <hr />
             {!isDescriptionEditMode ? (
-              renderDescription(issue.description, setDescription)
+              renderDescription(description, setDescription)
             ) : (
               <>
                 <div className="tabs">
