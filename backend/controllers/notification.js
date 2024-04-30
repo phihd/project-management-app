@@ -60,7 +60,7 @@ notificationRouter.get('/:userId', async (request, response) => {
     }
 
     const notifications = await Notification
-      .find({user: request.params.userId})
+      .find({ user: request.params.userId })
       .sort({ createdAt: -1 }) // Get most recent notifications first
       .limit(50) // Limit to 50 notifications for fetching
 

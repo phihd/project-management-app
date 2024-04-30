@@ -111,7 +111,7 @@ issuesRouter.delete('/:id', async (request, response, next) => {
 
   const user = request.user
   if (issue.creator.toString() === user.id.toString()) {
-    await CommentModel.deleteMany({ issue: issueId })
+    await CommentModel.deleteMany({ issue: issue.id })
     await Issue.deleteOne({ _id: id })
     response.sendStatus(204).end()
   } else {

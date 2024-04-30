@@ -108,12 +108,15 @@ const IssueDetail = ({ projects }) => {
   }
 
   const handleAssigneeUpdate = async () => {
-    try {
-      const selectedAssigneeUsers = assigneeInput.map(assigneeName => project.members.find(user => user.name === assigneeName))
-      await updateAssignee(selectedAssigneeUsers)
-      setIsAssigneeEditMode(false)
-    } catch (error) {
-      console.error('Error updating assignees:', error)
+    if (assigneeInput.sort().toString() !== issue.assignees.map(a => a.id).sort().toString()) {
+      try {
+        const selectedAssigneeUsers = assigneeInput.map(assigneeName => project.members.find(user => user.name === assigneeName))
+        const actionDescription = `Assignees updated to ${assigneeInput.join(', ')} by ${user.name}`
+        await updateIssue({ assignees: selectedAssigneeUsers.map(user => user.id) }, actionDescription)
+        setIsAssigneeEditMode(false)
+      } catch (error) {
+        console.error('Error updating assignees:', error)
+      }
     }
   }
 
@@ -121,16 +124,9 @@ const IssueDetail = ({ projects }) => {
     if (issue) {
       const newStatus = currentStatus === 'Open' ? 'Close' : 'Open'
       try {
-        await updateIssue(projectId, issueId, { status: newStatus })
+        const actionDescription = `${user.name} ${newStatus === 'Open' ? 'reopened' : 'closed'} this issue`
+        await updateIssue({ status: newStatus }, actionDescription)
         setCurrentStatus(newStatus)
-        setStatusHistory(prevStatusHistory => [
-          ...prevStatusHistory,
-          {
-            username: user.name,
-            newStatus: newStatus,
-            timestamp: new Date().toLocaleString(),
-          }
-        ])
       } catch (error) {
         console.error('Error updating issue status:', error)
       }
@@ -139,12 +135,30 @@ const IssueDetail = ({ projects }) => {
     }
   }
 
-  const updateIssue = async (projectId, issueId, issueToUpdate) => {
+  const updateIssue = async (issueToUpdate, actionDescription = null) => {
     try {
+      if (actionDescription) {
+        const actionEntry = {
+          description: actionDescription,
+          timestamp: new Date(),
+          user: user.id
+        }
+
+        issueToUpdate.actionHistory = [...(actionHistory || []), actionEntry]
+      }
+
       const updatedIssue = await issueService.update(projectId, issueId, issueToUpdate)
-      queryClient.setQueryData('issue', _ => updatedIssue)
+
+      queryClient.setQueryData(['issue', issueId], prev => ({
+        ...prev,
+        ...issueToUpdate,
+        actionHistory: updatedIssue.actionHistory
+      }))
+
+      return updatedIssue
     } catch (exception) {
-      console.log(exception)
+      console.error('Failed to update the issue:', exception)
+      throw new Error('Failed to update the issue.')
     }
   }
 
@@ -238,13 +252,16 @@ const IssueDetail = ({ projects }) => {
   }
 
   const handleDueDateUpdate = async () => {
-    try {
-      const dueDate = Date(dueDateInput)
-      const endOfDay = set(dueDate, { hours: 23, minutes: 59, seconds: 59 })
-      await updateDueDate(endOfDay.toISOString())
-      setIsDueDateEditMode(false)
-    } catch (error) {
-      console.error('Error updating due date:', error)
+    if (new Date(dueDateInput).getTime() !== new Date(issue.dueDate).getTime()) {
+      try {
+        const actionDescription = `Due date changed from ${formatDate(issue.dueDate)} to ${formatDate(dueDateInput)} by ${user.name}`
+        const dueDate = Date(dueDateInput)
+        const endOfDay = set(dueDate, { hours: 23, minutes: 59, seconds: 59 })
+        await updateDueDate(endOfDay.toISOString())
+        setIsDueDateEditMode(false)
+      } catch (error) {
+        console.error('Error updating due date:', error)
+      }
     }
   }
 
@@ -282,18 +299,21 @@ const IssueDetail = ({ projects }) => {
   }
 
   const handleTitleUpdate = async () => {
-    try {
-      await updateTitle(titleInput)
-      setIsTitleEditMode(false)
-    } catch (error) {
-      console.error('Error updating title:', error)
+    if (titleInput !== issue.title) {
+      try {
+        const actionDescription = `Title updated to "${titleInput}" by ${user.name}`
+        await updateIssue({ title: titleInput }, actionDescription)
+        setIsTitleEditMode(false)
+      } catch (error) {
+        console.error('Error updating title:', error)
+      }
     }
   }
+
 
   const updateDescription = async (newDescription) => {
     try {
       await issueService.update(projectId, issueId, { description: newDescription })
-      // Update the issue due date in the UI
       queryClient.setQueryData(['issue', issueId], prevIssue => ({ ...prevIssue, description: newDescription }))
     } catch (exception) {
       console.log(exception)
@@ -307,17 +327,19 @@ const IssueDetail = ({ projects }) => {
   }
 
   const handleDescriptionUpdate = async () => {
-    try {
-      await updateDescription(descriptionInput)
-      const editedDescription = {
-        username: user.name,
-        timestamp: new Date().toLocaleString(),
-        description: descriptionInput
+    if (descriptionInput !== issue.description) {
+      try {
+        await updateIssue({ description: descriptionInput })
+        const editedDescription = {
+          username: user.name,
+          timestamp: new Date().toLocaleString(),
+          description: descriptionInput
+        }
+        setDescriptionHistory([...descriptionHistory, editedDescription])
+        setIsDescriptionEditMode(false)
+      } catch (error) {
+        console.error('Error updating description:', error)
       }
-      setDescriptionHistory([...descriptionHistory, editedDescription])
-      setIsDescriptionEditMode(false)
-    } catch (error) {
-      console.error('Error updating description:', error)
     }
   }
 
@@ -464,44 +486,15 @@ const IssueDetail = ({ projects }) => {
             )}
           </div>
 
-          <div className='issue-details'>
+          <div className="issue-details">
             <h3> Detail Actions </h3>
-            {/* Display notifications for description edits */}
-            {descriptionHistory.map((entry, index) => (
+            {actionHistory.map((entry, index) => (
               <div key={index}>
-                {entry.username} edited the description on {entry.timestamp}
+                <strong>{entry.username}</strong> {entry.description} on {formatDate(new Date(entry.timestamp))}
               </div>
             ))}
 
-            {/* Display notifications for title edits */}
-            {titleHistory.map((entry, index) => (
-              <div key={index}>
-                {entry.username} edited the title on {entry.timestamp}
-              </div>
-            ))}
-
-            {/* Display notifications for assignee edits */}
-            {assigneeHistory.map((entry, index) => (
-              <div key={index}>
-                {entry.username} {entry.assignee} on {entry.timestamp}
-              </div>
-            ))}
-
-            {/*Display notifications for due date edits */}
-            {dueDateHistory.map((entry, index) => (
-              <div key={index}>
-                {entry.username} changed the deadline of this issue from {new Date(entry.oldDueDate).toLocaleDateString('en-GB')} to {new Date(entry.newDueDate).toLocaleDateString('en-GB')} on {entry.timestamp}
-              </div>
-            ))}
-
-            {/*Display notifications for issue status */}
-            {statusHistory.map((entry, index) => (
-              <div key={index}>
-                {entry.username} {entry.newStatus === 'Open' ? 'opened' : 'closed'} this issue on {entry.timestamp}
-              </div>
-            ))}
           </div>
-
           <div className="issue-comments">
             <h3>Comments</h3>
             {comments.length === 0 ? (
@@ -579,8 +572,8 @@ const IssueDetail = ({ projects }) => {
             />
             <button className="comment-button" onClick={handleAddComment}>Comment</button>
           </div>
-        </div>
 
+        </div>
         <div className="right-section">
 
           <div className="due-date">
@@ -646,7 +639,10 @@ const IssueDetail = ({ projects }) => {
         </div>
       </div>
 
-    </div >
+
+
+
+    </div>
   )
 }
 

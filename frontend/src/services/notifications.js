@@ -13,13 +13,13 @@ const getAll = () => {
   return request.then(response => response.data)
 }
 
-const get = () => {
+const get = (userId) => {
   const token = getToken()
   const config = {
     headers: { Authorization: token },
   }
 
-  const request = axios.get(baseUrl, config)
+  const request = axios.get(`${baseUrl}/${userId}`, config)
   return request.then(response => response.data)
 }
 
