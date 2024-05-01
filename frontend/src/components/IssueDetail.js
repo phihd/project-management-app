@@ -327,13 +327,13 @@ const IssueDetail = ({ projects }) => {
   }
 
   const handleDescriptionUpdate = async () => {
-    if (descriptionInput !== issue.description) {
+    if (descriptionInput !== issue.description.text) {
       try {
         await updateIssue({ description: descriptionInput })
         const editedDescription = {
           username: user.name,
           timestamp: new Date().toLocaleString(),
-          description: descriptionInput
+          text: issue.description.text
         }
         setDescriptionHistory([...descriptionHistory, editedDescription])
         setIsDescriptionEditMode(false)

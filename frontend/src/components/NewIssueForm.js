@@ -39,8 +39,8 @@ function NewIssueForm({ handleCreateIssue, handleCloseForm }) {
     e.preventDefault()
     const newIssue = {
       title: issueTitle,
-      description: issueDescription,
-      dueDate: dueDate ? formatDate(dueDate) : '', // Format date before sending
+      description: { text: issueDescription },
+      dueDate: dueDate ? formatDate(dueDate) : '',
       assignees: selectedAssignees
     }
     handleCreateIssue(newIssue)
