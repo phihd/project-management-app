@@ -25,7 +25,7 @@ const Table = ({ projects, queryClient, handleNewProjectClick, showProjectForm, 
       <div className="project-header">
         <h2>Project Dashboard</h2>
         <button onClick={handleNewProjectClick} className="create-project-btn">
-          <img src={add_img} alt="Add" style = {{ marginRight: '8px' }} />
+          <img src={add_img} alt="Add" style={{ marginRight: '8px' }} />
           <span className="monsteratt-font">Add New</span>
         </button>
       </div>

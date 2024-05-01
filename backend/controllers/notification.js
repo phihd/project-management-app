@@ -36,7 +36,31 @@ notificationRouter.get('/', async (request, response) => {
       return response.status(401).json({ error: 'token invalid' })
     }
 
-    const notifications = await Notification.find({})
+    const notifications = await Notification
+      .find({})
+      .sort({ createdAt: -1 }) // Get most recent notifications first
+      .limit(50) // Limit to 50 notifications for fetching
+
+    response.status(200).json(notifications)
+  } catch (error) {
+    response.status(500).json({ message: error.message })
+  }
+})
+
+notificationRouter.get('/:userId', async (request, response) => {
+  try {
+    const token = request.token
+    if (!token) {
+      return response.status(401).json({ error: 'token missing' })
+    }
+
+    const decodedToken = jwt.verify(token, process.env.SECRET)
+    if (!decodedToken.id) {
+      return response.status(401).json({ error: 'token invalid' })
+    }
+
+    const notifications = await Notification
+      .find({ user: request.params.userId })
       .sort({ createdAt: -1 }) // Get most recent notifications first
       .limit(50) // Limit to 50 notifications for fetching
 
@@ -109,7 +133,7 @@ notificationRouter.put('/:notificationId', async (request, response, next) => {
     }
 
     const updatedNotification = await Notification.findOneAndUpdate(
-      { _id: notificationId, project: projectId },
+      { _id: notificationId },
       update,
       { new: true }
     )

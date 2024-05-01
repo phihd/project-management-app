@@ -16,7 +16,7 @@ import open_status from '../img/open_issue.png'
 import close_status from '../img/close_issue.png'
 import comment_count from '../img/comment_count.png'
 
-function ProjectDetail({ projects }) {
+function ProjectDetail() {
   const { projectId } = useParams()
   const { user } = useContext(UserContext)
   const [showIssueForm, setShowIssueForm] = React.useState(false)
@@ -74,14 +74,15 @@ function ProjectDetail({ projects }) {
     const confirmDelete = window.confirm('Are you sure you want to delete this issue?');
     if (confirmDelete) {
       await issueService.remove(projectId, issueId)
-      setIssues((prevIssues) => prevIssues.filter((issue) => issue.id !== issueId))
+      queryClient.setQueryData(['issues', projectId], prevIssues => prevIssues.filter((issue) => issue.id !== issueId))
     }
   }
 
   const handleCreateIssue = async (newIssue) => {
     if (newIssue.title != '') {
       const issue = await issueService.create(projectId, newIssue)
-      setIssues(issues.concat(issue))
+      queryClient.setQueryData(['issues', projectId], old => [...old, issue])
+      navigate(`/project/${projectId}/${issue.id}`)
     }
   }
 
