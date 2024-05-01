@@ -394,51 +394,127 @@ p {
   height: auto;
 }
 
+.tabs {
+  display: flex;
+}
+
 .tabs button {
-  padding: 8px 16px;
+  background: none;
   border: none;
-  background-color: #e0e0e0;
   cursor: pointer;
-  font-weight: bold;
-  border-radius: 5px;
+  padding: 10px;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 12px;
+
 }
 
 .tabs button.active {
-  background-color: #d1c6c6;
+  background-color: #f1f2dd;
+  color: black;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 12px;
+  border-radius: 8px;
+  border-bottom-right-radius: 0px;
+  border-bottom-left-radius: 0px;
 }
 
-/* Toolbar Styles */
+.edit-container {
+  margin: 8px;
+  border-radius: 8px;
+  border: 0.5px solid #b0a9a9;
+  box-sizing: border-box;
+  background-color: #f1f2dd;
+}
+
+.tabs-and-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #a5a7a1;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+}
+
+.toolbar {
+  display: flex;
+  margin-right: 10px;
+}
+
 .toolbar button {
-  padding: 5px 10px;
-  margin-right: 5px;
-  background-color: #e0e0e0;
+  background: none;
   border: none;
   cursor: pointer;
-  border-radius: 5px;
+  margin-left: 12px; /* Space between toolbar buttons */
+  align-items: center;
+  padding: 7px;
+  padding-right: 10px;
 }
 
-/* Textarea and Preview Styles */
+.toolbar img {
+  height: 16px;
+  width: auto;
+  cursor: pointer;
+}
+
 .text-input {
-  width: 100%;
-  height: 100px;
-  margin-top: 10px;
+  height: 150px; 
   padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
+  box-sizing: border-box;
   resize: vertical;
-  font-family: 'Montserrat', sans-serif;
+  overflow-y: auto;
   font-size: 14px;
+  border: none;
+  border-top-right-radius: 0px;
+  border-top-left-radius: 0px;
+}
+
+.text-input:focus {
+  outline: none;
 }
 
 .preview {
+  height: 150px; 
   padding: 20px;
   background-color: #f1f2dd;
   color:black;
   border: 1px solid #ccc;
+  border-top: none;
   border-radius: 5px;
-  margin-top: 10px;
   font-family: 'Montserrat', sans-serif;
-  white-space: pre-wrap; /* Maintains whitespace formatting from textarea */
+  font-size: 14px;
+  border-top-right-radius: 0px;
+  border-top-left-radius: 0px;
+  white-space: pre-wrap;
+  resize: vertical;
+  overflow-y: auto;
+}
+
+.preview span {
+  margin-left: 5px;
+}
+
+.text-input::-webkit-scrollbar,
+.preview::-webkit-scrollbar {
+    width: 8px;
+    height: 10px;
+    background-color: #f1f2dd;
+}
+
+.text-input::-webkit-scrollbar-thumb,
+.preview::-webkit-scrollbar-thumb {
+    background-color: #b0b0b0; 
+    border-radius: 4px;
+}
+
+.text-input::-webkit-scrollbar-thumb:hover,
+.preview::-webkit-scrollbar-thumb:hover {
+    background-color: #a0a0a0; /* Even darker on hover */
+}
+
+.text-input::-webkit-resizer,
+.preview::-webkit-resizer {
+  width: 50px;  /* Width of the handle */
+  height: 50px; /* Height of the handle */
 }
 
 .description-box .edit-btn:hover, .description-box .history-btn:hover, .description-box .save-btn:hover, .description-box .cancel-btn:hover {
@@ -524,9 +600,18 @@ p {
 }
 
 .modal-body {
-  font-size: 12px;
   padding: 20px;
 }
+
+.modal-body p {
+  font-size: 12px;
+}
+
+.modal-body span {
+  font-size: 12px;
+  margin-left: 5px;
+}
+
 
 .close {
   color: #aaaaaa;

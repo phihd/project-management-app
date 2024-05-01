@@ -16,6 +16,9 @@ import close_status from '../img/close_issue.png'
 import edit_button from '../img/edit_button.png'
 import edit_description_button from '../img/edit_description.png'
 import downArrow from '../img/down-arrow.png'
+import number_list from '../img/number_list.png'
+import bullet_list from '../img/bullet_list.png'
+import task_list from '../img/task_list.png'
 
 const IssueDetail = ({ projects }) => {
 
@@ -375,19 +378,26 @@ const IssueDetail = ({ projects }) => {
 
   const renderDescription = (description, setDescription) => {
     const handleCheckboxChange = async (index) => {
-      const lines = description.split('\n');
-      const newLines = [...lines];
-      const line = lines[index];
+      const lines = description.split('\n')
+      const newLines = [...lines]
+      const line = lines[index]
   
       if (line.startsWith("- [  ] ")) {
-        newLines[index] = "- [x] " + line.substring(6);
+        newLines[index] = "- [x] " + line.substring(6)
       } else if (line.startsWith("- [x] ")) {
-        newLines[index] = "- [  ] " + line.substring(6);
+        newLines[index] = "- [  ] " + line.substring(6)
       }
   
       const newDescription = newLines.join('\n');
       setDescription(newDescription)
       await updateDescription(newDescription)
+
+      const editedDescription = {
+        username: user.name,
+        timestamp: new Date().toLocaleString(),
+        description: newDescription
+      }
+      setDescriptionHistory([...descriptionHistory, editedDescription])
     }
   
     return (
@@ -412,7 +422,28 @@ const IssueDetail = ({ projects }) => {
         })}
       </div>
     );
-  };
+  }
+
+  const 
+  renderDescriptionWithCheckboxes = (description) => {
+    return description.split('\n').map((line, index) => {
+      if (line.startsWith("- [  ] ")) {
+        return (
+          <div key={index} style={{ display: 'flex', alignItems: 'center' }}>
+            <input type="checkbox" disabled /> <span>{line.substring(6)}</span>
+          </div>
+        );
+      } else if (line.startsWith("- [x] ")) {
+        return (
+          <div key={index} style={{ display: 'flex', alignItems: 'center' }}>
+            <input type="checkbox" checked disabled />
+            <span>{line.substring(6)}</span>
+          </div>
+        );
+      }
+      return <p key={index}>{line}</p>;
+    });
+  }
 
   const insertNumberList = () => {
     const textarea = textAreaRef.current;
@@ -508,59 +539,46 @@ const IssueDetail = ({ projects }) => {
   const handleKeyDown = (e) => {
     const textarea = textAreaRef.current;
     if (e.key === 'Enter') {
-      e.preventDefault(); // Prevent the default action to manage new line ourselves
-  
-      // Get current cursor position:
-      const start = textarea.selectionStart;
-      const end = textarea.selectionEnd;
-      const textBefore = descriptionInput.substring(0, start);
-      const textAfter = descriptionInput.substring(end);
-  
-      // Find the number of the last numbered item
-      const linesBeforeCursor = textBefore.split('\n');
-      const lastLine = linesBeforeCursor[linesBeforeCursor.length - 1];
-      const match = lastLine.match(/^(\d+)\./);
-  
-      if (match) {
-        const number = parseInt(match[1], 10);
-        const newText = textBefore + '\n' + (number + 1) + '. ' + textAfter;
-  
+        e.preventDefault(); // Prevent the default action to manage new line ourselves
+
+        // Get current cursor position:
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const textBefore = descriptionInput.substring(0, start)
+        const textAfter = descriptionInput.substring(end)
+
+        // Find the type of list and act accordingly
+        const linesBeforeCursor = textBefore.split('\n')
+        const lastLine = linesBeforeCursor[linesBeforeCursor.length - 1]
+        const numberMatch = lastLine.match(/^(\d+)\./)
+        const bulletMatch = lastLine.startsWith("● ")
+        const taskMatch = lastLine.trim().startsWith("- [  ]") || lastLine.trim().startsWith("- [x] ")
+
+        let newText = textBefore + '\n'
+
+        if (numberMatch) {
+            const number = parseInt(numberMatch[1], 10);
+            newText += (number + 1) + '. ' + textAfter;
+        } else if (bulletMatch) {
+            newText += "● " + textAfter;
+        } else if (taskMatch) {
+            newText += "- [  ] " + textAfter;
+        } else {
+            newText += textAfter; // No list, continue with normal text
+        }
+
         setDescriptionInput(newText);
         setTimeout(() => {
-          // Place cursor after the newly inserted number
-          const position = start + (number + 1).toString().length + 3; // +3 for ". " and "\n"
-          textarea.selectionStart = textarea.selectionEnd = position;
-          textarea.focus();
+            // Place cursor after the newly inserted prefix
+            const positionAdjust = numberMatch ? (numberMatch[1].length + 3) : bulletMatch ? 3 : taskMatch ? 8 : 1;
+            const position = start + positionAdjust; // Adjust for ". ", "- ", or "- [ ] "
+            textarea.selectionStart = textarea.selectionEnd = position;
+            textarea.focus();
         }, 0);
-      } else {
-        // If it's not a numbered list, insert a normal new line
-        setDescriptionInput(textBefore + '\n' + textAfter);
-        setTimeout(() => {
-          const position = start + 1; // Move cursor to the new line
-          textarea.selectionStart = textarea.selectionEnd = position;
-          textarea.focus();
-        }, 0);
-      }
     }
-    }
+  }
 
-  {currentTab === 'Preview' && (
-    <div className="preview">
-      {descriptionInput.split('\n').map((line, index) => {
-        if (line.startsWith("- [ ] ")) {
-          return (
-            <div key={index}>
-              <input type="checkbox" /> {line.substring(6)}
-            </div>
-          );
-        }
-        return <p key={index}>{line}</p>;
-      })}
-    </div>
-  )}
   
-  
-
   const formatTimestamp = (timestamp) => {
     const date = new Date(timestamp)
     const hours = date.getHours().toString().padStart(2, '0')
@@ -665,42 +683,49 @@ const IssueDetail = ({ projects }) => {
               renderDescription(description, setDescription)
             ) : (
               <>
-                <div className="tabs">
-                  <button onClick={() => setCurrentTab('Edit')} className={currentTab === 'Edit' ? 'active' : ''}>Edit</button>
-                  <button onClick={() => setCurrentTab('Preview')} className={currentTab === 'Preview' ? 'active' : ''}>Preview</button>
-                </div>
-
-                {currentTab === 'Edit' && (
-                  <div>
-                    <div className="toolbar">
-                      <button onClick={insertNumberList}>Number List</button>
-                      <button onClick={insertBulletList}>Bullet List</button>
-                      <button onClick={insertTaskList}>Task List</button>
-                    </div>
-                    <textarea
-                      ref={textAreaRef}
-                      value={descriptionInput}
-                      onChange={(e) => setDescriptionInput(e.target.value)}
-                      onKeyDown={handleKeyDown}
-                      className="text-input"
-                    />
-                  </div>
-                )}
-
-                {currentTab === 'Preview' && (
-                  <div className="preview">
-                    {descriptionInput.split('\n').map((line, index) => {
-                      if (line.startsWith("- [  ] ")) {
-                        return (
-                          <div key={index}>
-                            <input type="checkbox" /> {line.substring(6)}
+                <div className="edit-container">
+                  <div className="tabs-and-toolbar">
+                      <div className="tabs">
+                          <button onClick={() => setCurrentTab('Edit')} className={currentTab === 'Edit' ? 'active' : ''}>
+                              Edit
+                          </button>
+                          <button onClick={() => setCurrentTab('Preview')} className={currentTab === 'Preview' ? 'active' : ''}>
+                              Preview
+                          </button>
+                      </div>
+                      {currentTab === 'Edit' && (
+                          <div className="toolbar">
+                              <button onClick={insertNumberList} title="Number List">
+                                  <img src={number_list} alt="Number List" />
+                              </button>
+                              <button onClick={insertBulletList} title = "Bullet List">
+                                  <img src={bullet_list} alt="Bullet List" />
+                              </button>
+                              <button onClick={insertTaskList} title = "Task List">
+                                  <img src={task_list} alt="Task List" />
+                              </button>
                           </div>
-                        );
-                      }
-                      return <p key={index}>{line}</p>;
-                    })}
+                      )}
                   </div>
-                )}
+
+                  {currentTab === 'Edit' && (
+                      <textarea
+                          ref={textAreaRef}
+                          value={descriptionInput}
+                          onChange={(e) => setDescriptionInput(e.target.value)}
+                          onKeyDown={handleKeyDown}
+                          className="text-input"
+                      />
+                  )}
+
+                  {currentTab === 'Preview' && (
+                      <div className="preview">
+                          {renderDescriptionWithCheckboxes(descriptionInput, true)}
+                      </div>
+                  )}
+              </div>
+
+                
               </>
             )}
             {isDescriptionEditMode && (
@@ -719,7 +744,7 @@ const IssueDetail = ({ projects }) => {
                   </div>
                   <hr />
                   <div className="modal-body">
-                    {currentHistoryItem.description}
+                  {renderDescriptionWithCheckboxes(currentHistoryItem.description)}
                   </div>
                 </div>
               </div>
