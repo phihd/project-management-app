@@ -457,6 +457,10 @@ h1, h2, h3, h4, h5, h6 {
   width: 100%;
 }
 
+.main-content.dashboard-active {
+  padding: 0;
+}
+
 /* Styles the scrollbar track */
 .main-content::-webkit-scrollbar {
   width: 8px;  /* or the width you prefer */
@@ -472,11 +476,6 @@ h1, h2, h3, h4, h5, h6 {
 /* Optional: Styles the scrollbar track */
 .main-content::-webkit-scrollbar-track {
   background: #171b27; /* color of the track, could be same as app background */
-}
-
-/* Dashboard Styles */
-.dashboard {
-  padding: 15px;
 }
 
 /* Footer Styles */

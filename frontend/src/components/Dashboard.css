@@ -1,68 +1,124 @@
 .dashboard {
-  padding: 10px;
-  background-color: #171b27;
   height: calc(100vh - 20px);
   display: flex;
   flex-direction: column;
+  background: url('../img/app_background.png') no-repeat center center fixed; 
+  background-size: cover;
 }
+
 
 .dashboard-header {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
+  height: 45%;
   margin-bottom: 20px;
+  flex-direction: column;
 }
 
 .dashboard-header h2 {
   margin: 0;
   color: #DBCA49;
+  font-size: 48px;
+  display: block;
 }
 
-.search-box {
-  display: flex;
-  flex-shrink: 0;
-  align-items: center;  /* Ensures the input inside search-box is also vertically centered */
-}
-
-.search-box input {
-  padding: 8px;
-  border: 1px solid #574e4e;
-  border-radius: 4px;
-  background-color: #515561;
-  color: white;
+.dashboard-header h3 {
+  color: #8c8383;
+  font-size: 20px;
+  font-weight: 200;
+  display: block;
+  margin-top: 8px;
 }
 
 .issue-container {
-  flex: 1; /* Takes remaining height */
-  overflow-y: auto; /* Allows scrolling */
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr); 
+  grid-gap: 5px;
+  overflow-y: auto;
+  background-color: transparent;
 }
 
 
-.issue-container .issue-row {
-  flex: 0 0 12%; /* No grow, no shrink, base size */
-  background-color: #131623;
+/* .issue-row {
+  background-color: rgba(0, 0, 0, 0.7);
   margin-bottom: 5px;
-  border-radius: 8px;
   align-items: center;
   justify-content: center;
   display: flex;
   padding: 10px;
   box-sizing: border-box;
+  height: 100%; 
+  cursor: pointer;
+} */
+
+.issue-row {
+  background-color: rgba(0, 0, 0, 0.7);
+  margin-bottom: 3px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  box-sizing: border-box;
+  height: 33vh;
+  width:100%;
+  overflow: hidden;
+  border-radius: 10px;
+}
+
+.issue-row .issue-card-header {
+  padding: 10px;
+  padding-left:20px;
+  padding-top: 0px;
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.issue-row .issue-card-header h4 {
+  margin: 0;
+  color: white;
+  font-size: 22px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  width: 100%;
+}
+
+.issue-row .issue-card-info p {
+  margin: 5px 0;
+  font-size: 10px;
+  color:#dddfd0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  width: 100%;
+}
+
+.issue-row .issue-card-info {
+  padding: 20px;
+  padding-top: 0px;
+  padding-bottom: 0px;
+  width: 100%;
+}
+
+.details-button {
+  padding: 4px;
+  margin-top: 30px;
+  background-color: #DBCA49;
+  color: white;
+  text-decoration: none;
+  border-radius: 10px;
+  text-align: center;
+  display: block;
+  transition: background-color 0.3s;
+  margin-left: 20px;
+  font-size: 12px;
+  width: 100px;
 }
 
 .issue-container .header-row {
-  flex: 0 0 8%; /* Smaller height for the header row */
-  font-weight: bold;
-  background-color: #171b27;
-  color: #ffffff;
-  border-radius: 8px;
-}
-
-.issue-container .issue-row:not(.header-row):hover {
-  background-color: #2a2e35;
+  display: none;
 }
 
 .issue-container::-webkit-scrollbar {
@@ -82,13 +138,4 @@
 .issue-column {
   flex: 1; /* Equal width for each column */
   padding: 0 10px; /* Spacing for readability */
-}
-
-.issue-link {
-  color: #ffffff;
-  text-decoration: none;
-}
-
-.issue-link:hover {
-  text-decoration: underline;
 }

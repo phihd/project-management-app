@@ -148,10 +148,8 @@ function ProjectDetail({ projects }) {
               </button>
             </div>
             {issue.description ? (
-              issue.description.split('\n').map((line, index) => (
-                <p key={index}>{line}</p>
-              ))
-            ) : (
+                <p> {issue.description} </p>
+              ) : (
               <p>No description available</p>
             )}
             <hr />

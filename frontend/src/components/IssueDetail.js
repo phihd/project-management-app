@@ -523,7 +523,7 @@ const IssueDetail = ({ projects }) => {
     if (currentLineContent.trim().length === 0) {
       setDescriptionInput(textBefore + "- [  ] " + textAfter);
     } else {
-      setDescriptionInput(newTextBefore + "- [ ] " + currentLineContent + textAfter);
+      setDescriptionInput(newTextBefore + "- [  ] " + currentLineContent + textAfter);
     }
   
     setTimeout(() => {

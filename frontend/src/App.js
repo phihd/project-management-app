@@ -6,6 +6,7 @@ import {
   Routes,
   Route,
   Link,
+  useLocation,
   useParams,
   // useMatch,
   useNavigate
@@ -38,6 +39,8 @@ import userService from './services/users'
 import notiService from './services/notifications'
 import { setToken } from './services/tokenmanager'
 
+
+
 const App = () => {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
@@ -56,6 +59,8 @@ const App = () => {
   const sidebarRef = useRef(null)
   const { user, setUser } = useContext(UserContext)
   const queryClient = useQueryClient()
+  const location = useLocation();
+  const currentRoute = location.pathname;  // This holds the current path
 
 
   const handleLogout = () => {
@@ -378,31 +383,32 @@ const App = () => {
     <div>
       {user === null && loginForm()}
       {
-        user && <div>
+        user && 
+        <div>
           <div className="App">
-        <NavigationBar toggleSidebar={() => setIsSidebarVisible(prev => !prev)} />
-      <div className={`sidebar-wrapper ${isSidebarVisible ? '' : 'hidden'}`}>
-        <Sidebar isVisible={isSidebarVisible} />
-      </div>
-      <div className={`content-wrapper ${isSidebarVisible ? 'shifted' : ''}`}>
-        <div className="main-content">
-        <Routes>
-            <Route path="/" element={<Main />} />
-            <Route path="/project" element={<Project />} />
-            <Route path="/project/:projectId" element={<ProjectDetail projects={projects} />} />
-            <Route path="/department" element={<Department />} />
-            <Route path="/project/:projectId/:issueId" element={<IssueDetail projects={projects} />} />
-            <Route path="/procedure" element={<Procedure />} />
-            <Route path="/procedure/:templateId" element={<TemplateDetail />} />
-            <Route path="/procedure/:templateId/:stepId" element={<StepDetail />} />
-          </Routes>
-        </div>
-        </div>
-          <Footer>
-              <UserDropdown user={user} handleLogout={handleLogout} />
-          </Footer>
-        </div>
-        </div>
+            <NavigationBar toggleSidebar={() => setIsSidebarVisible(prev => !prev)} />
+          <div className={`sidebar-wrapper ${isSidebarVisible ? '' : 'hidden'}`}>
+            <Sidebar isVisible={isSidebarVisible} />
+          </div>
+          <div className={`content-wrapper ${isSidebarVisible ? 'shifted' : ''}`}>
+            <div className={`main-content ${currentRoute === '/' ? 'dashboard-active' : ''}`}>
+            <Routes>
+                <Route path="/" element={<Main />} />
+                <Route path="/project" element={<Project />} />
+                <Route path="/project/:projectId" element={<ProjectDetail projects={projects} />} />
+                <Route path="/department" element={<Department />} />
+                <Route path="/project/:projectId/:issueId" element={<IssueDetail projects={projects} />} />
+                <Route path="/procedure" element={<Procedure />} />
+                <Route path="/procedure/:templateId" element={<TemplateDetail />} />
+                <Route path="/procedure/:templateId/:stepId" element={<StepDetail />} />
+              </Routes>
+            </div>
+            </div>
+              <Footer>
+                  <UserDropdown user={user} handleLogout={handleLogout} />
+              </Footer>
+            </div>
+          </div>
       }
     </div>
   )

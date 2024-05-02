@@ -7,6 +7,8 @@ import userService from '../services/users'
 import './Dashboard.css'
 import UserContext from './UserContext'
 
+import background from '../img/app_background.png'
+
 function Dashboard() {
   const { user } = useContext(UserContext)
 
@@ -33,47 +35,34 @@ function Dashboard() {
   return (
     <div className="dashboard">
       <div className="dashboard-header">
-        <h2>Issue Dashboard</h2>
-        <div className="search-box">
-          <input type="text" placeholder="Find Issue..." />
-        </div>
+        <h2>ISSUE DASHBOARD</h2>
+        <h3> prioritization is the key to mastering effective workload management. </h3>
       </div>
-      {openIssues.length > 0 ? (
-        <div className="issue-container">
-          <div className="issue-row header-row" style={{fontWeight: 'bold', backgroundColor: '#171b27'}}>
-            <div className="issue-column">Issue Name</div>
-            <div className="issue-column">Due Date</div>
-            <div className="issue-column">Project</div>
-            <div className="issue-column">Assignees</div>
-          </div>
-          {openIssues.map((issue) => (
+      <div className="issue-container">
+        {openIssues.length > 0 ? (
+          openIssues.map((issue) => (
             <div className="issue-row" key={issue.id}>
-              <div className="issue-column">
-                <Link to={`project/${issue.project.id}/${issue.id}`} className="issue-link">
-                  {issue.title}
-                </Link>
+              <div className="issue-card-header">
+                <h4>{issue.title}</h4>
               </div>
-              <div className="issue-column">
-                {new Date(issue.dueDate).toLocaleDateString('en-GB', {
-                  day: '2-digit',
-                  month: '2-digit',
-                  year: 'numeric',
-                })}
+              <div className="issue-card-info">
+                <p>Due Date: {new Date(issue.dueDate).toLocaleDateString('en-GB', {
+                  day: '2-digit', month: '2-digit', year: 'numeric'
+                })}</p>
+                <p>Project: {issue.project.name}</p>
+                {console.log(issue)}
+                <p>Assignees: {issue.assignees.map(assignee => assignee.name).join(', ')}</p>
               </div>
-              <div className="issue-column">
-                <Link to={`/project/${issue.project.id}`} className="issue-link">
-                  {issue.project.name}
-                </Link>
-              </div>
-              <div className="issue-column">
-                {issue.assignees.map(assignee => assignee.name).join(', ')}
-              </div>
+              <Link to={`/project/${issue.project.id}/${issue.id}`} className="details-button">
+                see details
+              </Link>
             </div>
-          ))}
-        </div>
-      ) : (
-        <p>Loading...</p>
-      )}
+
+          ))
+        ) : (
+          <p>Loading ...</p>
+        )}
+      </div>
     </div>
   )
 }
