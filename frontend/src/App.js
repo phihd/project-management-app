@@ -405,9 +405,9 @@ const App = () => {
             <Routes>
                 <Route path="/" element={<Main />} />
                 <Route path="/project" element={<Project />} />
-                <Route path="/project/:projectId" element={<ProjectDetail projects={projects} />} />
+                <Route path="/project/:projectId" element={<ProjectDetail />} />
                 <Route path="/department" element={<Department />} />
-                <Route path="/project/:projectId/:issueId" element={<IssueDetail projects={projects} />} />
+                <Route path="/project/:projectId/:issueId" element={<IssueDetail />} />
                 <Route path="/procedure" element={<Procedure />} />
                 <Route path="/procedure/:templateId" element={<TemplateDetail />} />
                 <Route path="/procedure/:templateId/:stepId" element={<StepDetail />} />

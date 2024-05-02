@@ -345,7 +345,7 @@ const IssueDetail = ({ projects }) => {
         }
         return !prev
     })
-    setDescriptionInput(description)
+    setDescriptionInput(issue.description)
 }
 
   const handleDescriptionUpdate = async () => {
@@ -701,7 +701,7 @@ const IssueDetail = ({ projects }) => {
             </div>
             <hr />
             {!isDescriptionEditMode ? (
-              renderDescription(description, setDescription)
+              renderDescription(issue.description, setDescription)
             ) : (
               <>
                 <div className="edit-container">
