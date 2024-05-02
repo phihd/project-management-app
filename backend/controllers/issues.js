@@ -2,8 +2,10 @@ const jwt = require('jsonwebtoken')
 const helper = require('../utils/helper')
 const issuesRouter = require('express').Router({ mergeParams: true }) // Use mergeParams to access the parent route params
 const Issue = require('../models/issue')
+const User = require('../models/user')
 const Project = require('../models/project')
 const CommentModel = require('../models/comment')
+const performDueIssueCheck = require('../schedules/jobs/dueIssueCheck')
 
 issuesRouter.get('/', async (request, response) => {
   try {
@@ -71,14 +73,21 @@ issuesRouter.post('/', async (request, response, next) => {
   })
 
   const savedIssue = await issue.save()
-  user.createdIssues = user.createdIssues.concat(savedIssue._id)
-  savedIssue.assignees = savedIssue.assignees.map(assignee => ({
-    ...assignee,
-    assignedIssues: [...assignee.assignedIssues, savedIssue._id]
-  }))
-  await user.save()
-  project.issues = project.issues.concat(savedIssue._id)
-  await project.save()
+  await Promise.all([
+    ...savedIssue.assignees.map(assigneeId =>
+      User.findByIdAndUpdate(assigneeId, {
+        $push: { assignedIssues: savedIssue._id }
+      })
+    ),
+    User.findByIdAndUpdate(user._id, {
+      $push: { createdIssues: savedIssue._id }
+    }),
+    Project.findByIdAndUpdate(projectId, {
+      $push: { issues: savedIssue._id }
+    })
+  ])
+
+  await performDueIssueCheck(savedIssue._id)
 
   response.status(201).json(savedIssue)
 })
@@ -102,6 +111,7 @@ issuesRouter.delete('/:id', async (request, response, next) => {
 
   const user = request.user
   if (issue.creator.toString() === user.id.toString()) {
+    await CommentModel.deleteMany({ issue: issue.id })
     await Issue.deleteOne({ _id: id })
     response.sendStatus(204).end()
   } else {
@@ -121,9 +131,18 @@ issuesRouter.put('/:issueId', async (request, response, next) => {
       return response.status(401).json({ error: 'token invalid' })
     }
 
+    const projectId = request.params.projectId
     const body = request.body
     const issueId = request.params.issueId
     const user = request.user
+
+    // Fetch the project to verify if the user is a member  
+    const project = await Project.findById(projectId)
+    if (!project || !project.members.includes(user._id)) {
+      return response.status(403).json({ error: 'Unauthorized access' })
+    }
+
+
 
     if (['createdDate', 'creator', 'project'].some(field => field in body)) {
       return response.status(400).json({ message: 'Immutable field cannot be updated' })
@@ -133,6 +152,7 @@ issuesRouter.put('/:issueId', async (request, response, next) => {
     }
 
     const existingIssue = await Issue.findOne({ _id: issueId })
+
     if (!existingIssue) {
       return response.status(404).json({ message: 'Issue not found' })
     }
@@ -152,17 +172,19 @@ issuesRouter.put('/:issueId', async (request, response, next) => {
       return response.status(403).json({ message: 'Only creator can change due date' })
     }
 
-    const update = { ...body }
-
     const updatedIssue = await Issue.findOneAndUpdate(
-      { _id: issueId },
+      { _id: issueId, project: projectId },
       body,
-      { new: true, runValidators: true }
+      {
+        new: true,
+        runValidators: true,
+      }
     )
 
     if (!updatedIssue) {
-      return response.status(404).json({ message: 'Issue not found after update attempt' });
+      return response.status(404).json({ message: 'Issue not found after update attempt' })
     }
+    await performDueIssueCheck(updatedIssue._id)
 
     response.json(updatedIssue)
   } catch (error) {

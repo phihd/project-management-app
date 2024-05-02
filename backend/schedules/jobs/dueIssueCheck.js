@@ -11,13 +11,15 @@ const performDueIssueCheck = async (issueId = null) => {
     let query = {
       dueDate: { $gte: now, $lte: twentyFourHoursLater },
       status: 'Open',
+      isNotified: { $ne: true },
     }
+
     if (issueId) {
-      // Specific issue query without considering 'isNotified' status
-      query = { _id: issueId }
-    } else {
-      // General query includes only issues not yet notified
-      query.isNotified = { $ne: true }
+      query = {
+        _id: issueId,
+        dueDate: { $gte: now, $lte: twentyFourHoursLater },
+        status: 'Open'
+      }
     }
 
     const issuesDueSoon = await Issue.find(query).populate('assignees', 'email name')
@@ -26,13 +28,17 @@ const performDueIssueCheck = async (issueId = null) => {
       await Promise.all(issue.assignees.map(async (assignee) => {
         if (assignee.email) {
           await sendEmailNotification(assignee.email, `Issue "${issue.title}" is due soon.`)
-          await createAppNotification(assignee.id, `Issue "${issue.title}" is due within 24 hours.`)
         }
+        await createAppNotification({
+          user: assignee.id,
+          message: `Issue "${issue.title}" is due within 24 hours.`,
+          url: `/project/${issue.project.toString()}/${issue._id}`
+        })
       }))
 
       await Issue.findByIdAndUpdate(issue._id, { isNotified: true })
     }))
-
+    console.log('Due issue check done')
   } catch (error) {
     console.error('Error during due issue check:', error)
   }

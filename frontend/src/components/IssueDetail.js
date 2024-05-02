@@ -8,7 +8,8 @@ import issueService from '../services/issues'
 import projectService from '../services/projects'
 import commentService from '../services/comments'
 import UserContext from './UserContext'
-import { useNavigate} from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
+import { set } from 'date-fns'
 
 import back_project from '../img/left.png'
 import open_status from '../img/open_issue.png'
@@ -40,6 +41,7 @@ const IssueDetail = ({ projects }) => {
   const [assigneeHistory, setAssigneeHistory] = useState([])
   const [dueDateHistory, setDueDateHistory] = useState([])
   const [statusHistory, setStatusHistory] = useState([])
+  const [actionHistory, setActionHistory] = useState([])
   const [editingCommentId, setEditingCommentId] = useState(null)
   const [editedCommentText, setEditedCommentText] = useState("")
   const [commentFiles, setCommentFiles] = useState([])
@@ -73,9 +75,8 @@ const IssueDetail = ({ projects }) => {
   } = useQuery(['issue', issueId], () => issueService.get(projectId, issueId), {
     enabled: !!issueId,
     onSuccess: (data) => {
-      // Initialize local status with fetched issue status
       setCurrentStatus(data.status)
-      setDescription(data.description)
+      setActionHistory(data.actionHistory)
     }
   })
 
@@ -114,12 +115,15 @@ const IssueDetail = ({ projects }) => {
   }
 
   const handleAssigneeUpdate = async () => {
-    try {
-      const selectedAssigneeUsers = assigneeInput.map(assigneeName => project.members.find(user => user.name === assigneeName))
-      await updateAssignee(selectedAssigneeUsers)
-      setIsAssigneeEditMode(false)
-    } catch (error) {
-      console.error('Error updating assignees:', error)
+    if (assigneeInput.sort().toString() !== issue.assignees.map(a => a.id).sort().toString()) {
+      try {
+        const selectedAssigneeUsers = assigneeInput.map(assigneeName => project.members.find(user => user.name === assigneeName))
+        const actionDescription = `Assignees updated to ${assigneeInput.join(', ')} by ${user.name}`
+        await updateIssue({ assignees: selectedAssigneeUsers.map(user => user.id) }, actionDescription)
+        setIsAssigneeEditMode(false)
+      } catch (error) {
+        console.error('Error updating assignees:', error)
+      }
     }
   }
 
@@ -127,16 +131,9 @@ const IssueDetail = ({ projects }) => {
     if (issue) {
       const newStatus = currentStatus === 'Open' ? 'Close' : 'Open'
       try {
-        await updateIssue(projectId, issueId, { status: newStatus })
+        const actionDescription = `${user.name} ${newStatus === 'Open' ? 'reopened' : 'closed'} this issue`
+        await updateIssue({ status: newStatus }, actionDescription)
         setCurrentStatus(newStatus)
-        setStatusHistory(prevStatusHistory => [
-          ...prevStatusHistory,
-          {
-            username: user.name,
-            newStatus: newStatus,
-            timestamp: new Date().toLocaleString(),
-          }
-        ])
       } catch (error) {
         console.error('Error updating issue status:', error)
       }
@@ -145,15 +142,30 @@ const IssueDetail = ({ projects }) => {
     }
   }
 
-  const updateIssue = async (projectId, issueId, issueToUpdate) => {
+  const updateIssue = async (issueToUpdate, actionDescription = null) => {
     try {
+      if (actionDescription) {
+        const actionEntry = {
+          description: actionDescription,
+          timestamp: new Date(),
+          user: user.id
+        }
+
+        issueToUpdate.actionHistory = [...(actionHistory || []), actionEntry]
+      }
+
       const updatedIssue = await issueService.update(projectId, issueId, issueToUpdate)
-      const newIssues = issues.map(
-        issue => issue.id === id ? updatedIssue : issue
-      )
-      // setIssues(newIssues)
+
+      queryClient.setQueryData(['issue', issueId], prev => ({
+        ...prev,
+        ...issueToUpdate,
+        actionHistory: updatedIssue.actionHistory
+      }))
+
+      return updatedIssue
     } catch (exception) {
-      console.log(exception)
+      console.error('Failed to update the issue:', exception)
+      throw new Error('Failed to update the issue.')
     }
   }
 
@@ -247,11 +259,16 @@ const IssueDetail = ({ projects }) => {
   }
 
   const handleDueDateUpdate = async () => {
-    try {
-      await updateDueDate(new Date(dueDateInput))
-      setIsDueDateEditMode(false)
-    } catch (error) {
-      console.error('Error updating due date:', error)
+    if (new Date(dueDateInput).getTime() !== new Date(issue.dueDate).getTime()) {
+      try {
+        const actionDescription = `Due date changed from ${formatDate(issue.dueDate)} to ${formatDate(dueDateInput)} by ${user.name}`
+        const dueDate = Date(dueDateInput)
+        const endOfDay = set(dueDate, { hours: 23, minutes: 59, seconds: 59 })
+        await updateDueDate(endOfDay.toISOString())
+        setIsDueDateEditMode(false)
+      } catch (error) {
+        console.error('Error updating due date:', error)
+      }
     }
   }
 
@@ -271,7 +288,6 @@ const IssueDetail = ({ projects }) => {
       await issueService.update(projectId, issueId, { title: newTitle })
       // // Update the issue due date in the UI
       queryClient.setQueryData(['issue', issueId], prevIssue => ({ ...prevIssue, title: newTitle }))
-      console.log(issue)
       const editedTitle = {
         username: user.name,
         timestamp: new Date().toLocaleString(),
@@ -290,18 +306,21 @@ const IssueDetail = ({ projects }) => {
   }
 
   const handleTitleUpdate = async () => {
-    try {
-      await updateTitle(titleInput)
-      setIsTitleEditMode(false)
-    } catch (error) {
-      console.error('Error updating title:', error)
+    if (titleInput !== issue.title) {
+      try {
+        const actionDescription = `Title updated to "${titleInput}" by ${user.name}`
+        await updateIssue({ title: titleInput }, actionDescription)
+        setIsTitleEditMode(false)
+      } catch (error) {
+        console.error('Error updating title:', error)
+      }
     }
   }
+
 
   const updateDescription = async (newDescription) => {
     try {
       await issueService.update(projectId, issueId, { description: newDescription })
-      // Update the issue due date in the UI
       queryClient.setQueryData(['issue', issueId], prevIssue => ({ ...prevIssue, description: newDescription }))
     } catch (exception) {
       console.log(exception)
@@ -330,17 +349,19 @@ const IssueDetail = ({ projects }) => {
 }
 
   const handleDescriptionUpdate = async () => {
-    try {
-      await updateDescription(descriptionInput)
-      const editedDescription = {
-        username: user.name,
-        timestamp: new Date().toLocaleString(),
-        description: descriptionInput
+    if (descriptionInput !== issue.description) {
+      try {
+        await updateIssue({ description: descriptionInput })
+        const editedDescription = {
+          username: user.name,
+          timestamp: new Date().toLocaleString(),
+          description: descriptionInput
+        }
+        setDescriptionHistory([...descriptionHistory, editedDescription])
+        setIsDescriptionEditMode(false)
+      } catch (error) {
+        console.error('Error updating description:', error)
       }
-      setDescriptionHistory([...descriptionHistory, editedDescription])
-      setIsDescriptionEditMode(false)
-    } catch (error) {
-      console.error('Error updating description:', error)
     }
   }
 
@@ -598,8 +619,7 @@ const IssueDetail = ({ projects }) => {
 
   return (
     <div className="issue-detail">
-      {issue && <div>
-        <div className="issue-header">
+      <div className="issue-header">
         <div className="issue-title-container">
           {!isTitleEditMode ? (
             <h2 className="issue-title">{issue.title}</h2>
@@ -621,35 +641,36 @@ const IssueDetail = ({ projects }) => {
           )}
         </div>
 
-          <div className="issue-information">
-            <div className="status-and-info">
-              {issue.creator.id === user.id ? (
-                <button
-                  className={`status-btn ${currentStatus.toLowerCase()}`}
-                  onClick={handleStatusButtonClick}
-                >
-                  <img src={currentStatus === 'Open' ? open_status : close_status} alt={currentStatus} />
-                  {currentStatus}
-                </button>
-              ) : (
-                <span className="issue-status">Open</span>
-              )}
-              <p className="creator-info">
-                {issue.creator.name} created this issue on {
-                  new Date(issue.createdDate).toLocaleDateString('en-GB', {
-                    day: '2-digit',
-                    month: '2-digit',
-                    year: 'numeric',
-                  })}   ·   {comments.length} comments
-              </p>
-            </div>
+        <div className="issue-information">
+          <div className="status-and-info">
+            {issue.creator.id === user.id ? (
+              <button
+                className={`status-btn ${currentStatus.toLowerCase()}`}
+                onClick={handleStatusButtonClick}
+              >
+                <img src={currentStatus === 'Open' ? open_status : close_status} alt={currentStatus} />
+                {currentStatus}
+              </button>
+            ) : (
+              <span className="issue-status">Open</span>
+            )}
+            <p className="creator-info">
+              {issue.creator.name} created this issue on {
+                new Date(issue.createdDate).toLocaleDateString('en-GB', {
+                  day: '2-digit',
+                  month: '2-digit',
+                  year: 'numeric',
+                })}   ·   {comments.length} comments
+            </p>
           </div>
         </div>
+      </div>
 
-        
 
-        <div className="issue-body">
-          <div className="left-section">
+
+
+      <div className="issue-body">
+        <div className="left-section">
 
           <div className="description-box">
             <div className="header">
@@ -751,189 +772,162 @@ const IssueDetail = ({ projects }) => {
             )}
           </div>
 
-            <div className='issue-details'>
+          <div className="issue-details">
             <h3> Detail Actions </h3>
-              {/* Display notifications for description edits */}
-              {descriptionHistory.map((entry, index) => (
-                <div key={index}>
-                  {entry.username} edited the description on {entry.timestamp}
-                </div>
-              ))}
+            {actionHistory.map((entry, index) => (
+              <div key={index}>
+                <strong>{entry.username}</strong> {entry.description} on {formatDate(new Date(entry.timestamp))}
+              </div>
+            ))}
 
-              {/* Display notifications for title edits */}
-              {titleHistory.map((entry, index) => (
-                <div key={index}>
-                  {entry.username} edited the title on {entry.timestamp}
-                </div>
-              ))}
-
-              {/* Display notifications for assignee edits */}
-              {assigneeHistory.map((entry, index) => (
-                <div key={index}>
-                  {entry.username} {entry.assignee} on {entry.timestamp}
-                </div>
-              ))}
-
-              {/*Display notifications for due date edits */}
-              {dueDateHistory.map((entry, index) => (
-                <div key={index}>
-                  {entry.username} changed the deadline of this issue from {new Date(entry.oldDueDate).toLocaleDateString('en-GB')} to {new Date(entry.newDueDate).toLocaleDateString('en-GB')} on {entry.timestamp}
-                </div>
-              ))}
-
-              {/*Display notifications for issue status */}
-              {statusHistory.map((entry, index) => (
-                <div key={index}>
-                  {entry.username} {entry.newStatus === 'Open' ? 'opened' : 'closed'} this issue on {entry.timestamp}
-                </div>
-              ))}
-            </div>
-
-            <div className="issue-comments">
+          </div>
+          <div className="issue-comments">
             <h3>Comments</h3>
-              {comments.length === 0 ? (
-                <p>No comments yet.</p>
-              ) : (
-                comments.map((comment, index) => (
-                  <div className="comment" key={index}>
-                    <p className="comment-user">{comment.user.name} commented on {formatTimestamp(comment.timestamp)}</p>
-                    {
+            {comments.length === 0 ? (
+              <p>No comments yet.</p>
+            ) : (
+              comments.map((comment, index) => (
+                <div className="comment" key={index}>
+                  <p className="comment-user">{comment.user.name} commented on {formatTimestamp(comment.timestamp)}</p>
+                  {
+                    editingCommentId === comment.id ? (
+                      <textarea
+                        value={editedCommentText}
+                        onChange={(e) => setEditedCommentText(e.target.value)}
+                      />
+                    ) : (
+                      <p className="comment-text">{comment.text}</p>
+                    )
+                  }
+                  {
+                    user.id === comment.user.id && (
                       editingCommentId === comment.id ? (
-                        <textarea
-                          value={editedCommentText}
-                          onChange={(e) => setEditedCommentText(e.target.value)}
-                        />
+                        <button onClick={() => saveEditedComment(comment.id)}>Save</button>
                       ) : (
-                        <p className="comment-text">{comment.text}</p>
+                        <button onClick={() => toggleEditComment(comment.id, comment.text)}>Edit</button>
                       )
-                    }
-                    {
-                      user.id === comment.user.id && (
-                        editingCommentId === comment.id ? (
-                          <button onClick={() => saveEditedComment(comment.id)}>Save</button>
-                        ) : (
-                          <button onClick={() => toggleEditComment(comment.id, comment.text)}>Edit</button>
-                        )
-                      )
-                    }
-                    {/* Button to toggle edit history visibility */}
-                    {comment.edits && comment.edits.length > 0 && (
-                      <button onClick={() => toggleEditHistory(comment.id)}>Toggle Edit History</button>
-                    )}
-                    {/* Display edit history if available */}
-                    {comment.showHistory && comment.edits && (
+                    )
+                  }
+                  {/* Button to toggle edit history visibility */}
+                  {comment.edits && comment.edits.length > 0 && (
+                    <button onClick={() => toggleEditHistory(comment.id)}>Toggle Edit History</button>
+                  )}
+                  {/* Display edit history if available */}
+                  {comment.showHistory && comment.edits && (
+                    <ul>
+                      {comment.edits.map((edit, idx) => (
+                        <li key={idx}>
+                          <strong>{edit.editedBy}</strong> edited on {formatTimestamp(edit.editedAt)}: from "{edit.oldText}" to "{edit.newText}"
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  {/* Display attached files with download links */}
+                  {comment.files && comment.files.length > 0 && (
+                    <div className="comment-files">
+                      <strong>Attached Files:</strong>
                       <ul>
-                        {comment.edits.map((edit, idx) => (
-                          <li key={idx}>
-                            <strong>{edit.editedBy}</strong> edited on {formatTimestamp(edit.editedAt)}: from "{edit.oldText}" to "{edit.newText}"
+                        {Array.from(comment.files).map((file, fileIdx) => (
+                          <li key={fileIdx}>
+                            <a href={URL.createObjectURL(file)} download={file.name}>
+                              {file.name}
+                            </a>
                           </li>
                         ))}
                       </ul>
-                    )}
-                    {/* Display attached files with download links */}
-                    {comment.files && comment.files.length > 0 && (
-                      <div className="comment-files">
-                        <strong>Attached Files:</strong>
-                        <ul>
-                          {Array.from(comment.files).map((file, fileIdx) => (
-                            <li key={fileIdx}>
-                              <a href={URL.createObjectURL(file)} download={file.name}>
-                                {file.name}
-                              </a>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                  </div>
-                ))
-              )}
-            </div>
-
-            <div className="add-comment">
-              <h3>Add Comment</h3>
-              <textarea
-                className="comment-input"
-                placeholder="Leave a comment"
-                value={commentInput}
-                onChange={handleCommentInput}
-              ></textarea>
-              <input
-                type="file"
-                multiple
-                accept=".pdf,.doc,.docx,.jpg,.png"
-                onChange={handleCommentFileUpload}
-              />
-              <button className="comment-button" onClick={handleAddComment}>Comment</button>
-            </div>
+                    </div>
+                  )}
+                </div>
+              ))
+            )}
           </div>
 
-          <div className="right-section">
+          <div className="add-comment">
+            <h3>Add Comment</h3>
+            <textarea
+              className="comment-input"
+              placeholder="Leave a comment"
+              value={commentInput}
+              onChange={handleCommentInput}
+            ></textarea>
+            <input
+              type="file"
+              multiple
+              accept=".pdf,.doc,.docx,.jpg,.png"
+              onChange={handleCommentFileUpload}
+            />
+            <button className="comment-button" onClick={handleAddComment}>Comment</button>
+          </div>
 
-            <div className="due-date">
-              <div className="section-header">
-                <h3>Due Date</h3>
-                {user.id === issue.creator.id && (
-                  <button onClick={toggleDueDateEditMode} className="edit-btn">
-                    <img src={edit_button} alt="Edit" />
-                  </button>
-                )}
-                </div>
-                <p>Due on {formatDate(issue.dueDate)}</p>
-              {isDueDateEditMode && (
-                <div>
-                  <input
-                    type="date"
-                    value={dueDateInput}
-                    onChange={(e) => setDueDateInput(e.target.value)}
-                  />
-                  <button onClick={handleDueDateUpdate} className="save-btn">Save</button>
-                  <button onClick={() => setIsDueDateEditMode(false)} className="cancel-btn">Cancel</button>
-                </div>
+        </div>
+        <div className="right-section">
+
+          <div className="due-date">
+            <div className="section-header">
+              <h3>Due Date</h3>
+              {user.id === issue.creator.id && (
+                <button onClick={toggleDueDateEditMode} className="edit-btn">
+                  <img src={edit_button} alt="Edit" />
+                </button>
               )}
             </div>
-            
-            <div className="assignees">
-              <div className="section-header">
-                <h3>Assignees</h3>
-                {issue.creator.id === user.id && (
-                  <button onClick={toggleAssigneeEditMode} className="edit-btn">
-                    <img src={edit_button} alt="Edit" />
-                  </button>
-                )}
+            <p>Due on {formatDate(issue.dueDate)}</p>
+            {isDueDateEditMode && (
+              <div>
+                <input
+                  type="date"
+                  value={dueDateInput}
+                  onChange={(e) => setDueDateInput(e.target.value)}
+                />
+                <button onClick={handleDueDateUpdate} className="save-btn">Save</button>
+                <button onClick={() => setIsDueDateEditMode(false)} className="cancel-btn">Cancel</button>
               </div>
-              <p>{issue.assignees.map(assignee => assignee.name).join(', ')}</p>
-              {isAssigneeEditMode && (
-                <div>
-                  <select
-                    multiple
-                    value={assigneeInput}
-                    onChange={(e) => setAssigneeInput(Array.from(e.target.selectedOptions, option => option.value))}
-                  >
-                    {project.members.map(user => (
-                      <option key={user.id} value={user.name}>{user.name}</option>
-                    ))}
-                  </select>
-                  <button onClick={handleAssigneeUpdate} className="save-btn">Save</button>
-                  <button onClick={() => setIsAssigneeEditMode(false)} className="cancel-btn">Cancel</button>
-                </div>
+            )}
+          </div>
+
+          <div className="assignees">
+            <div className="section-header">
+              <h3>Assignees</h3>
+              {issue.creator.id === user.id && (
+                <button onClick={toggleAssigneeEditMode} className="edit-btn">
+                  <img src={edit_button} alt="Edit" />
+                </button>
               )}
             </div>
+            <p>{issue.assignees.map(assignee => assignee.name).join(', ')}</p>
+            {isAssigneeEditMode && (
+              <div>
+                <select
+                  multiple
+                  value={assigneeInput}
+                  onChange={(e) => setAssigneeInput(Array.from(e.target.selectedOptions, option => option.value))}
+                >
+                  {project.members.map(user => (
+                    <option key={user.id} value={user.name}>{user.name}</option>
+                  ))}
+                </select>
+                <button onClick={handleAssigneeUpdate} className="save-btn">Save</button>
+                <button onClick={() => setIsAssigneeEditMode(false)} className="cancel-btn">Cancel</button>
+              </div>
+            )}
+          </div>
 
-            <div className="project-details">
+          <div className="project-details">
             <div className="section-header">
               <h3>Project</h3>
               <button onClick={handleBackToProject} className="back-to-project-btn">
                 <img src={back_project} alt="Back to Project" />
               </button>
             </div>
-              <p>{project.name}</p>
-            </div>
-
+            <p>{project.name}</p>
           </div>
-        </div>
 
-      </div>}
+        </div>
+      </div>
+
+
+
+
     </div>
   )
 }

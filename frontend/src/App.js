@@ -1,6 +1,7 @@
 /* eslint-disable */
 import React, { useState, useEffect, useContext, useRef, useCallback } from 'react'
 import { useQuery, useQueryClient } from 'react-query'
+import axios from 'axios'
 import './App.css'
 import {
   Routes,
@@ -20,9 +21,7 @@ import sidebar_img from './img/sidebar_img.png'
 
 import ProjectDetail from './components/ProjectDetail'
 import Dashboard from './components/Dashboard'
-import NewProjectForm from './components/NewProjectForm'
 import IssueDetail from './components/IssueDetail'
-import Notification from './components/Notification'
 import LoginForm from './components/LoginForm'
 import SignUpForm from './components/SignUpForm'
 import Procedure from './components/Procedure'
@@ -33,8 +32,6 @@ import Project from './components/Project'
 import UserContext from './components/UserContext'
 
 import loginService from './services/login'
-import projectService from './services/projects'
-import homeService from './services/home'
 import userService from './services/users'
 import notiService from './services/notifications'
 import { setToken } from './services/tokenmanager'
@@ -48,15 +45,10 @@ const App = () => {
     text: null,
     isError: false,
   })
-
-  const [projects, setProjects] = useState([])
-  const [showProjectForm, setShowProjectForm] = useState(false)
   const [showLogin, setShowLogin] = useState(true)
   const [showSignUp, setShowSignUp] = useState(false)
 
   const [isSidebarVisible, setIsSidebarVisible] = useState(false)
-  const [showNotifications, setShowNotifications] = useState(false)
-  const sidebarRef = useRef(null)
   const { user, setUser } = useContext(UserContext)
   const queryClient = useQueryClient()
   const location = useLocation();
@@ -65,10 +57,29 @@ const App = () => {
 
   const handleLogout = () => {
     window.localStorage.removeItem('loggedProjectappUser')
-    queryClient.removeQueries('user');
+    queryClient.removeQueries('user')
     setUser(null)
     setShowLogin(true)
+    queryClient.clear()
   }
+
+  // Interceptor to logout when token expires
+  useEffect(() => {
+    const axiosInterceptor = axios.interceptors.response.use(
+      response => response,
+      error => {
+        if (error.response && error.response.status === 401) {
+          handleLogout()
+        }
+        return Promise.reject(error)
+      }
+    )
+
+    // Cleanup function to remove interceptor when component unmounts
+    return () => {
+      axios.interceptors.response.eject(axiosInterceptor)
+    }
+  }, [])
 
   // Fetch user
   const { isLoading: userLoading, isError: userError, error: userErrorMessage } = useQuery('user', userService.getUserFromLocalStorage, {
@@ -88,7 +99,7 @@ const App = () => {
   // Fetch notifications
   const { data: notifications, isLoading: notificationsLoading } = useQuery(
     'notifications',
-    () => notiService.getAll(user.id),
+    () => notiService.get(user.id),
     {
       enabled: !!user && !!user.token,
       onError: (error) => {
@@ -120,25 +131,23 @@ const App = () => {
       e.preventDefault() // Prevent the default link behavior
 
       // First mark the notification as read
-      markNotificationAsRead(id).then(() => {
-        // After marking as read, navigate to the notification's link
-        window.location.href = `/project/659bcbab51659ac5c226fb12/659bcc7151659ac5c226fb46`
-      })
+      markNotificationAsRead(id)
+      // After marking as read, navigate to the notification's link
+
+      window.location.href = notifications.find(noti => noti.id === id).url
     }
 
     // Improved function to mark a notification as read
-    const markNotificationAsRead = (id) => {
-      return new Promise(resolve => {
-        setNotifications(prevNotifications => {
-          return prevNotifications.map(notification => {
-            if (notification.id === id) {
-              return { ...notification, read: true }
-            }
-            return notification
-          })
-        })
-        resolve()
+    const markNotificationAsRead = async (id) => {
+      await notiService.update(id, { read: true })
+      const updatedNotifications = notifications.map(notification => {
+        if (notification.id === id) {
+          return { ...notification, read: true }
+        }
+        return notification
       })
+
+      queryClient.setQueryData('notifications', updatedNotifications)
     }
 
     // Calculate the number of unread notifications
@@ -152,34 +161,33 @@ const App = () => {
           </Link>
         </div>
         <div className="toolbar-buttons">
-        {/* Toggle Sidebar Button */}
-        <button className="sidebar-toggle-btn" onClick={toggleSidebar}>
+          {/* Toggle Sidebar Button */}
+          <button className="sidebar-toggle-btn" onClick={toggleSidebar}>
             <img src={sidebar_img} alt="Toggle Sidebar" />
-        </button>
-        <div className="notification">
-          <button ref={buttonRef} className="notification-btn" onClick={handleNotificationClick}>
-            <img src={noti_img} alt="Notification" />
-            {numberOfUnreadNotifications > 0 && (
-              <span className="notification-count">{numberOfUnreadNotifications}</span>
-            )}
           </button>
-          {showNotifications && (
-            <div className="notification-popup" style={{ top: buttonRef.current.offsetTop + buttonRef.current.offsetHeight }}>
-              <div className="notification-panel">
-                {notifications.map(notification => (
-                  <a
-                    key={notification.id}
-                    href={`/project/659bcbab51659ac5c226fb12/659bcc7151659ac5c226fb46`}
-                    className={`notification-link ${notification.read ? 'read' : 'unread'}`}
-                    onClick={(e) => handleNotificationLinkClick(e, notification.id)}
-                  >
-                    <div>{notification.message}</div>
-                  </a>
-                ))}
+          <div className="notification">
+            <button ref={buttonRef} className="notification-btn" onClick={handleNotificationClick}>
+              <img src={noti_img} alt="Notification" />
+              {numberOfUnreadNotifications > 0 && (
+                <span className="notification-count">{numberOfUnreadNotifications}</span>
+              )}
+            </button>
+            {showNotifications && (
+              <div className="notification-popup" style={{ top: buttonRef.current.offsetTop + buttonRef.current.offsetHeight }}>
+                <div className="notification-panel">
+                  {notifications.map(notification => (
+                    <a
+                      key={notification.id}
+                      className={`notification-link ${notification.read ? 'read' : 'unread'}`}
+                      onClick={(e) => handleNotificationLinkClick(e, notification.id)}
+                    >
+                      <div>{notification.message}</div>
+                    </a>
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
         </div>
       </div>
     )
@@ -228,18 +236,18 @@ const App = () => {
         </div>
         <div className="user-dropdown">{children}</div>
       </footer>
-    );
+    )
   }
 
-  const UserDropdown = ({ user, handleLogout }) => {
+  const UserDropdown = ({ handleLogout }) => {
     const [isOpen, setIsOpen] = useState(false)
     const [isOpenEmailForm, setIsOpenEmailForm] = useState(false)
     const [email, setEmail] = useState('')
-  
+
     const toggleDropdown = () => {
       setIsOpen(!isOpen)
     }
-  
+
     const handleItemClick = (action) => {
       if (action === 'settings') {
         toggleEmailForm()
@@ -248,26 +256,30 @@ const App = () => {
       }
       setIsOpen(false)
     }
-  
+
     const toggleEmailForm = () => {
       setIsOpenEmailForm(!isOpenEmailForm)
     }
-  
+
     const handleEmailChange = (event) => {
       setEmail(event.target.value)
     }
-  
+
     const handleSubmitEmail = (event) => {
-      event.preventDefault();
-      console.log('Email submitted:', email)
-      setEmail('')
-      setIsOpenEmailForm(false)
+      event.preventDefault()
+      userService.update(user.id.toString(), { email: email })
+        .then(response => {
+          console.log('Email submitted:', email)
+          setEmail('')
+          setIsOpenEmailForm(false)
+        })
+        .catch(error => console.error('Failed to update email:', error))
     }
 
     const handleCloseForm = () => {
       setIsOpenEmailForm(false)
     }
-  
+
     return (
       <div className="user-info">
         <button className="user-info-btn" onClick={toggleDropdown}>
@@ -332,8 +344,6 @@ const App = () => {
       }, 5000)
     }
   }
-
-  
 
   const loginForm = () => {
     const handleShowSignUp = () => {

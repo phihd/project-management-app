@@ -1,3 +1,4 @@
+/* eslint-disable */
 // Procedure.js
 import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
@@ -22,7 +23,7 @@ const Procedure = () => {
 
   return (
     <div className="procedure-container">
-      <h2>Procedure</h2>
+      {/* <h2>Procedure</h2>
       <div className="template-section">
         <h3>Create New Template</h3>
         <button onClick={() => setShowCreateTemplateForm(true)}>Create Template</button>
@@ -39,7 +40,7 @@ const Procedure = () => {
       </div>
       {showCreateTemplateForm && (
         <NewTemplateForm handleCreateTemplate={handleCreateTemplate} handleCloseForm={handleCloseForm} />
-      )}
+      )} */}
     </div>
   )
 }
