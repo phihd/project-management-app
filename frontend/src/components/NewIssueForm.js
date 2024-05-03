@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import DatePicker from 'react-datepicker'
 import 'react-datepicker/dist/react-datepicker.css'
+import { useQuery } from 'react-query'
 import userService from '../services/users'
 import { set } from 'date-fns'
 import './NewIssueForm.css'
@@ -14,16 +15,9 @@ function NewIssueForm({ handleCreateIssue, handleCloseForm }) {
     const oneMonthLater = new Date(today.getFullYear(), today.getMonth() + 1, today.getDate())
     return oneMonthLater
   })
-
   const [selectedAssignees, setSelectedAssignees] = useState([])
-  const [assignees, setAssignees] = useState([])
 
-  useEffect(() => {
-    // Fetch the list of users/assignees from the server
-    userService.getAll().then(users => {
-      setAssignees(users)
-    })
-  }, [])
+  const { data: assignees, isLoading, isError, error } = useQuery('assignees', userService.getAll)
 
   function formatDate(date) {
     const endOfDay = set(date, { hours: 23, minutes: 59, seconds: 59 })
@@ -40,13 +34,16 @@ function NewIssueForm({ handleCreateIssue, handleCloseForm }) {
     e.preventDefault()
     const newIssue = {
       title: issueTitle,
-      description: issueDescription,
-      dueDate: dueDate ? formatDate(dueDate) : '', // Format date before sending
+      description: { text: issueDescription },
+      dueDate: dueDate ? formatDate(dueDate) : '',
       assignees: selectedAssignees
     }
     handleCreateIssue(newIssue)
     handleCloseForm()
   }
+
+  if (isLoading) return <div>Loading...</div>
+  if (isError) return <div>Error loading assignees: {error.message}</div>
 
   return (
     <form onSubmit={handleSubmit} className='new-issue-form'>
