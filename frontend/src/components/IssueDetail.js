@@ -180,22 +180,15 @@ const IssueDetail = () => {
     setEditedCommentText(text)
   }
 
-  const saveEditedComment = (commentId) => {
-    commentService.update(projectId, issueId, commentId, { text: editedCommentText })
-    queryClient.setQueryData(['comments', issueId], comments.map(comment => {
-      if (comment.id === commentId) {
-        const editRecord = {
-          editedBy: user.name,
-          editedAt: new Date().toISOString(),
-          oldText: comment.text,
-          newText: editedCommentText,
+  const saveEditedComment = (comment) => {
+    if (comment.text !== editedCommentText) {
+      commentService.update(projectId, issueId, comment.id, { text: editedCommentText })
+      queryClient.setQueryData(['comments', issueId], comments.map(old_comment => {
+        if (old_comment.id === comment.id) {
+          return { ...old_comment, text: editedCommentText }
         }
-        // Check if 'edits' exists, if not, initialize it
-        const edits = comment.edits ? [...comment.edits, editRecord] : [editRecord]
-        return { ...comment, text: editedCommentText, edits }
-      }
-      return comment
-    }))
+      }))
+    }
     setEditingCommentId(null)
     setEditedCommentText("")
   }
@@ -445,32 +438,35 @@ const IssueDetail = () => {
                         onChange={(e) => setEditedCommentText(e.target.value)}
                       />
                     ) : (
-                      <p className="comment-text">{comment.text}</p>
+                      <>
+                        <p className="comment-text">{comment.text}</p>
+                        {comment.versions && comment.versions.length > 0 && (
+                          <button onClick={() => toggleEditHistory(comment.id)}>View History</button>
+                        )}
+                        {comment.showHistory && (
+                          <ul>
+                            {comment.versions.map((version, idx) => (
+                              <li key={idx}>
+                                <strong>{comment.user.name}</strong> edited on {formatTimestamp(version.timestamp)}: {version.text}
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </>
                     )
                   }
                   {
                     user.id === comment.user.id && (
                       editingCommentId === comment.id ? (
-                        <button onClick={() => saveEditedComment(comment.id)}>Save</button>
+                        <>
+                          <button onClick={() => saveEditedComment(comment)}>Save</button>
+                          <button onClick={() => toggleEditComment(null, comment.text)}>Cancel</button>
+                        </>
                       ) : (
                         <button onClick={() => toggleEditComment(comment.id, comment.text)}>Edit</button>
                       )
                     )
                   }
-                  {/* Button to toggle edit history visibility */}
-                  {comment.edits && comment.edits.length > 0 && (
-                    <button onClick={() => toggleEditHistory(comment.id)}>Toggle Edit History</button>
-                  )}
-                  {/* Display edit history if available */}
-                  {comment.showHistory && comment.edits && (
-                    <ul>
-                      {comment.edits.map((edit, idx) => (
-                        <li key={idx}>
-                          <strong>{edit.editedBy}</strong> edited on {formatTimestamp(edit.editedAt)}: from "{edit.oldText}" to "{edit.newText}"
-                        </li>
-                      ))}
-                    </ul>
-                  )}
                   {/* Display attached files with download links */}
                   {comment.files && comment.files.length > 0 && (
                     <div className="comment-files">
