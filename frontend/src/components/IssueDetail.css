@@ -309,7 +309,7 @@ p {
   border: none;
   /* padding: 15px; */
   border-radius: 8px;
-  margin-bottom: 20px;
+  /* margin-bottom: 20px; */
   background-color: rgb(234, 230, 213);
 }
 
@@ -746,4 +746,39 @@ p {
   width: 100%;
   padding: 8px;
   margin-bottom: 10px;
+}
+
+.detail-actions-container {
+  position: relative;
+  margin-left: 40px;
+  border-left: 2px solid #ddd; /* Adjust color as needed */
+}
+
+.action-button {
+  position: absolute;
+  left: -15px;
+  width: 25px;
+  height: 25px;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  border: none;
+  cursor: pointer;
+  background-color: white;
+  border-radius: 20px;
+  margin-top: 20px;
+}
+
+.action-text {
+  margin-left: 23px;
+  padding-top: 20px;
+  margin-bottom: 15px;
+}
+
+.issue-detail .detail-actions-container .action-text .username-style {
+  font-weight: 580;
+  color: #DBCA49;
+  font-size: 14px;
+  font-style: italic;
+  margin-right: 3px;
 }

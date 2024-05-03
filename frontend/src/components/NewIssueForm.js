@@ -3,6 +3,7 @@ import DatePicker from 'react-datepicker'
 import 'react-datepicker/dist/react-datepicker.css'
 import userService from '../services/users'
 import { set } from 'date-fns'
+import './NewIssueForm.css'
 
 function NewIssueForm({ handleCreateIssue, handleCloseForm }) {
   const [issueTitle, setIssueTitle] = useState('')
@@ -48,7 +49,7 @@ function NewIssueForm({ handleCreateIssue, handleCloseForm }) {
   }
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit} className='new-issue-form'>
       <h2>Create New Issue</h2>
       <div>
         <label>Title:</label>

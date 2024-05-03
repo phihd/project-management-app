@@ -20,6 +20,11 @@ import downArrow from '../img/down-arrow.png'
 import number_list from '../img/number_list.png'
 import bullet_list from '../img/bullet_list.png'
 import task_list from '../img/task_list.png'
+import edit_due from '../img/edit_due.png'
+import edit_assignee from '../img/edit_assignee.png'
+import edit_title from '../img/edit_title.png'
+import edit_close from '../img/edit_close.png'
+import edit_open from '../img/status_button.png'
 
 const IssueDetail = ({ projects }) => {
 
@@ -54,6 +59,7 @@ const IssueDetail = ({ projects }) => {
   const [currentTab, setCurrentTab] = useState('Edit')
   const textAreaRef = useRef(null)
   const [description, setDescription] = useState('')
+  const usernameRegex = /^(.*?) (assigned|reopened|closed|changed the due date from|updated title to)/
 
 
   // Fetch project details
@@ -118,7 +124,7 @@ const IssueDetail = ({ projects }) => {
     if (assigneeInput.sort().toString() !== issue.assignees.map(a => a.id).sort().toString()) {
       try {
         const selectedAssigneeUsers = assigneeInput.map(assigneeName => project.members.find(user => user.name === assigneeName))
-        const actionDescription = `Assignees updated to ${assigneeInput.join(', ')} by ${user.name}`
+        const actionDescription = `${user.name} assigned ${assigneeInput.join(', ')}`
         await updateIssue({ assignees: selectedAssigneeUsers.map(user => user.id) }, actionDescription)
         setIsAssigneeEditMode(false)
       } catch (error) {
@@ -261,10 +267,10 @@ const IssueDetail = ({ projects }) => {
   const handleDueDateUpdate = async () => {
     if (new Date(dueDateInput).getTime() !== new Date(issue.dueDate).getTime()) {
       try {
-        const actionDescription = `Due date changed from ${formatDate(issue.dueDate)} to ${formatDate(dueDateInput)} by ${user.name}`
+        const actionDescription = `${user.name} changed the due date from ${formatDate(issue.dueDate)} to ${formatDate(dueDateInput)}`
         const dueDate = Date(dueDateInput)
         const endOfDay = set(dueDate, { hours: 23, minutes: 59, seconds: 59 })
-        await updateDueDate(endOfDay.toISOString())
+        await updateIssue({ dueDate: endOfDay.toISOString() }, actionDescription)
         setIsDueDateEditMode(false)
       } catch (error) {
         console.error('Error updating due date:', error)
@@ -308,7 +314,7 @@ const IssueDetail = ({ projects }) => {
   const handleTitleUpdate = async () => {
     if (titleInput !== issue.title) {
       try {
-        const actionDescription = `Title updated to "${titleInput}" by ${user.name}`
+        const actionDescription = `${user.name} updated title to "${titleInput}"`
         await updateIssue({ title: titleInput }, actionDescription)
         setIsTitleEditMode(false)
       } catch (error) {
@@ -599,6 +605,15 @@ const IssueDetail = ({ projects }) => {
     }
   }
 
+  function getButtonImage(description) {
+    if (description.toLowerCase().includes('changed the due date')) return edit_due;
+    if (description.toLowerCase().includes('assigned')) return edit_assignee;
+    if (description.toLowerCase().includes('updated title')) return edit_title;
+    if (description.toLowerCase().includes('closed this issue')) return edit_close;
+    if (description.toLowerCase().includes('reopened this issue')) return edit_open;
+    return null; // Default case if no conditions are met
+  }
+
   
   const formatTimestamp = (timestamp) => {
     const date = new Date(timestamp)
@@ -771,16 +786,29 @@ const IssueDetail = ({ projects }) => {
               </div>
             )}
           </div>
-
-          <div className="issue-details">
-            <h3> Detail Actions </h3>
+          
+          <div className="detail-actions-container">
+            {/* <h3>Detail Actions</h3> */}
+            {console.log(actionHistory)}
             {actionHistory.map((entry, index) => (
-              <div key={index}>
-                <strong>{entry.username}</strong> {entry.description} on {formatDate(new Date(entry.timestamp))}
+              <div key={index} style={{ top: `${index * 60}px` }} className="action-item">
+                <button className="action-button" style={{ backgroundImage: `url(${getButtonImage(entry.description)})` }}></button>
+                <p className="action-text">
+                  {/* <span className="username-style">{entry.username}</span> {entry.description} on {formatDate(new Date(entry.timestamp))} */}
+                  {entry.description.match(usernameRegex) ? (
+                  <>
+                    <span className="username-style">{entry.description.match(usernameRegex)[1]}</span>
+                    {entry.description.substring(entry.description.match(usernameRegex)[1].length)}
+                  </>
+                ) : (
+                  <span>{entry.description}</span> // Fallback in case regex does not match
+                )}
+                </p>
               </div>
             ))}
-
           </div>
+
+
           <div className="issue-comments">
             <h3>Comments</h3>
             {comments.length === 0 ? (
