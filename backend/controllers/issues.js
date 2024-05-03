@@ -34,6 +34,7 @@ issuesRouter.get('/:issueId', async (request, response) => {
     if (!issue) {
       return response.status(404).json({ message: 'Issue not found' })
     }
+
     response.json(issue)
   } catch (error) {
     response.status(500).json({ message: error.message })
@@ -61,14 +62,13 @@ issuesRouter.post('/', async (request, response, next) => {
     return response.status(403).json({ error: 'Unauthorized access' })
   }
 
-  console.log(body.description.text)
   const issue = await new Issue({
     title: body.title,
     status: body.status,
     description: {
-      text: body.description,
-      timestamp: new Date(),
-      versions: [{ text: body.description.text }]
+      text: body.description.text,
+      user: user.id,
+      versions: [{ text: body.description.text, user: user.id }]
     },
     dueDate: body.dueDate,
     createdDate: body.createdDate,
@@ -160,19 +160,6 @@ issuesRouter.put('/:issueId', async (request, response, next) => {
       return response.status(404).json({ message: 'Issue not found' })
     }
 
-     // Handle description change with versioning
-     if ('description' in body && body.description !== existingIssue.description.text) {
-      // Push current description to versions array
-      existingIssue.description.versions.push({
-        text: body.description.text,
-        timestamp: body.description.timestamp
-      })
-
-      // Update current description to new value
-      existingIssue.description.text = body.description
-      existingIssue.description.timestamp = new Date()
-    }
-
     if ('dueDate' in body) {
       body.dueDate = new Date(body.dueDate)
     }
@@ -188,17 +175,41 @@ issuesRouter.put('/:issueId', async (request, response, next) => {
       return response.status(403).json({ message: 'Only creator can change due date' })
     }
 
+    // Handle description change with versioning
+    if ('description' in body && body.description.text !== existingIssue.description.text) {
+      if (!(existingIssue.creator.equals(user.id) || existingIssue.assignees.some(assignee => assignee.equals(user.id)))) {
+        return response.status(403).json({ message: 'Only creator or assignees can edit description' })
+      }
+      // Push current description to versions array
+      existingIssue.description.versions.push({
+        text: body.description.text,
+        user: user.id
+      })
+
+      // Update current description to new value
+      existingIssue.description.text = body.description.text
+      existingIssue.description.user = user.id
+    }
+
     Object.keys(body).forEach(key => {
       if (key !== 'description') {
         existingIssue[key] = body[key]
       }
     })
 
-    const updatedIssue = await existingIssue.save()
+    await existingIssue.save()
+    const updatedIssue = await Issue.findById(issueId)
+      .populate('creator', 'name')
+      .populate('assignees', 'name')
+      .populate('project', 'title')
+      .populate('comments', 'text')
     if (!updatedIssue) {
       return response.status(404).json({ message: 'Issue not found after update attempt' })
     }
-    await performDueIssueCheck(updatedIssue._id)
+
+    if (['status', 'assignees', 'dueDate'].some(field => field in body)) {
+      await performDueIssueCheck(updatedIssue._id)
+    }
 
     response.json(updatedIssue)
   } catch (error) {

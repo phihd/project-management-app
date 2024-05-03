@@ -18,20 +18,25 @@ const descriptionVersionSchema = new mongoose.Schema({
   timestamp: {
     type: Date,
     default: Date.now,
-  }
+  },
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+  },
 }, { _id: false }); // Prevent separate _id for versions
 
 const descriptionSchema = new mongoose.Schema({
   // text and timestamp of the latest version
-  text: {
-    type: String,
-    required: true,
-  },
+  text: String,
   timestamp: {
     type: Date,
     default: Date.now,
   },
   versions: [descriptionVersionSchema],
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+  },
 })
 
 const issueSchema = new mongoose.Schema({
