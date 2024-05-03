@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useContext } from 'react'
 import './ProjectDetail.css'
 import { useParams, Link, useNavigate } from 'react-router-dom'
-import { useQuery } from 'react-query'
+import { useQuery, useQueryClient } from 'react-query'
 import projectService from '../services/projects'
 import issueService from '../services/issues'
 import UserContext from './UserContext'
@@ -23,6 +23,7 @@ function ProjectDetail() {
   const [openIssues, setOpenIssues] = useState()
   const [sortedIssues, setSortedIssues] = useState()
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
 
   // Fetch project details
   const {
@@ -49,7 +50,7 @@ function ProjectDetail() {
           return -1
         }
         if (a.status !== 'Open' && b.status === 'Open') {
-          return 1 
+          return 1
         }
         return 0
       }))
@@ -99,13 +100,13 @@ function ProjectDetail() {
         <h1 className="project-title">{project.name}</h1>
         <div className="header-buttons">
           {/* <button>{project.status.activityStatus}</button> */}
-          <button> 
+          <button>
             <img src={dept_button} alt="Department" className="button-img" />
-            Phòng Tổ Chức Hành Chính 
+            Phòng Tổ Chức Hành Chính
           </button>
           <button>
             <img src={status_button} alt="Status" className="button-img" />
-            Status 
+            Status
           </button>
         </div>
       </div>
@@ -130,44 +131,42 @@ function ProjectDetail() {
         </div>
       </div>
       <div className="project-issues">
-      <div className="issues-header">
-        <h2>Project Issues</h2>
-        <span className="issue-count">{openIssues?.length} open issues</span>
-        <button className='new-issue-btn' onClick={handleNewIssueClick}>
-          <img src={new_issue} alt="Add New Issue" className="issue-button-img" />
-          New Issue
-        </button>
-      </div>
-      <ul className="issue-list">
-        {sortedIssues?.map(issue => (
-          <li key={issue.id} className={`issue-item ${issue.status.toLowerCase()}`}>
-            <div className="issue-content" onClick={() => handleNavigateToIssue(issue.id)}>
-              <h4>{issue.title}</h4>
-              <button className={`status-btn ${issue.status.toLowerCase()}`}>
-                <img src={issue.status === 'Open' ? open_status : close_status} alt={issue.status} />
-                {issue.status}
-              </button>
-            </div>
-            {issue.description ? (
-              issue.description.split('\n').map((line, index) => (
-                <p key={index}>{line}</p>
-              ))
-            ) : (
-              <p>No description available</p>
-            )}
-            <hr />
-            <div className="comment-delete-container">
-              <div className="comment-count">
-                <img src={comment_count} alt="Comments" className="comment-img" />
-                {issue.comments.length}
+        <div className="issues-header">
+          <h2>Project Issues</h2>
+          <span className="issue-count">{openIssues?.length} open issues</span>
+          <button className='new-issue-btn' onClick={handleNewIssueClick}>
+            <img src={new_issue} alt="Add New Issue" className="issue-button-img" />
+            New Issue
+          </button>
+        </div>
+        <ul className="issue-list">
+          {sortedIssues?.map(issue => (
+            <li key={issue.id} className={`issue-item ${issue.status.toLowerCase()}`}>
+              <div className="issue-content" onClick={() => handleNavigateToIssue(issue.id)}>
+                <h4>{issue.title}</h4>
+                <button className={`status-btn ${issue.status.toLowerCase()}`}>
+                  <img src={issue.status === 'Open' ? open_status : close_status} alt={issue.status} />
+                  {issue.status}
+                </button>
               </div>
-              <button className='delete-button' onClick={(e) => handleDeleteIssue(issue.id, e)}>
-                <img className='delete-button-img' src={delete_button} alt="Delete" />
-              </button>
-            </div>
-          </li>
-        ))}
-      </ul>
+              {issue.description ? (
+                <p> {issue.description.text} </p>
+              ) : (
+                <p>No description available</p>
+              )}
+              <hr />
+              <div className="comment-delete-container">
+                <div className="comment-count">
+                  <img src={comment_count} alt="Comments" className="comment-img" />
+                  {issue.comments.length}
+                </div>
+                <button className='delete-button' onClick={(e) => handleDeleteIssue(issue.id, e)}>
+                  <img className='delete-button-img' src={delete_button} alt="Delete" />
+                </button>
+              </div>
+            </li>
+          ))}
+        </ul>
       </div>
       {showIssueForm && (
         <div className="overlay">

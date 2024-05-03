@@ -7,6 +7,7 @@ import { useQuery, useQueryClient } from 'react-query'
 import issueService from '../services/issues'
 import projectService from '../services/projects'
 import commentService from '../services/comments'
+import userService from '../services/users'
 import UserContext from './UserContext'
 import { useNavigate } from 'react-router-dom'
 import { set } from 'date-fns'
@@ -18,7 +19,7 @@ import edit_button from '../img/edit_button.png'
 import edit_description_button from '../img/edit_description.png'
 import downArrow from '../img/down-arrow.png'
 
-const IssueDetail = ({ projects }) => {
+const IssueDetail = () => {
 
   const [files, setFiles] = useState([])
   const [commentInput, setCommentInput] = useState('')
@@ -34,10 +35,6 @@ const IssueDetail = ({ projects }) => {
   const [isDescriptionEditMode, setIsDescriptionEditMode] = useState(false)
   const [descriptionInput, setDescriptionInput] = useState('')
   const [descriptionHistory, setDescriptionHistory] = useState([])
-  const [titleHistory, setTitleHistory] = useState([])
-  const [assigneeHistory, setAssigneeHistory] = useState([])
-  const [dueDateHistory, setDueDateHistory] = useState([])
-  const [statusHistory, setStatusHistory] = useState([])
   const [actionHistory, setActionHistory] = useState([])
   const [editingCommentId, setEditingCommentId] = useState(null)
   const [editedCommentText, setEditedCommentText] = useState("")
@@ -67,9 +64,17 @@ const IssueDetail = ({ projects }) => {
     error: issueErrorMessage
   } = useQuery(['issue', issueId], () => issueService.get(projectId, issueId), {
     enabled: !!issueId,
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       setCurrentStatus(data.status)
       setActionHistory(data.actionHistory)
+      const versionsWithUsernames = await Promise.all(data.description.versions.map(async (version) => {
+        const userDetail = await userService.get(version.user)
+        return {
+          ...version,
+          username: userDetail.username || 'Unknown User'
+        }
+      }))
+      setDescriptionHistory(versionsWithUsernames)
     }
   })
 
@@ -86,25 +91,6 @@ const IssueDetail = ({ projects }) => {
   const toggleAssigneeEditMode = () => {
     setIsAssigneeEditMode(!isAssigneeEditMode)
     setAssigneeInput(issue.assignee)
-  }
-
-  const updateAssignee = async (newAssignees) => {
-    try {
-      const assigneeIds = newAssignees.map(assignee => assignee.id)
-      await issueService.update(projectId, issueId, { assignees: assigneeIds })
-      queryClient.setQueryData(['issue', issueId], prevIssue => ({ ...prevIssue, assignees: newAssignees }))
-      const assigneeNames = newAssignees.map(assignee => assignee.name).join(', ')
-      const assignedTo = assigneeNames ? `assigned to ${assigneeNames}` : 'unassigned'
-      const editedAssignee = {
-        username: user.name,
-        timestamp: new Date().toLocaleString(),
-        assignee: assignedTo,
-      }
-      setAssigneeHistory([...assigneeHistory, editedAssignee])
-    } catch (exception) {
-      console.log(exception)
-      throw new Error('Failed to update assignees: ' + exception)
-    }
   }
 
   const handleAssigneeUpdate = async () => {
@@ -149,11 +135,7 @@ const IssueDetail = ({ projects }) => {
 
       const updatedIssue = await issueService.update(projectId, issueId, issueToUpdate)
 
-      queryClient.setQueryData(['issue', issueId], prev => ({
-        ...prev,
-        ...issueToUpdate,
-        actionHistory: updatedIssue.actionHistory
-      }))
+      queryClient.setQueryData(['issue', issueId], updatedIssue)
 
       return updatedIssue
     } catch (exception) {
@@ -165,7 +147,7 @@ const IssueDetail = ({ projects }) => {
   const createComment = async (newComment) => {
     newComment.files = files.map(file => URL.createObjectURL(file))
     const comment = await commentService.create(projectId, issueId, newComment)
-    setComments(comments.concat(comment))
+    queryClient.setQueryData(['comments', issueId], comments.concat(comment))
     setFiles([])
   }
 
@@ -187,7 +169,7 @@ const IssueDetail = ({ projects }) => {
         user: user,
       }
       createComment(newComment)
-      setComments(comments.concat(newComment))
+      queryClient.setQueryData(['comments', issueId], comments.concat(newComment))
       setCommentInput('')
       setCommentFiles([])
     }
@@ -198,52 +180,27 @@ const IssueDetail = ({ projects }) => {
     setEditedCommentText(text)
   }
 
-  const saveEditedComment = (commentId) => {
-    commentService.update(projectId, issueId, commentId, { text: editedCommentText })
-    setComments(comments.map(comment => {
-      if (comment.id === commentId) {
-        const editRecord = {
-          editedBy: user.name,
-          editedAt: new Date().toISOString(),
-          oldText: comment.text,
-          newText: editedCommentText,
+  const saveEditedComment = (comment) => {
+    if (comment.text !== editedCommentText) {
+      commentService.update(projectId, issueId, comment.id, { text: editedCommentText })
+      queryClient.setQueryData(['comments', issueId], comments.map(old_comment => {
+        if (old_comment.id === comment.id) {
+          return { ...old_comment, text: editedCommentText }
         }
-        // Check if 'edits' exists, if not, initialize it
-        const edits = comment.edits ? [...comment.edits, editRecord] : [editRecord]
-        return { ...comment, text: editedCommentText, edits }
-      }
-      return comment
-    }))
+      }))
+    }
     setEditingCommentId(null)
     setEditedCommentText("")
   }
 
   const toggleEditHistory = (commentId) => {
-    setComments(prevComments => prevComments.map(comment => {
+    queryClient.setQueryData(['comments', issueId], prevComments => prevComments.map(comment => {
       if (comment.id === commentId) {
         // Toggle the showHistory property
         return { ...comment, showHistory: !comment.showHistory }
       }
       return comment
     }))
-  }
-
-  const updateDueDate = async (newDueDate) => {
-    try {
-      const oldDueDate = issue.dueDate
-      await issueService.update(projectId, issueId, { dueDate: newDueDate })
-      queryClient.setQueryData(['issue', issueId], prevIssue => ({ ...prevIssue, dueDate: newDueDate }))
-      const editedDueDate = {
-        username: user.name,
-        timestamp: new Date().toLocaleString(),
-        oldDueDate: oldDueDate,
-        newDueDate: newDueDate,
-      }
-      setDueDateHistory([...dueDateHistory, editedDueDate])
-    } catch (exception) {
-      console.log(exception)
-      throw new Error('Failed to update due date: ' + exception)
-    }
   }
 
   const toggleDueDateEditMode = () => {
@@ -255,9 +212,9 @@ const IssueDetail = ({ projects }) => {
     if (new Date(dueDateInput).getTime() !== new Date(issue.dueDate).getTime()) {
       try {
         const actionDescription = `Due date changed from ${formatDate(issue.dueDate)} to ${formatDate(dueDateInput)} by ${user.name}`
-        const dueDate = Date(dueDateInput)
+        const dueDate = new Date(dueDateInput)
         const endOfDay = set(dueDate, { hours: 23, minutes: 59, seconds: 59 })
-        await updateDueDate(endOfDay.toISOString())
+        await updateIssue({ dueDate: endOfDay.toISOString() }, actionDescription)
         setIsDueDateEditMode(false)
       } catch (error) {
         console.error('Error updating due date:', error)
@@ -273,23 +230,6 @@ const IssueDetail = ({ projects }) => {
     let day = date.getDate().toString()
     day = day.length > 1 ? day : '0' + day
     return day + '/' + month + '/' + year
-  }
-
-  const updateTitle = async (newTitle) => {
-    try {
-      // Update the issue title in the backend
-      await issueService.update(projectId, issueId, { title: newTitle })
-      // // Update the issue due date in the UI
-      queryClient.setQueryData(['issue', issueId], prevIssue => ({ ...prevIssue, title: newTitle }))
-      const editedTitle = {
-        username: user.name,
-        timestamp: new Date().toLocaleString(),
-        title: newTitle,
-      }
-      setTitleHistory([...titleHistory, editedTitle])
-    } catch (exception) {
-      throw new Error('Failed to update title: ' + exception)
-    }
   }
 
   const toggleTitleEditMode = () => {
@@ -310,30 +250,23 @@ const IssueDetail = ({ projects }) => {
     }
   }
 
-
-  const updateDescription = async (newDescription) => {
-    try {
-      await issueService.update(projectId, issueId, { description: newDescription })
-      queryClient.setQueryData(['issue', issueId], prevIssue => ({ ...prevIssue, description: newDescription }))
-    } catch (exception) {
-      console.log(exception)
-      throw new Error('Failed to update description: ' + exception)
-    }
-  }
-
   const toggleDescriptionEditMode = () => {
     setIsDescriptionEditMode(!isDescriptionEditMode)
-    setDescriptionInput(issue.description)
+    setDescriptionInput(issue.description.text)
   }
 
   const handleDescriptionUpdate = async () => {
-    if (descriptionInput !== issue.description) {
+    if (descriptionInput !== issue.description.text) {
       try {
-        await updateIssue({ description: descriptionInput })
+        await updateIssue({
+          description: {
+            text: descriptionInput
+          }
+        })
         const editedDescription = {
           username: user.name,
           timestamp: new Date().toLocaleString(),
-          description: descriptionInput
+          text: issue.description.text
         }
         setDescriptionHistory([...descriptionHistory, editedDescription])
         setIsDescriptionEditMode(false)
@@ -422,13 +355,8 @@ const IssueDetail = ({ projects }) => {
           </div>
         </div>
       </div>
-
-
-
-
       <div className="issue-body">
         <div className="left-section">
-
           <div className="description-box">
             <div className="header">
               <div className="left-header">
@@ -443,7 +371,7 @@ const IssueDetail = ({ projects }) => {
                       <ul>
                         {descriptionHistory.map((item, index) => (
                           <li key={index} onClick={() => toggleHistoryModal(item)}>
-                            Edited by: {item.username} at {item.timestamp}
+                            Edited by {item.username} at {formatDate(item.timestamp)}
                           </li>
                         ))}
                       </ul>
@@ -457,7 +385,7 @@ const IssueDetail = ({ projects }) => {
             </div>
             <hr />
             {!isDescriptionEditMode ? (
-              <p className="description-text">{issue.description}</p>
+              <p className="description-text">{issue.description.text}</p>
             ) : (
               <textarea
                 value={descriptionInput}
@@ -474,12 +402,12 @@ const IssueDetail = ({ projects }) => {
             {showHistoryModal && currentHistoryItem && (
               <div className="modal">
                 <div className="modal-content">
-                  <span className="close" onClick={closeHistoryModal}>&times;</span>
+                  <span className="close" onClick={closeHistoryModal}>&times</span>
                   <p>
-                    Edited by: {currentHistoryItem.username} at {currentHistoryItem.timestamp}
+                    Edited by {currentHistoryItem.username} at {formatDate(currentHistoryItem.timestamp)}
                   </p>
                   <p>
-                    Description: {currentHistoryItem.description}
+                    Description: {currentHistoryItem.text}
                   </p>
                 </div>
               </div>
@@ -510,32 +438,35 @@ const IssueDetail = ({ projects }) => {
                         onChange={(e) => setEditedCommentText(e.target.value)}
                       />
                     ) : (
-                      <p className="comment-text">{comment.text}</p>
+                      <>
+                        <p className="comment-text">{comment.text}</p>
+                        {comment.versions && comment.versions.length > 0 && (
+                          <button onClick={() => toggleEditHistory(comment.id)}>View History</button>
+                        )}
+                        {comment.showHistory && (
+                          <ul>
+                            {comment.versions.map((version, idx) => (
+                              <li key={idx}>
+                                <strong>{comment.user.name}</strong> edited on {formatTimestamp(version.timestamp)}: {version.text}
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </>
                     )
                   }
                   {
                     user.id === comment.user.id && (
                       editingCommentId === comment.id ? (
-                        <button onClick={() => saveEditedComment(comment.id)}>Save</button>
+                        <>
+                          <button onClick={() => saveEditedComment(comment)}>Save</button>
+                          <button onClick={() => toggleEditComment(null, comment.text)}>Cancel</button>
+                        </>
                       ) : (
                         <button onClick={() => toggleEditComment(comment.id, comment.text)}>Edit</button>
                       )
                     )
                   }
-                  {/* Button to toggle edit history visibility */}
-                  {comment.edits && comment.edits.length > 0 && (
-                    <button onClick={() => toggleEditHistory(comment.id)}>Toggle Edit History</button>
-                  )}
-                  {/* Display edit history if available */}
-                  {comment.showHistory && comment.edits && (
-                    <ul>
-                      {comment.edits.map((edit, idx) => (
-                        <li key={idx}>
-                          <strong>{edit.editedBy}</strong> edited on {formatTimestamp(edit.editedAt)}: from "{edit.oldText}" to "{edit.newText}"
-                        </li>
-                      ))}
-                    </ul>
-                  )}
                   {/* Display attached files with download links */}
                   {comment.files && comment.files.length > 0 && (
                     <div className="comment-files">
@@ -635,13 +566,8 @@ const IssueDetail = ({ projects }) => {
             </div>
             <p>{project.name}</p>
           </div>
-
         </div>
       </div>
-
-
-
-
     </div>
   )
 }

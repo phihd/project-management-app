@@ -1,10 +1,7 @@
 const mongoose = require('mongoose')
 
 const actionSchema = new mongoose.Schema({
-  description: {
-    type: String,
-    required: true
-  },
+  description: String,
   timestamp: {
     type: Date,
     default: Date.now
@@ -14,6 +11,32 @@ const actionSchema = new mongoose.Schema({
     ref: 'User',
     required: true
   }
+})
+
+const descriptionVersionSchema = new mongoose.Schema({
+  text: String,
+  timestamp: {
+    type: Date,
+    default: Date.now,
+  },
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+  },
+}, { _id: false }); // Prevent separate _id for versions
+
+const descriptionSchema = new mongoose.Schema({
+  // text and timestamp of the latest version
+  text: String,
+  timestamp: {
+    type: Date,
+    default: Date.now,
+  },
+  versions: [descriptionVersionSchema],
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+  },
 })
 
 const issueSchema = new mongoose.Schema({
@@ -27,7 +50,7 @@ const issueSchema = new mongoose.Schema({
     default: 'Open',
   },
   description: {
-    type: String,
+    type: descriptionSchema,
   },
   creator: {
     type: mongoose.Schema.Types.ObjectId,

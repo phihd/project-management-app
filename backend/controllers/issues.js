@@ -34,6 +34,7 @@ issuesRouter.get('/:issueId', async (request, response) => {
     if (!issue) {
       return response.status(404).json({ message: 'Issue not found' })
     }
+
     response.json(issue)
   } catch (error) {
     response.status(500).json({ message: error.message })
@@ -64,7 +65,11 @@ issuesRouter.post('/', async (request, response, next) => {
   const issue = await new Issue({
     title: body.title,
     status: body.status,
-    description: body.description,
+    description: {
+      text: body.description.text,
+      user: user.id,
+      versions: [{ text: body.description.text, user: user.id }]
+    },
     dueDate: body.dueDate,
     createdDate: body.createdDate,
     creator: user.id,
@@ -142,8 +147,6 @@ issuesRouter.put('/:issueId', async (request, response, next) => {
       return response.status(403).json({ error: 'Unauthorized access' })
     }
 
-
-
     if (['createdDate', 'creator', 'project'].some(field => field in body)) {
       return response.status(400).json({ message: 'Immutable field cannot be updated' })
     }
@@ -172,19 +175,41 @@ issuesRouter.put('/:issueId', async (request, response, next) => {
       return response.status(403).json({ message: 'Only creator can change due date' })
     }
 
-    const updatedIssue = await Issue.findOneAndUpdate(
-      { _id: issueId, project: projectId },
-      body,
-      {
-        new: true,
-        runValidators: true,
+    // Handle description change with versioning
+    if ('description' in body && body.description.text !== existingIssue.description.text) {
+      if (!(existingIssue.creator.equals(user.id) || existingIssue.assignees.some(assignee => assignee.equals(user.id)))) {
+        return response.status(403).json({ message: 'Only creator or assignees can edit description' })
       }
-    )
+      // Push current description to versions array
+      existingIssue.description.versions.push({
+        text: body.description.text,
+        user: user.id
+      })
 
+      // Update current description to new value
+      existingIssue.description.text = body.description.text
+      existingIssue.description.user = user.id
+    }
+
+    Object.keys(body).forEach(key => {
+      if (key !== 'description') {
+        existingIssue[key] = body[key]
+      }
+    })
+
+    await existingIssue.save()
+    const updatedIssue = await Issue.findById(issueId)
+      .populate('creator', 'name')
+      .populate('assignees', 'name')
+      .populate('project', 'title')
+      .populate('comments', 'text')
     if (!updatedIssue) {
       return response.status(404).json({ message: 'Issue not found after update attempt' })
     }
-    await performDueIssueCheck(updatedIssue._id)
+
+    if (['status', 'assignees', 'dueDate'].some(field => field in body)) {
+      await performDueIssueCheck(updatedIssue._id)
+    }
 
     response.json(updatedIssue)
   } catch (error) {
