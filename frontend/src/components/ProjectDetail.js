@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useContext } from 'react'
 import './ProjectDetail.css'
 import { useParams, Link, useNavigate } from 'react-router-dom'
-import { useQuery } from 'react-query'
+import { useQuery, useQueryClient } from 'react-query'
 import projectService from '../services/projects'
 import issueService from '../services/issues'
 import UserContext from './UserContext'
@@ -23,6 +23,7 @@ function ProjectDetail() {
   const [openIssues, setOpenIssues] = useState()
   const [sortedIssues, setSortedIssues] = useState()
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
 
   // Fetch project details
   const {
