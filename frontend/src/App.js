@@ -15,7 +15,7 @@ import {
 
 import scqcLogo from './img/LOGO-SCQC-ISO.png'
 import user_phihd from './img/user_phihd.jpeg'
-import default_avatar from './img/default_avatar.jpg'
+import default_avatar from './img/default_avatar.png'
 import noti_img from './img/noti_img.png'
 import sidebar_img from './img/sidebar_img.png'
 
@@ -243,6 +243,7 @@ const App = () => {
     const [isOpen, setIsOpen] = useState(false)
     const [isOpenEmailForm, setIsOpenEmailForm] = useState(false)
     const [email, setEmail] = useState('')
+    const formRef = useRef(null)
 
     const toggleDropdown = () => {
       setIsOpen(!isOpen)
@@ -259,7 +260,15 @@ const App = () => {
 
     const toggleEmailForm = () => {
       setIsOpenEmailForm(!isOpenEmailForm)
-    }
+      // Attach or detach the event listener based on the form state
+      if (!isOpenEmailForm) {
+          // Attaching the event listener
+          document.addEventListener('mousedown', handleClickOutside)
+      } else {
+          // Removing the event listener
+          document.removeEventListener('mousedown', handleClickOutside)
+      }
+  }
 
     const handleEmailChange = (event) => {
       setEmail(event.target.value)
@@ -278,7 +287,15 @@ const App = () => {
 
     const handleCloseForm = () => {
       setIsOpenEmailForm(false)
+      document.removeEventListener('mousedown', handleClickOutside)
+  }
+
+  const handleClickOutside = (event) => {
+    if (formRef.current && !formRef.current.contains(event.target)) {
+        setIsOpenEmailForm(false)
+        document.removeEventListener('mousedown', handleClickOutside)
     }
+}
 
     return (
       <div className="user-info">
@@ -293,13 +310,15 @@ const App = () => {
           </div>
         )}
         {isOpenEmailForm && (
-          <div className="email-form">
-            <button className="close-btn" onClick={handleCloseForm}>X</button>
+          <div className="email-form-overlay">
+          <div className="email-form" ref={formRef}>
+            <button className="close-btn" onClick={handleCloseForm}> x </button>
             <form onSubmit={handleSubmitEmail}>
-              <input type="email" value={email} onChange={handleEmailChange} placeholder="Enter email" />
+              <input type="email" value={email} onChange={handleEmailChange} placeholder="Enter email to receive notifications" />
               <button type="submit">Submit</button>
             </form>
           </div>
+        </div>
         )}
       </div>
     )
