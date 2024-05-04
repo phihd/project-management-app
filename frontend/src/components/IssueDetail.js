@@ -115,8 +115,8 @@ const IssueDetail = () => {
       try {
         const selectedAssigneeUsers = assigneeInput.map(assigneeName => project.members.find(user => user.name === assigneeName))
         const actionDescription = `${user.name} assigned ${assigneeInput.join(', ')}`
-        await updateIssue({ assignees: selectedAssigneeUsers.map(user => user.id) }, actionDescription)
         setIsAssigneeEditMode(false)
+        await updateIssue({ assignees: selectedAssigneeUsers.map(user => user.id) }, actionDescription)
       } catch (error) {
         console.error('Error updating assignees:', error)
       }
@@ -128,13 +128,48 @@ const IssueDetail = () => {
       const newStatus = currentStatus === 'Open' ? 'Close' : 'Open'
       try {
         const actionDescription = `${user.name} ${newStatus === 'Open' ? 'reopened' : 'closed'} this issue`
-        await updateIssue({ status: newStatus }, actionDescription)
         setCurrentStatus(newStatus)
+        await updateIssue({ status: newStatus }, actionDescription)
       } catch (error) {
         console.error('Error updating issue status:', error)
       }
     } else {
       console.error('Issue data not available')
+    }
+  }
+
+  const handleDueDateUpdate = async () => {
+    if (new Date(dueDateInput).getTime() !== new Date(issue.dueDate).getTime()) {
+      try {
+        const actionDescription = `${user.name} changed the due date from ${formatDate(issue.dueDate)} to ${formatDate(dueDateInput)}`
+        const dueDate = new Date(dueDateInput)
+        const endOfDay = set(dueDate, { hours: 23, minutes: 59, seconds: 59 })
+        setIsDueDateEditMode(false)
+        await updateIssue({ dueDate: endOfDay.toISOString() }, actionDescription)
+      } catch (error) {
+        console.error('Error updating due date:', error)
+      }
+    }
+  }
+
+  const handleDescriptionUpdate = async () => {
+    if (descriptionInput !== issue.description.text) {
+      try {
+        const editedDescription = {
+          username: user.name,
+          timestamp: new Date().toLocaleString(),
+          text: issue.description.text
+        }
+        setDescriptionHistory([...descriptionHistory, editedDescription])
+        setIsDescriptionEditMode(false)
+        await updateIssue({
+          description: {
+            text: descriptionInput
+          }
+        })
+      } catch (error) {
+        console.error('Error updating description:', error)
+      }
     }
   }
 
@@ -229,20 +264,6 @@ const IssueDetail = () => {
     setDueDateInput(issue.dueDate)
   }
 
-  const handleDueDateUpdate = async () => {
-    if (new Date(dueDateInput).getTime() !== new Date(issue.dueDate).getTime()) {
-      try {
-        const actionDescription = `${user.name} changed the due date from ${formatDate(issue.dueDate)} to ${formatDate(dueDateInput)}`
-        const dueDate = new Date(dueDateInput)
-        const endOfDay = set(dueDate, { hours: 23, minutes: 59, seconds: 59 })
-        await updateIssue({ dueDate: endOfDay.toISOString() }, actionDescription)
-        setIsDueDateEditMode(false)
-      } catch (error) {
-        console.error('Error updating due date:', error)
-      }
-    }
-  }
-
   const formatDate = (dueDate) => {
     const date = new Date(dueDate)
     const year = date.getFullYear()
@@ -263,8 +284,8 @@ const IssueDetail = () => {
     if (titleInput !== issue.title) {
       try {
         const actionDescription = `${user.name} updated title to "${titleInput}"`
-        await updateIssue({ title: titleInput }, actionDescription)
         setIsTitleEditMode(false)
+        await updateIssue({ title: titleInput }, actionDescription)
       } catch (error) {
         console.error('Error updating title:', error)
       }
@@ -289,27 +310,6 @@ const IssueDetail = () => {
         return !prev
     })
     setDescriptionInput(issue.description.text)
-}
-
-  const handleDescriptionUpdate = async () => {
-    if (descriptionInput !== issue.description.text) {
-      try {
-        await updateIssue({
-          description: {
-            text: descriptionInput
-          }
-        })
-        const editedDescription = {
-          username: user.name,
-          timestamp: new Date().toLocaleString(),
-          text: issue.description.text
-        }
-        setDescriptionHistory([...descriptionHistory, editedDescription])
-        setIsDescriptionEditMode(false)
-      } catch (error) {
-        console.error('Error updating description:', error)
-      }
-    }
   }
 
   const toggleHistoryModal = (historyItem) => {
