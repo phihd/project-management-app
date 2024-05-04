@@ -171,10 +171,10 @@
   content: '';
   position: absolute;
   left: 50px;  /* Line position from the left */
-  top: calc(100% - 70%);  /* Adjust this based on where the description box ends */
+  top: calc(100% - 62%);  /* Adjust this based on where the description box ends */
   bottom: -10px;
   width: 2px;  /* Line width */
-  background-color: #ddd;  /* Line color */
+  background-color: rgb(234, 230, 213);  /* Line color */
   z-index: 0;
 }
 

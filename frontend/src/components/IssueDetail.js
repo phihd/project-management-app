@@ -788,7 +788,7 @@ const IssueDetail = () => {
                             <ul className="comment-history-list">
                               {comment.versions.map((version, idx) => (
                                 <li key={idx} onClick={() => toggleHistoryModal(version)}>
-                                  {version.editor} edited on {formatTimestamp(version.timestamp)}
+                                  {comment.user.name} edited on {formatTimestamp(version.timestamp)}
                                 </li>
                               ))}
                             </ul>
