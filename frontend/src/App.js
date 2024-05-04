@@ -7,6 +7,7 @@ import {
   Routes,
   Route,
   Link,
+  useLocation,
   useParams,
   // useMatch,
   useNavigate
@@ -14,7 +15,7 @@ import {
 
 import scqcLogo from './img/LOGO-SCQC-ISO.png'
 import user_phihd from './img/user_phihd.jpeg'
-import default_avatar from './img/default_avatar.jpg'
+import default_avatar from './img/default_avatar.png'
 import noti_img from './img/noti_img.png'
 import sidebar_img from './img/sidebar_img.png'
 
@@ -35,6 +36,8 @@ import userService from './services/users'
 import notiService from './services/notifications'
 import { setToken } from './services/tokenmanager'
 
+
+
 const App = () => {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
@@ -48,6 +51,8 @@ const App = () => {
   const [isSidebarVisible, setIsSidebarVisible] = useState(false)
   const { user, setUser } = useContext(UserContext)
   const queryClient = useQueryClient()
+  const location = useLocation();
+  const currentRoute = location.pathname;  // This holds the current path
 
 
   const handleLogout = () => {
@@ -238,6 +243,7 @@ const App = () => {
     const [isOpen, setIsOpen] = useState(false)
     const [isOpenEmailForm, setIsOpenEmailForm] = useState(false)
     const [email, setEmail] = useState('')
+    const formRef = useRef(null)
 
     const toggleDropdown = () => {
       setIsOpen(!isOpen)
@@ -254,7 +260,15 @@ const App = () => {
 
     const toggleEmailForm = () => {
       setIsOpenEmailForm(!isOpenEmailForm)
-    }
+      // Attach or detach the event listener based on the form state
+      if (!isOpenEmailForm) {
+          // Attaching the event listener
+          document.addEventListener('mousedown', handleClickOutside)
+      } else {
+          // Removing the event listener
+          document.removeEventListener('mousedown', handleClickOutside)
+      }
+  }
 
     const handleEmailChange = (event) => {
       setEmail(event.target.value)
@@ -273,7 +287,15 @@ const App = () => {
 
     const handleCloseForm = () => {
       setIsOpenEmailForm(false)
+      document.removeEventListener('mousedown', handleClickOutside)
+  }
+
+  const handleClickOutside = (event) => {
+    if (formRef.current && !formRef.current.contains(event.target)) {
+        setIsOpenEmailForm(false)
+        document.removeEventListener('mousedown', handleClickOutside)
     }
+}
 
     return (
       <div className="user-info">
@@ -288,13 +310,15 @@ const App = () => {
           </div>
         )}
         {isOpenEmailForm && (
-          <div className="email-form">
-            <button className="close-btn" onClick={handleCloseForm}>X</button>
+          <div className="email-form-overlay">
+          <div className="email-form" ref={formRef}>
+            <button className="close-btn" onClick={handleCloseForm}> x </button>
             <form onSubmit={handleSubmitEmail}>
-              <input type="email" value={email} onChange={handleEmailChange} placeholder="Enter email" />
+              <input type="email" value={email} onChange={handleEmailChange} placeholder="Enter email to receive notifications" />
               <button type="submit">Submit</button>
             </form>
           </div>
+        </div>
         )}
       </div>
     )
@@ -388,31 +412,32 @@ const App = () => {
     <div>
       {user === null && loginForm()}
       {
-        user && <div>
+        user && 
+        <div>
           <div className="App">
             <NavigationBar toggleSidebar={() => setIsSidebarVisible(prev => !prev)} />
-            <div className={`sidebar-wrapper ${isSidebarVisible ? '' : 'hidden'}`}>
-              <Sidebar isVisible={isSidebarVisible} />
-            </div>
-            <div className={`content-wrapper ${isSidebarVisible ? 'shifted' : ''}`}>
-              <div className="main-content">
-                <Routes>
-                  <Route path="/" element={<Main />} />
-                  <Route path="/project" element={<Project />} />
-                  <Route path="/project/:projectId" element={<ProjectDetail />} />
-                  <Route path="/department" element={<Department />} />
-                  <Route path="/project/:projectId/:issueId" element={<IssueDetail />} />
-                  <Route path="/procedure" element={<Procedure />} />
-                  <Route path="/procedure/:templateId" element={<TemplateDetail />} />
-                  <Route path="/procedure/:templateId/:stepId" element={<StepDetail />} />
-                </Routes>
-              </div>
-            </div>
-            <Footer>
-              <UserDropdown user={user} handleLogout={handleLogout} />
-            </Footer>
+          <div className={`sidebar-wrapper ${isSidebarVisible ? '' : 'hidden'}`}>
+            <Sidebar isVisible={isSidebarVisible} />
           </div>
-        </div>
+          <div className={`content-wrapper ${isSidebarVisible ? 'shifted' : ''}`}>
+            <div className={`main-content ${currentRoute === '/' ? 'dashboard-active' : ''}`}>
+            <Routes>
+                <Route path="/" element={<Main />} />
+                <Route path="/project" element={<Project />} />
+                <Route path="/project/:projectId" element={<ProjectDetail />} />
+                <Route path="/department" element={<Department />} />
+                <Route path="/project/:projectId/:issueId" element={<IssueDetail />} />
+                <Route path="/procedure" element={<Procedure />} />
+                <Route path="/procedure/:templateId" element={<TemplateDetail />} />
+                <Route path="/procedure/:templateId/:stepId" element={<StepDetail />} />
+              </Routes>
+            </div>
+            </div>
+              <Footer>
+                  <UserDropdown user={user} handleLogout={handleLogout} />
+              </Footer>
+            </div>
+          </div>
       }
     </div>
   )

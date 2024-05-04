@@ -1,6 +1,6 @@
 /* eslint-disable */
 
-import React, { useState, useEffect, useContext } from 'react'
+import React, { useState, useContext, useRef } from 'react'
 import './IssueDetail.css'
 import { useParams, Link } from 'react-router-dom'
 import { useQuery, useQueryClient } from 'react-query'
@@ -18,6 +18,15 @@ import close_status from '../img/close_issue.png'
 import edit_button from '../img/edit_button.png'
 import edit_description_button from '../img/edit_description.png'
 import downArrow from '../img/down-arrow.png'
+import number_list from '../img/number_list.png'
+import bullet_list from '../img/bullet_list.png'
+import task_list from '../img/task_list.png'
+import edit_due from '../img/edit_due.png'
+import edit_assignee from '../img/edit_assignee.png'
+import edit_title from '../img/edit_title.png'
+import edit_close from '../img/edit_close.png'
+import edit_open from '../img/status_button.png'
+import default_user from '../img/default_avatar.png'
 
 const IssueDetail = () => {
 
@@ -42,9 +51,16 @@ const IssueDetail = () => {
   const [showHistoryModal, setShowHistoryModal] = useState(false)
   const [currentHistoryItem, setCurrentHistoryItem] = useState(null)
   const [showHistoryList, setShowHistoryList] = useState(false)
+  const [showCommentOptions, setShowCommentOptions] = useState(null)
   const navigate = useNavigate()
   const queryClient = useQueryClient()
-
+  const historyRef = useRef(null)
+  const [currentTab, setCurrentTab] = useState('Edit')
+  const textAreaRef = useRef(null)
+  const [description, setDescription] = useState('')
+  const usernameRegex = /^(.*?) (assigned|reopened|closed|changed the due date from|updated title to)/
+  const commentOptionsRef = useRef(null)
+  const [showCommentHistoryIndex, setShowCommentHistoryIndex] = useState(null)
 
   // Fetch project details
   const {
@@ -71,7 +87,8 @@ const IssueDetail = () => {
         const userDetail = await userService.get(version.user)
         return {
           ...version,
-          username: userDetail.username || 'Unknown User'
+          username: userDetail.username || 'Unknown User',
+          name: userDetail.name || 'Unknown User'
         }
       }))
       setDescriptionHistory(versionsWithUsernames)
@@ -97,7 +114,7 @@ const IssueDetail = () => {
     if (assigneeInput.sort().toString() !== issue.assignees.map(a => a.id).sort().toString()) {
       try {
         const selectedAssigneeUsers = assigneeInput.map(assigneeName => project.members.find(user => user.name === assigneeName))
-        const actionDescription = `Assignees updated to ${assigneeInput.join(', ')} by ${user.name}`
+        const actionDescription = `${user.name} assigned ${assigneeInput.join(', ')}`
         setIsAssigneeEditMode(false)
         await updateIssue({ assignees: selectedAssigneeUsers.map(user => user.id) }, actionDescription)
       } catch (error) {
@@ -124,25 +141,13 @@ const IssueDetail = () => {
   const handleDueDateUpdate = async () => {
     if (new Date(dueDateInput).getTime() !== new Date(issue.dueDate).getTime()) {
       try {
-        const actionDescription = `Due date changed from ${formatDate(issue.dueDate)} to ${formatDate(dueDateInput)} by ${user.name}`
+        const actionDescription = `${user.name} changed the due date from ${formatDate(issue.dueDate)} to ${formatDate(dueDateInput)}`
         const dueDate = new Date(dueDateInput)
         const endOfDay = set(dueDate, { hours: 23, minutes: 59, seconds: 59 })
         setIsDueDateEditMode(false)
         await updateIssue({ dueDate: endOfDay.toISOString() }, actionDescription)
       } catch (error) {
         console.error('Error updating due date:', error)
-      }
-    }
-  }
-
-  const handleTitleUpdate = async () => {
-    if (titleInput !== issue.title) {
-      try {
-        const actionDescription = `Title updated to "${titleInput}" by ${user.name}`
-        setIsTitleEditMode(false)
-        await updateIssue({ title: titleInput }, actionDescription)
-      } catch (error) {
-        console.error('Error updating title:', error)
       }
     }
   }
@@ -243,8 +248,12 @@ const IssueDetail = () => {
   const toggleEditHistory = (commentId) => {
     queryClient.setQueryData(['comments', issueId], prevComments => prevComments.map(comment => {
       if (comment.id === commentId) {
-        // Toggle the showHistory property
         return { ...comment, showHistory: !comment.showHistory }
+      }
+      if (showCommentHistoryIndex === index) {
+        setShowCommentHistoryIndex(null) // Close the current open history list
+      } else {
+        setShowCommentHistoryIndex(index) // Open the clicked history list
       }
       return comment
     }))
@@ -271,8 +280,35 @@ const IssueDetail = () => {
     setTitleInput(issue.title)
   }
 
+  const handleTitleUpdate = async () => {
+    if (titleInput !== issue.title) {
+      try {
+        const actionDescription = `${user.name} updated title to "${titleInput}"`
+        setIsTitleEditMode(false)
+        await updateIssue({ title: titleInput }, actionDescription)
+      } catch (error) {
+        console.error('Error updating title:', error)
+      }
+    }
+  }
+
   const toggleDescriptionEditMode = () => {
-    setIsDescriptionEditMode(!isDescriptionEditMode)
+    setIsDescriptionEditMode(prev => {
+        // Toggle the state and set up a callback to focus after the update
+        if (!prev) { // If we are about to enter edit mode
+            setTimeout(() => {
+                // Check if the textarea is rendered and visible:
+                const textarea = textAreaRef.current
+                if (textarea) {
+                    textarea.focus()
+                    // Set the cursor at the end of the text
+                    const length = textarea.value.length
+                    textarea.setSelectionRange(length, length)
+                }
+            }, 0)
+        }
+        return !prev
+    })
     setDescriptionInput(issue.description.text)
   }
 
@@ -286,10 +322,265 @@ const IssueDetail = () => {
     setCurrentHistoryItem(null)
   }
 
+  const toggleHistoryList = () => {
+    setShowHistoryList(!showHistoryList);
+    // If the list is not currently shown, add the click listener
+    if (!showHistoryList) {
+      setTimeout(() => { // Use setTimeout to delay the addition of the event listener
+        document.addEventListener('mousedown', handleClickOutside, true);
+      }, 0)
+    }
+  }
+
+  const handleClickOutside = event => {
+    if (historyRef.current && !historyRef.current.contains(event.target)) {
+      setShowHistoryList(false)
+      document.removeEventListener('mousedown', handleClickOutside, true)
+    }
+    if (commentOptionsRef.current && !commentOptionsRef.current.contains(event.target)) {
+      setShowCommentOptions(null)
+      document.removeEventListener('mousedown', handleClickOutside, true)
+    }
+    if (historyRef.current && !historyRef.current.contains(event.target)) {
+      setShowCommentHistoryIndex(false)
+      document.removeEventListener('mousedown', handleClickOutside, true)
+    }
+  }
+
   const handleBackToProject = () => {
     navigate(`/project/${projectId}`)
   }
 
+  const renderDescription = (description, setDescription) => {
+    const handleCheckboxChange = async (index) => {
+      const lines = description.split('\n')
+      const newLines = [...lines]
+      const line = lines[index]
+  
+      if (line.startsWith("- [  ] ")) {
+        newLines[index] = "- [x] " + line.substring(6)
+      } else if (line.startsWith("- [x] ")) {
+        newLines[index] = "- [  ] " + line.substring(6)
+      }
+  
+      const newDescription = newLines.join('\n');
+      setDescription(newDescription)
+      await updateDescription(newDescription)
+
+      const editedDescription = {
+        username: user.name,
+        timestamp: new Date().toLocaleString(),
+        description: newDescription
+      }
+      setDescriptionHistory([...descriptionHistory, editedDescription])
+    }
+
+    return (
+      <div className='description-text'>
+        {description.split('\n').map((line, index) => {
+          if (line.startsWith("- [  ] ")) {
+            return (
+              <div key={index} style={{ display: 'flex', alignItems: 'center' }}>
+                <input type="checkbox" onChange={() => handleCheckboxChange(index)} />
+                <span>{line.substring(6)}</span>
+              </div>
+            );
+          } else if (line.startsWith("- [x] ")) {
+            return (
+              <div key={index} style={{ display: 'flex', alignItems: 'center' }}>
+                <input type="checkbox" checked onChange={() => handleCheckboxChange(index)} />
+                <span>{line.substring(6)}</span>
+              </div>
+            );
+          }
+          return <p key={index}>{line}</p>;
+        })}
+      </div>
+    );
+  }
+
+  const renderDescriptionWithCheckboxes = (description) => {
+    return description.split('\n').map((line, index) => {
+      if (line.startsWith("- [  ] ")) {
+        return (
+          <div key={index} style={{ display: 'flex', alignItems: 'center' }}>
+            <input type="checkbox" disabled /> <span>{line.substring(6)}</span>
+          </div>
+        );
+      } else if (line.startsWith("- [x] ")) {
+        return (
+          <div key={index} style={{ display: 'flex', alignItems: 'center' }}>
+            <input type="checkbox" checked disabled />
+            <span>{line.substring(6)}</span>
+          </div>
+        );
+      }
+      return <p key={index}>{line}</p>;
+    });
+  }
+
+  const insertNumberList = () => {
+    const textarea = textAreaRef.current;
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+  
+    // Split the text into before and after the current cursor position
+    const textBefore = descriptionInput.substring(0, start);
+    const textAfter = descriptionInput.substring(end);
+  
+    // Find if the current line has some content
+    const lastNewLine = textBefore.lastIndexOf('\n');
+    const currentLineContent = textBefore.substring(lastNewLine + 1);
+    const newTextBefore = textBefore.substring(0, lastNewLine + 1);
+  
+    // Check if current line has content, and prepend "1. "
+    if (currentLineContent.trim().length === 0) {
+      // If no content in the current line
+      setDescriptionInput(textBefore + "1. " + textAfter);
+    } else {
+      // If there's content, prepend "1. " to the current line
+      setDescriptionInput(newTextBefore + "1. " + currentLineContent + textAfter);
+    }
+  
+    setTimeout(() => {
+      // Place cursor right after the newly inserted "1. "
+      const newCursorPosition = newTextBefore.length + 3; // +3 for "1. "
+      textarea.selectionStart = textarea.selectionEnd = newCursorPosition;
+      textarea.focus();
+    }, 0);
+  }
+
+  const insertBulletList = () => {
+    const textarea = textAreaRef.current;
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+  
+    // Split the text into before and after the current cursor position
+    const textBefore = descriptionInput.substring(0, start);
+    const textAfter = descriptionInput.substring(end);
+  
+    // Find if the current line has some content
+    const lastNewLine = textBefore.lastIndexOf('\n');
+    const currentLineContent = textBefore.substring(lastNewLine + 1);
+    const newTextBefore = textBefore.substring(0, lastNewLine + 1);
+  
+    // Check if current line has content, and prepend "-" to the current line
+    if (currentLineContent.trim().length === 0) {
+      // If no content in the current line
+      setDescriptionInput(textBefore + "● " + textAfter);
+    } else {
+      // If there's content, prepend "- " to the current line
+      setDescriptionInput(newTextBefore + "- " + currentLineContent + textAfter);
+    }
+  
+    setTimeout(() => {
+      // Place cursor right after the newly inserted "- "
+      const newCursorPosition = newTextBefore.length + 2; // +2 for "- "
+      textarea.selectionStart = textarea.selectionEnd = newCursorPosition;
+      textarea.focus();
+    }, 0);
+  }
+
+  const insertTaskList = () => {
+    const textarea = textAreaRef.current;
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+  
+    const textBefore = descriptionInput.substring(0, start);
+    const textAfter = descriptionInput.substring(end);
+  
+    const lastNewLine = textBefore.lastIndexOf('\n');
+    const currentLineContent = textBefore.substring(lastNewLine + 1);
+    const newTextBefore = textBefore.substring(0, lastNewLine + 1);
+  
+    // Check if current line has content, and prepend "- [ ] " to the current line
+    if (currentLineContent.trim().length === 0) {
+      setDescriptionInput(textBefore + "- [  ] " + textAfter);
+    } else {
+      setDescriptionInput(newTextBefore + "- [  ] " + currentLineContent + textAfter);
+    }
+  
+    setTimeout(() => {
+      // Place cursor right after the newly inserted "- [ ] "
+      const newCursorPosition = newTextBefore.length + 6; // +6 for "- [ ] "
+      textarea.selectionStart = textarea.selectionEnd = newCursorPosition;
+      textarea.focus();
+    }, 0);
+  };
+  
+
+
+  const handleKeyDown = (e) => {
+    const textarea = textAreaRef.current;
+    if (e.key === 'Enter') {
+        e.preventDefault(); // Prevent the default action to manage new line ourselves
+
+        // Get current cursor position:
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const textBefore = descriptionInput.substring(0, start)
+        const textAfter = descriptionInput.substring(end)
+
+        // Find the type of list and act accordingly
+        const linesBeforeCursor = textBefore.split('\n')
+        const lastLine = linesBeforeCursor[linesBeforeCursor.length - 1]
+        const numberMatch = lastLine.match(/^(\d+)\./)
+        const bulletMatch = lastLine.startsWith("● ")
+        const taskMatch = lastLine.trim().startsWith("- [  ]") || lastLine.trim().startsWith("- [x] ")
+
+        let newText = textBefore + '\n'
+
+        if (numberMatch) {
+            const number = parseInt(numberMatch[1], 10);
+            newText += (number + 1) + '. ' + textAfter;
+        } else if (bulletMatch) {
+            newText += "● " + textAfter;
+        } else if (taskMatch) {
+            newText += "- [  ] " + textAfter;
+        } else {
+            newText += textAfter; // No list, continue with normal text
+        }
+
+        setDescriptionInput(newText);
+        setTimeout(() => {
+            // Place cursor after the newly inserted prefix
+            const positionAdjust = numberMatch ? (numberMatch[1].length + 3) : bulletMatch ? 3 : taskMatch ? 8 : 1;
+            const position = start + positionAdjust; // Adjust for ". ", "- ", or "- [ ] "
+            textarea.selectionStart = textarea.selectionEnd = position;
+            textarea.focus();
+        }, 0);
+    }
+  }
+
+  function getButtonImage(description) {
+    if (description.toLowerCase().includes('changed the due date')) return edit_due;
+    if (description.toLowerCase().includes('assigned')) return edit_assignee;
+    if (description.toLowerCase().includes('updated title')) return edit_title;
+    if (description.toLowerCase().includes('closed this issue')) return edit_close;
+    if (description.toLowerCase().includes('reopened this issue')) return edit_open;
+    return null; // Default case if no conditions are met
+  }
+
+  const toggleCommentOptions = (index) => {
+    if (showCommentOptions === index) {
+      // If clicking on the currently open dropdown, close it and remove the listener
+      setShowCommentOptions(null)
+      document.removeEventListener('mousedown', handleClickOutside, true)
+    } else {
+      // Open the dropdown and add the listener
+      setShowCommentOptions(index)
+      setTimeout(() => { // Use setTimeout to delay the addition of the event listener
+        document.addEventListener('mousedown', handleClickOutside, true)
+      }, 0)
+    }
+  }
+
+  const deleteComment = async (commentId) => {
+    commentService.remove(projectId, issueId, commentId)
+    queryClient.setQueryData(['comments', issueId], prevComments => prevComments.filter(comment => comment.id !== commentId))
+  }
+
+  
   const formatTimestamp = (timestamp) => {
     const date = new Date(timestamp)
     const hours = date.getHours().toString().padStart(2, '0')
@@ -356,41 +647,84 @@ const IssueDetail = () => {
         </div>
       </div>
       <div className="issue-body">
+        <div className='left-container'>
         <div className="left-section">
           <div className="description-box">
             <div className="header">
-              <div className="left-header">
-                <h3>Description</h3>
-                {descriptionHistory && descriptionHistory.length > 0 && (
-                  <>
-                    <button onClick={() => setShowHistoryList(!showHistoryList)} className="history-btn">
-                      last edited by {descriptionHistory[descriptionHistory.length - 1]?.username}
-                      <img src={downArrow} alt="Show History" />
-                    </button>
-                    {showHistoryList && (
-                      <ul>
-                        {descriptionHistory.map((item, index) => (
-                          <li key={index} onClick={() => toggleHistoryModal(item)}>
-                            Edited by {item.username} at {formatDate(item.timestamp)}
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </>
-                )}
-              </div>
+            <div className="left-header">
+              <h3>Description</h3>
+              {descriptionHistory && descriptionHistory.length > 0 && (
+                <>
+                  <button onClick={toggleHistoryList} className="history-btn">
+                    last edited by {descriptionHistory[descriptionHistory.length - 1]?.name}
+                    <img src={downArrow} alt="Show History" />
+                  </button>
+                  {showHistoryList && (
+                    <ul className='history-list' ref={historyRef}>
+                      {descriptionHistory.slice().reverse().map((item, index) => (
+                        <li key={index} onClick={() => toggleHistoryModal(item)}>
+                          {item.name} edited at {formatDate(item.timestamp)}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </>
+              )}
+            </div>
+            
               <button onClick={toggleDescriptionEditMode} className="edit-btn">
                 <img src={edit_description_button} alt="Edit Description" />
               </button>
             </div>
             <hr />
             {!isDescriptionEditMode ? (
-              <p className="description-text">{issue.description.text}</p>
+              renderDescription(issue.description.text, setDescription)
             ) : (
-              <textarea
-                value={descriptionInput}
-                onChange={(e) => setDescriptionInput(e.target.value)}
-              />
+              <>
+                <div className="edit-container">
+                  <div className="tabs-and-toolbar">
+                      <div className="tabs">
+                          <button onClick={() => setCurrentTab('Edit')} className={currentTab === 'Edit' ? 'active' : ''}>
+                              Edit
+                          </button>
+                          <button onClick={() => setCurrentTab('Preview')} className={currentTab === 'Preview' ? 'active' : ''}>
+                              Preview
+                          </button>
+                      </div>
+                      {currentTab === 'Edit' && (
+                          <div className="toolbar">
+                              <button onClick={insertNumberList} title="Number List">
+                                  <img src={number_list} alt="Number List" />
+                              </button>
+                              <button onClick={insertBulletList} title = "Bullet List">
+                                  <img src={bullet_list} alt="Bullet List" />
+                              </button>
+                              <button onClick={insertTaskList} title = "Task List">
+                                  <img src={task_list} alt="Task List" />
+                              </button>
+                          </div>
+                      )}
+                  </div>
+
+                  {currentTab === 'Edit' && (
+                      <textarea
+                          ref={textAreaRef}
+                          value={descriptionInput}
+                          onChange={(e) => setDescriptionInput(e.target.value)}
+                          onKeyDown={handleKeyDown}
+                          className="text-input"
+                      />
+                  )}
+
+                  {currentTab === 'Preview' && (
+                      <div className="preview">
+                          {renderDescriptionWithCheckboxes(descriptionInput, true)}
+                      </div>
+                  )}
+              </div>
+
+                
+              </>
             )}
             {isDescriptionEditMode && (
               <div className="button-group">
@@ -398,113 +732,132 @@ const IssueDetail = () => {
                 <button onClick={handleDescriptionUpdate} className="save-btn">Update Description</button>
               </div>
             )}
-            {/* {showDescriptionHistory && renderDescriptionHistory()} */}
+
             {showHistoryModal && currentHistoryItem && (
-              <div className="modal">
-                <div className="modal-content">
-                  <span className="close" onClick={closeHistoryModal}>&times</span>
-                  <p>
-                    Edited by {currentHistoryItem.username} at {formatDate(currentHistoryItem.timestamp)}
-                  </p>
-                  <p>
-                    Description: {currentHistoryItem.text}
-                  </p>
+              <div className="modal" onClick={closeHistoryModal}>
+                <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                  <div className="modal-header">
+                    <span>{currentHistoryItem.name} edited at {formatDate(currentHistoryItem.timestamp)}</span>
+                    <span className="close" onClick={closeHistoryModal}>x</span>
+                  </div>  
+                  <hr />
+                  <div className="modal-body">
+                  {renderDescriptionWithCheckboxes(currentHistoryItem.text)}
+                  </div>
                 </div>
               </div>
             )}
           </div>
-
-          <div className="issue-details">
-            <h3> Detail Actions </h3>
+          
+          <div className="detail-actions-container">
+            {/* <h3>Detail Actions</h3> */}
             {actionHistory.map((entry, index) => (
-              <div key={index}>
-                <strong>{entry.username}</strong> {entry.description} on {formatDate(new Date(entry.timestamp))}
+              <div key={index} style={{ top: `${index * 60}px` }} className="action-item">
+                <button className="action-button" style={{ backgroundImage: `url(${getButtonImage(entry.description)})` }}></button>
+                <p className="action-text">
+                  {entry.description.match(usernameRegex) ? (
+                  <>
+                    <span className="username-style">{entry.description.match(usernameRegex)[1]}</span>
+                    {entry.description.substring(entry.description.match(usernameRegex)[1].length)} on {formatTimestamp(new Date(entry.timestamp))}
+                  </>
+                ) : (
+                  <span>{entry.description} on {formatDate(entry.timestamp)}</span>
+                )}
+                </p>
               </div>
             ))}
-
           </div>
+
+
           <div className="issue-comments">
-            <h3>Comments</h3>
             {comments.length === 0 ? (
               <p>No comments yet.</p>
             ) : (
               comments.map((comment, index) => (
-                <div className="comment" key={index}>
-                  <p className="comment-user">{comment.user.name} commented on {formatTimestamp(comment.timestamp)}</p>
-                  {
-                    editingCommentId === comment.id ? (
-                      <textarea
-                        value={editedCommentText}
-                        onChange={(e) => setEditedCommentText(e.target.value)}
-                      />
-                    ) : (
-                      <>
-                        <p className="comment-text">{comment.text}</p>
-                        {comment.versions && comment.versions.length > 0 && (
-                          <button onClick={() => toggleEditHistory(comment.id)}>View History</button>
+                <div className="comment-box" key={index}>
+                  <div className="comment-header">
+                    <img src={default_user} alt={comment.user.name} className="comment-avatar"/>
+                    <div className="comment-info">
+                      <p className="comment-user">{comment.user.name} commented on {formatDate(comment.timestamp)}
+                        {comment.versions && comment.versions.length > 1 && (
+                          <>
+                          <button className="edited" onClick={() => toggleEditHistory(comment.id)}>
+                            · edited <img src={downArrow} alt="Toggle History" />
+                          </button>
+                          {comment.showHistory && (
+                            <ul className="comment-history-list">
+                              {comment.versions.map((version, idx) => (
+                                <li key={idx} onClick={() => toggleHistoryModal(version)}>
+                                  {comment.user.name} edited on {formatTimestamp(version.timestamp)}
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+                          </>
                         )}
-                        {comment.showHistory && (
-                          <ul>
-                            {comment.versions.map((version, idx) => (
-                              <li key={idx}>
-                                <strong>{comment.user.name}</strong> edited on {formatTimestamp(version.timestamp)}: {version.text}
-                              </li>
-                            ))}
-                          </ul>
-                        )}
-                      </>
-                    )
-                  }
-                  {
-                    user.id === comment.user.id && (
-                      editingCommentId === comment.id ? (
-                        <>
-                          <button onClick={() => saveEditedComment(comment)}>Save</button>
-                          <button onClick={() => toggleEditComment(null, comment.text)}>Cancel</button>
-                        </>
-                      ) : (
-                        <button onClick={() => toggleEditComment(comment.id, comment.text)}>Edit</button>
-                      )
-                    )
-                  }
-                  {/* Display attached files with download links */}
-                  {comment.files && comment.files.length > 0 && (
-                    <div className="comment-files">
-                      <strong>Attached Files:</strong>
-                      <ul>
-                        {Array.from(comment.files).map((file, fileIdx) => (
-                          <li key={fileIdx}>
-                            <a href={URL.createObjectURL(file)} download={file.name}>
-                              {file.name}
-                            </a>
-                          </li>
-                        ))}
-                      </ul>
+                      </p>
                     </div>
+                    <div className="comment-actions">
+                      <button onClick={() => toggleCommentOptions(index)} className="comment-toggle"> Options
+                        <img src={downArrow} alt="Show History" />
+                      </button>
+                      {showCommentOptions === index && (
+                        <div className="comment-options" ref={commentOptionsRef}>
+                          <button onClick={() => toggleEditComment(comment.id, comment.text)}>Edit</button>
+                          <button onClick={() => deleteComment(comment.id)}>Delete</button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <div className="comment-content">
+                  {editingCommentId === comment.id ? (
+                    <textarea
+                      value={editedCommentText}
+                      onChange={(e) => setEditedCommentText(e.target.value)}
+                    />
+                  ) : (
+                    <p className="comment-text">{comment.text}</p>
                   )}
+
+                  {editingCommentId === comment.id && (
+                              <div className='button-group'>
+                                <button onClick={() => saveEditedComment(comment)} className='save-btn'>Save</button>
+                                <button onClick={() => toggleEditComment(null)} className="cancel-btn">Cancel</button>
+                              </div>
+                            )}
+                  </div>
                 </div>
               ))
             )}
+            </div>
           </div>
+          
 
-          <div className="add-comment">
-            <h3>Add Comment</h3>
-            <textarea
-              className="comment-input"
-              placeholder="Leave a comment"
-              value={commentInput}
-              onChange={handleCommentInput}
-            ></textarea>
-            <input
-              type="file"
-              multiple
-              accept=".pdf,.doc,.docx,.jpg,.png"
-              onChange={handleCommentFileUpload}
-            />
-            <button className="comment-button" onClick={handleAddComment}>Comment</button>
+          <div className='under-left-section'>
+            <div className="add-comment">
+              <h3>add a comment</h3>
+              <textarea
+                className="comment-input"
+                placeholder="Leave a comment"
+                value={commentInput}
+                onChange={handleCommentInput}
+              ></textarea>
+              <div className="comment-actions">
+                <input
+                  type="file"
+                  multiple
+                  accept=".pdf, .doc, .docx, .jpg, .png"
+                  onChange={handleCommentFileUpload}
+                  className="file-input"
+                />
+                <button className="comment-button" onClick={handleAddComment}>Comment</button>
+              </div>
+            </div>
           </div>
 
         </div>
+
+        
         <div className="right-section">
 
           <div className="due-date">

@@ -171,7 +171,7 @@ function ProjectDetail() {
       {showIssueForm && (
         <div className="overlay">
           <div className="modal">
-            <button onClick={handleCloseForm}>Close</button>
+            {/* <button onClick={handleCloseForm}>Close</button> */}
             <NewIssueForm handleCloseForm={handleCloseForm} handleCreateIssue={handleCreateIssue} />
           </div>
         </div>

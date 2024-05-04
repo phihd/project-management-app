@@ -32,7 +32,7 @@ const Table = ({ projects, queryClient, handleNewProjectClick, showProjectForm, 
       {showProjectForm && (
         <div className="overlay">
           <div className="modal">
-            <button onClick={handleCloseForm}>Close</button>
+            {/* <button onClick={handleCloseForm}>Close</button> */}
             <NewProjectForm handleCloseForm={handleCloseForm} handleCreateProject={handleCreateProject} />
           </div>
         </div>
