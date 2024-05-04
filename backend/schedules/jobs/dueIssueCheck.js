@@ -27,7 +27,13 @@ const performDueIssueCheck = async (issueId = null) => {
     await Promise.all(issuesDueSoon.map(async (issue) => {
       await Promise.all(issue.assignees.map(async (assignee) => {
         if (assignee.email) {
-          await sendEmailNotification(assignee.email, `Issue "${issue.title}" is due soon.`)
+          await sendEmailNotification(
+            assignee.email, 
+            `Issue Due Soon: ${issue.title}`,
+            `Issue "${issue.title}" is due soon.`,
+            `Issue <a href="https://scqc-project-management.fly.dev/project/${issue.project.toString()}/${issue._id}">${issue.title}</a> is due within 24 hours.`
+          )
+          
         }
         await createAppNotification({
           user: assignee.id,
