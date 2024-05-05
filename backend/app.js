@@ -4,6 +4,7 @@ const Grid = require('gridfs-stream')
 require('express-async-errors')
 const app = express()
 const cors = require('cors')
+const fs = require('fs')
 
 const usersRouter = require('./controllers/users')
 const loginRouter = require('./controllers/login')
@@ -33,13 +34,10 @@ mongoose.connect(config.MONGODB_URI)
     logger.error('error connecting to MongoDB:', error.message)
   })
 
-// // Initialize GridFS
-// const connection = mongoose.connection
-// let gfs
-// connection.once('open', () => {
-//   gfs = Grid(connection.db, mongoose.mongo)
-//   gfs.collection('files-upload')
-// })
+const dir = './uploads'
+if (!fs.existsSync(dir)) {
+  fs.mkdirSync(dir, { recursive: true })
+}
 
 app.use(cors())
 app.use(express.static('build'))
@@ -56,6 +54,8 @@ app.use('/api/notifications', notificationRouter)
 app.use('/api/projects', projectsRouter)
 app.use('/api/projects/:projectId/issues', issuesRouter)
 app.use('/api/projects/:projectId/issues/:issueId/comments', commentRouter)
+// Serve static files from the 'uploads' directory
+app.use('/uploads', express.static('uploads'))
 
 if (process.env.NODE_ENV === 'test') {
   const testingRouter = require('./controllers/testing')

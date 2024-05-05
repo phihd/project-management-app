@@ -209,11 +209,11 @@ const IssueDetail = () => {
       const comment = await commentService.create(projectId, issueId, formData)
       queryClient.setQueryData(['comments', issueId], oldComments => [...oldComments, comment])
       setFiles([])
-  } catch (error) {
+    } catch (error) {
       console.error('Failed to create comment:', error)
+    }
   }
-  }
-  
+
   const handleAddComment = () => {
     if (commentInput.trim() !== '') {
       const formData = new FormData()
@@ -821,7 +821,13 @@ const IssueDetail = () => {
                           onChange={(e) => setEditedCommentText(e.target.value)}
                         />
                       ) : (
-                        <p className="comment-text">{comment.text}</p>
+                        <p className="comment-text">
+                          {comment.text}
+                          <br></br>
+                          {comment.files && comment.files.map((file, index) => (
+                            <a key={index} href={`/${file}`} target="_blank" rel="noopener noreferrer">View Attachment</a>
+                          ))}
+                        </p>
                       )}
 
                       {editingCommentId === comment.id && (

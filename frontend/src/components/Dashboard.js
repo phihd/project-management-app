@@ -50,7 +50,6 @@ function Dashboard() {
                   day: '2-digit', month: '2-digit', year: 'numeric'
                 })}</p>
                 <p>Project: {issue.project.name}</p>
-                {console.log(issue)}
                 <p>Assignees: {issue.assignees.map(assignee => assignee.name).join(', ')}</p>
               </div>
               <Link to={`/project/${issue.project.id}/${issue.id}`} className="details-button">
