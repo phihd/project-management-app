@@ -12,7 +12,7 @@ const create = async (projectId, issueId, formData) => {
   const token = getToken()
   const config = {
     headers: {
-      Authorization: `Bearer ${token}`,
+      Authorization: token,
       'Content-Type': 'multipart/form-data',
     },
   }

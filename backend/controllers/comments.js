@@ -3,9 +3,8 @@ const commentsRouter = require('express').Router({ mergeParams: true }) // Use m
 const Issue = require('../models/issue')
 const Project = require('../models/project')
 const CommentModel = require('../models/comment')
-
-
 const multer = require('multer')
+
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, './uploads/') // Ensure this directory exists
@@ -35,13 +34,13 @@ commentsRouter.get('/:commentId', async (request, response) => {
   }
 })
 
-commentsRouter.post('/', async (request, response, next) => {
+commentsRouter.post('/', upload.array('files', 5), async (request, response, next) => {
+  console.log('hehe')
   const token = request.token
   if (!token) {
     return response.status(401).json({ error: 'token missing' })
   }
 
-  console.log(token)
   const decodedToken = jwt.verify(token, process.env.SECRET)
   if (!decodedToken.id) {
     return response.status(401).json({ error: 'token invalid' })
@@ -100,7 +99,7 @@ commentsRouter.delete('/:commentId', async (request, response, next) => {
   }
 })
 
-commentsRouter.put('/:commentId', async (request, response, next) => {
+commentsRouter.put('/:commentId', upload.array('files', 5), async (request, response, next) => {
   const token = request.token
   if (!token) {
     return response.status(401).json({ error: 'token missing' })

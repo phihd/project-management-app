@@ -840,7 +840,7 @@ const IssueDetail = () => {
 
           <div className='under-left-section'>
             <div className="add-comment">
-              <h3>add a comment</h3>
+              {/* <h3>add a comment</h3> */}
               <textarea
                 className="comment-input"
                 placeholder="Leave a comment"
