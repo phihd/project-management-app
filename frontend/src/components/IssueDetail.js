@@ -11,6 +11,8 @@ import userService from '../services/users'
 import UserContext from './UserContext'
 import { useNavigate } from 'react-router-dom'
 import { set } from 'date-fns'
+import NProgress from 'nprogress'
+NProgress.configure({ easing: 'ease', speed: 500, showSpinner: false })
 
 import back_project from '../img/left.png'
 import open_status from '../img/open_issue.png'
@@ -27,6 +29,7 @@ import edit_title from '../img/edit_title.png'
 import edit_close from '../img/edit_close.png'
 import edit_open from '../img/status_button.png'
 import default_user from '../img/default_avatar.png'
+
 
 const IssueDetail = () => {
 
@@ -115,8 +118,8 @@ const IssueDetail = () => {
       try {
         const selectedAssigneeUsers = assigneeInput.map(assigneeName => project.members.find(user => user.name === assigneeName))
         const actionDescription = `${user.name} assigned ${assigneeInput.join(', ')}`
-        setIsAssigneeEditMode(false)
         await updateIssue({ assignees: selectedAssigneeUsers.map(user => user.id) }, actionDescription)
+        setIsAssigneeEditMode(false)
       } catch (error) {
         console.error('Error updating assignees:', error)
       }
@@ -128,8 +131,8 @@ const IssueDetail = () => {
       const newStatus = currentStatus === 'Open' ? 'Close' : 'Open'
       try {
         const actionDescription = `${user.name} ${newStatus === 'Open' ? 'reopened' : 'closed'} this issue`
-        setCurrentStatus(newStatus)
         await updateIssue({ status: newStatus }, actionDescription)
+        setCurrentStatus(newStatus)
       } catch (error) {
         console.error('Error updating issue status:', error)
       }
@@ -144,8 +147,8 @@ const IssueDetail = () => {
         const actionDescription = `${user.name} changed the due date from ${formatDate(issue.dueDate)} to ${formatDate(dueDateInput)}`
         const dueDate = new Date(dueDateInput)
         const endOfDay = set(dueDate, { hours: 23, minutes: 59, seconds: 59 })
-        setIsDueDateEditMode(false)
         await updateIssue({ dueDate: endOfDay.toISOString() }, actionDescription)
+        setIsDueDateEditMode(false)
       } catch (error) {
         console.error('Error updating due date:', error)
       }
@@ -160,13 +163,13 @@ const IssueDetail = () => {
           timestamp: new Date().toLocaleString(),
           text: issue.description.text
         }
-        setDescriptionHistory([...descriptionHistory, editedDescription])
-        setIsDescriptionEditMode(false)
         await updateIssue({
           description: {
             text: descriptionInput
           }
         })
+        setDescriptionHistory([...descriptionHistory, editedDescription])
+        setIsDescriptionEditMode(false)
       } catch (error) {
         console.error('Error updating description:', error)
       }
@@ -184,8 +187,11 @@ const IssueDetail = () => {
 
         issueToUpdate.actionHistory = [...(actionHistory || []), actionEntry]
       }
+      NProgress.start()
 
       const updatedIssue = await issueService.update(projectId, issueId, issueToUpdate)
+
+      NProgress.done()
 
       queryClient.setQueryData(['issue', issueId], updatedIssue)
 
@@ -598,7 +604,12 @@ const IssueDetail = () => {
   }
 
   // Render loading state or error message
-  if (projectLoading || issueLoading || commentsLoading) return <div>Loading...</div>
+  if (projectLoading || issueLoading || commentsLoading) {
+    NProgress.start()
+    return
+  } else {
+    NProgress.done()
+  }
   if (projectError) return <div>Error loading project: {projectErrorMessage.message}</div>
   if (issueError) return <div>Error loading issue: {issueErrorMessage.message}</div>
   if (commentsError) return <div>Error loading comments: {commentsErrorMessage.message}</div>

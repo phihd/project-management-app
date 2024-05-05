@@ -16,6 +16,10 @@ import open_status from '../img/open_issue.png'
 import close_status from '../img/close_issue.png'
 import comment_count from '../img/comment_count.png'
 
+import NProgress from 'nprogress'
+import 'nprogress/nprogress.css'
+NProgress.configure({ easing: 'ease', speed: 500, showSpinner: false })
+
 function ProjectDetail() {
   const { projectId } = useParams()
   const { user } = useContext(UserContext)
@@ -87,7 +91,12 @@ function ProjectDetail() {
     }
   }
 
-  if (isProjectLoading || isIssuesLoading) return <div>Loading...</div>
+  if (isProjectLoading || isIssuesLoading) {
+    NProgress.start()
+    return
+  } else {
+    NProgress.done()
+  }
   if (isProjectError) return <div>Error loading project: {projectError.message}</div>
   if (isIssuesError) return <div>Error loading issues: {issuesError.message}</div>
   if (!project) return <div>Project not found.</div>

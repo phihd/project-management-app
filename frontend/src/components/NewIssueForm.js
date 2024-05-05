@@ -4,6 +4,9 @@ import 'react-datepicker/dist/react-datepicker.css'
 import { useQuery } from 'react-query'
 import userService from '../services/users'
 import { set } from 'date-fns'
+import NProgress from 'nprogress'
+import 'nprogress/nprogress.css'
+NProgress.configure({ easing: 'ease', speed: 500, showSpinner: false })
 import './NewIssueForm.css'
 
 function NewIssueForm({ handleCreateIssue, handleCloseForm }) {
@@ -42,7 +45,12 @@ function NewIssueForm({ handleCreateIssue, handleCloseForm }) {
     handleCloseForm()
   }
 
-  if (isLoading) return <div>Loading...</div>
+  if (isLoading) {
+    NProgress.start()
+    return
+  } else {
+    NProgress.done()
+  }
   if (isError) return <div>Error loading assignees: {error.message}</div>
 
   return (

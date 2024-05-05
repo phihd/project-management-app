@@ -1,6 +1,6 @@
 /* eslint-disable */
 import React, { useState, useEffect, useContext, useRef, useCallback } from 'react'
-import { useQuery } from 'react-query'
+import { useQuery, useQueryClient } from 'react-query'
 import axios from 'axios'
 import './App.css'
 import {
@@ -12,7 +12,9 @@ import {
   // useMatch,
   useNavigate
 } from 'react-router-dom'
+import NProgress from 'nprogress'
 import 'nprogress/nprogress.css'
+NProgress.configure({ easing: 'ease', speed: 500, showSpinner: false })
 
 import scqcLogo from './img/LOGO-SCQC-ISO.png'
 import user_phihd from './img/user_phihd.jpeg'
@@ -53,6 +55,8 @@ const App = () => {
   const { user, setUser } = useContext(UserContext)
   const location = useLocation()
   const currentRoute = location.pathname  // This holds the current path
+  const queryClient = useQueryClient()
+  const navigate = useNavigate()
 
 
   const handleLogout = () => {
@@ -82,25 +86,30 @@ const App = () => {
   }, [])
 
   // Fetch user
-  const { isLoading: userLoading, isError: userError, error: userErrorMessage } = useQuery('user', userService.getUserFromLocalStorage, {
-    onSuccess: (userData) => {
-      setUser(userData)
-      setShowLogin(false)
-    },
-    onError: () => {
-      handleLogout()
-      setShowLogin(true)
-    },
-    enabled: !!localStorage.getItem('loggedProjectappUser'),
-    retry: false,
-    refetchOnWindowFocus: false
-  })
+  const { isLoading: userLoading, isError: userError, error: userErrorMessage } = useQuery(
+    'user',
+    userService.getUserFromLocalStorage,
+    {
+      staleTime: 5 * 60 * 1000,
+      onSuccess: (userData) => {
+        setUser(userData)
+        setShowLogin(false)
+      },
+      onError: () => {
+        handleLogout()
+        setShowLogin(true)
+      },
+      enabled: !!localStorage.getItem('loggedProjectappUser'),
+      retry: false,
+      refetchOnWindowFocus: false
+    })
 
   // Fetch notifications
   const { data: notifications, isLoading: notificationsLoading } = useQuery(
     'notifications',
     () => notiService.get(user.id),
     {
+      staleTime: 5 * 60 * 1000,
       enabled: !!user && !!user.token,
       onError: (error) => {
         if (error.response && error.response.status === 401) { // Handle unauthorized access (e.g., token expiration)
@@ -113,8 +122,24 @@ const App = () => {
     }
   )
 
-  if (userLoading) return <div>Loading user data...</div>
-  if (notificationsLoading) return <div>Loading notifications...</div>
+  if (userLoading || notificationsLoading) {
+    NProgress.start()
+    return (
+      <div className='App'>
+        <div className='navbar'>
+          <div className='logo'>
+            <Link to="/" onClick={() => handleItemClick('')}>
+              <img className='logo' src={scqcLogo} alt="SCQC Logo" />
+            </Link>
+          </div>
+        </div>
+        <div className='content-wrapper'></div>
+        <footer className='footer'></footer>
+      </div>
+    )
+  } else {
+    NProgress.done()
+  }
 
   function NavigationBar({ toggleSidebar }) {
     const [showNotifications, setShowNotifications] = useState(false)
