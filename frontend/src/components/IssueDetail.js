@@ -196,14 +196,6 @@ const IssueDetail = () => {
     }
   }
 
-  const createComment = async (newComment) => {
-    newComment.files = files.map(file => URL.createObjectURL(file))
-    const comment = await commentService.create(projectId, issueId, newComment)
-    queryClient.setQueryData(['comments', issueId], comments.concat(comment))
-    setFiles([])
-  }
-
-
   const handleCommentInput = (event) => {
     setCommentInput(event.target.value)
   }
@@ -212,16 +204,29 @@ const IssueDetail = () => {
     setCommentFiles(event.target.files)
   }
 
+  const createComment = async (formData) => {
+    try {
+      const comment = await commentService.create(projectId, issueId, formData)
+      queryClient.setQueryData(['comments', issueId], oldComments => [...oldComments, comment])
+      setFiles([])
+  } catch (error) {
+      console.error('Failed to create comment:', error)
+  }
+  }
+  
   const handleAddComment = () => {
     if (commentInput.trim() !== '') {
-      const newComment = {
-        text: commentInput,
-        timestamp: new Date().toLocaleString(),
-        files: commentFiles,
-        user: user,
+      const formData = new FormData()
+      formData.append('text', commentInput)
+      formData.append('timestamp', new Date().toLocaleString())
+      formData.append('user', user)
+
+      // Append files if there are any
+      for (const file of commentFiles) {
+        formData.append('files', file)
       }
-      createComment(newComment)
-      queryClient.setQueryData(['comments', issueId], comments.concat(newComment))
+
+      createComment(formData)
       setCommentInput('')
       setCommentFiles([])
     }
@@ -294,20 +299,20 @@ const IssueDetail = () => {
 
   const toggleDescriptionEditMode = () => {
     setIsDescriptionEditMode(prev => {
-        // Toggle the state and set up a callback to focus after the update
-        if (!prev) { // If we are about to enter edit mode
-            setTimeout(() => {
-                // Check if the textarea is rendered and visible:
-                const textarea = textAreaRef.current
-                if (textarea) {
-                    textarea.focus()
-                    // Set the cursor at the end of the text
-                    const length = textarea.value.length
-                    textarea.setSelectionRange(length, length)
-                }
-            }, 0)
-        }
-        return !prev
+      // Toggle the state and set up a callback to focus after the update
+      if (!prev) { // If we are about to enter edit mode
+        setTimeout(() => {
+          // Check if the textarea is rendered and visible:
+          const textarea = textAreaRef.current
+          if (textarea) {
+            textarea.focus()
+            // Set the cursor at the end of the text
+            const length = textarea.value.length
+            textarea.setSelectionRange(length, length)
+          }
+        }, 0)
+      }
+      return !prev
     })
     setDescriptionInput(issue.description.text)
   }
@@ -323,11 +328,11 @@ const IssueDetail = () => {
   }
 
   const toggleHistoryList = () => {
-    setShowHistoryList(!showHistoryList);
+    setShowHistoryList(!showHistoryList)
     // If the list is not currently shown, add the click listener
     if (!showHistoryList) {
       setTimeout(() => { // Use setTimeout to delay the addition of the event listener
-        document.addEventListener('mousedown', handleClickOutside, true);
+        document.addEventListener('mousedown', handleClickOutside, true)
       }, 0)
     }
   }
@@ -356,14 +361,14 @@ const IssueDetail = () => {
       const lines = description.split('\n')
       const newLines = [...lines]
       const line = lines[index]
-  
+
       if (line.startsWith("- [  ] ")) {
         newLines[index] = "- [x] " + line.substring(6)
       } else if (line.startsWith("- [x] ")) {
         newLines[index] = "- [  ] " + line.substring(6)
       }
-  
-      const newDescription = newLines.join('\n');
+
+      const newDescription = newLines.join('\n')
       setDescription(newDescription)
       await updateDescription(newDescription)
 
@@ -384,19 +389,19 @@ const IssueDetail = () => {
                 <input type="checkbox" onChange={() => handleCheckboxChange(index)} />
                 <span>{line.substring(6)}</span>
               </div>
-            );
+            )
           } else if (line.startsWith("- [x] ")) {
             return (
               <div key={index} style={{ display: 'flex', alignItems: 'center' }}>
                 <input type="checkbox" checked onChange={() => handleCheckboxChange(index)} />
                 <span>{line.substring(6)}</span>
               </div>
-            );
+            )
           }
-          return <p key={index}>{line}</p>;
+          return <p key={index}>{line}</p>
         })}
       </div>
-    );
+    )
   }
 
   const renderDescriptionWithCheckboxes = (description) => {
@@ -406,159 +411,159 @@ const IssueDetail = () => {
           <div key={index} style={{ display: 'flex', alignItems: 'center' }}>
             <input type="checkbox" disabled /> <span>{line.substring(6)}</span>
           </div>
-        );
+        )
       } else if (line.startsWith("- [x] ")) {
         return (
           <div key={index} style={{ display: 'flex', alignItems: 'center' }}>
             <input type="checkbox" checked disabled />
             <span>{line.substring(6)}</span>
           </div>
-        );
+        )
       }
-      return <p key={index}>{line}</p>;
-    });
+      return <p key={index}>{line}</p>
+    })
   }
 
   const insertNumberList = () => {
-    const textarea = textAreaRef.current;
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-  
+    const textarea = textAreaRef.current
+    const start = textarea.selectionStart
+    const end = textarea.selectionEnd
+
     // Split the text into before and after the current cursor position
-    const textBefore = descriptionInput.substring(0, start);
-    const textAfter = descriptionInput.substring(end);
-  
+    const textBefore = descriptionInput.substring(0, start)
+    const textAfter = descriptionInput.substring(end)
+
     // Find if the current line has some content
-    const lastNewLine = textBefore.lastIndexOf('\n');
-    const currentLineContent = textBefore.substring(lastNewLine + 1);
-    const newTextBefore = textBefore.substring(0, lastNewLine + 1);
-  
+    const lastNewLine = textBefore.lastIndexOf('\n')
+    const currentLineContent = textBefore.substring(lastNewLine + 1)
+    const newTextBefore = textBefore.substring(0, lastNewLine + 1)
+
     // Check if current line has content, and prepend "1. "
     if (currentLineContent.trim().length === 0) {
       // If no content in the current line
-      setDescriptionInput(textBefore + "1. " + textAfter);
+      setDescriptionInput(textBefore + "1. " + textAfter)
     } else {
       // If there's content, prepend "1. " to the current line
-      setDescriptionInput(newTextBefore + "1. " + currentLineContent + textAfter);
+      setDescriptionInput(newTextBefore + "1. " + currentLineContent + textAfter)
     }
-  
+
     setTimeout(() => {
       // Place cursor right after the newly inserted "1. "
-      const newCursorPosition = newTextBefore.length + 3; // +3 for "1. "
-      textarea.selectionStart = textarea.selectionEnd = newCursorPosition;
-      textarea.focus();
-    }, 0);
+      const newCursorPosition = newTextBefore.length + 3 // +3 for "1. "
+      textarea.selectionStart = textarea.selectionEnd = newCursorPosition
+      textarea.focus()
+    }, 0)
   }
 
   const insertBulletList = () => {
-    const textarea = textAreaRef.current;
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-  
+    const textarea = textAreaRef.current
+    const start = textarea.selectionStart
+    const end = textarea.selectionEnd
+
     // Split the text into before and after the current cursor position
-    const textBefore = descriptionInput.substring(0, start);
-    const textAfter = descriptionInput.substring(end);
-  
+    const textBefore = descriptionInput.substring(0, start)
+    const textAfter = descriptionInput.substring(end)
+
     // Find if the current line has some content
-    const lastNewLine = textBefore.lastIndexOf('\n');
-    const currentLineContent = textBefore.substring(lastNewLine + 1);
-    const newTextBefore = textBefore.substring(0, lastNewLine + 1);
-  
+    const lastNewLine = textBefore.lastIndexOf('\n')
+    const currentLineContent = textBefore.substring(lastNewLine + 1)
+    const newTextBefore = textBefore.substring(0, lastNewLine + 1)
+
     // Check if current line has content, and prepend "-" to the current line
     if (currentLineContent.trim().length === 0) {
       // If no content in the current line
-      setDescriptionInput(textBefore + "● " + textAfter);
+      setDescriptionInput(textBefore + "● " + textAfter)
     } else {
       // If there's content, prepend "- " to the current line
-      setDescriptionInput(newTextBefore + "- " + currentLineContent + textAfter);
+      setDescriptionInput(newTextBefore + "- " + currentLineContent + textAfter)
     }
-  
+
     setTimeout(() => {
       // Place cursor right after the newly inserted "- "
-      const newCursorPosition = newTextBefore.length + 2; // +2 for "- "
-      textarea.selectionStart = textarea.selectionEnd = newCursorPosition;
-      textarea.focus();
-    }, 0);
+      const newCursorPosition = newTextBefore.length + 2 // +2 for "- "
+      textarea.selectionStart = textarea.selectionEnd = newCursorPosition
+      textarea.focus()
+    }, 0)
   }
 
   const insertTaskList = () => {
-    const textarea = textAreaRef.current;
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-  
-    const textBefore = descriptionInput.substring(0, start);
-    const textAfter = descriptionInput.substring(end);
-  
-    const lastNewLine = textBefore.lastIndexOf('\n');
-    const currentLineContent = textBefore.substring(lastNewLine + 1);
-    const newTextBefore = textBefore.substring(0, lastNewLine + 1);
-  
+    const textarea = textAreaRef.current
+    const start = textarea.selectionStart
+    const end = textarea.selectionEnd
+
+    const textBefore = descriptionInput.substring(0, start)
+    const textAfter = descriptionInput.substring(end)
+
+    const lastNewLine = textBefore.lastIndexOf('\n')
+    const currentLineContent = textBefore.substring(lastNewLine + 1)
+    const newTextBefore = textBefore.substring(0, lastNewLine + 1)
+
     // Check if current line has content, and prepend "- [ ] " to the current line
     if (currentLineContent.trim().length === 0) {
-      setDescriptionInput(textBefore + "- [  ] " + textAfter);
+      setDescriptionInput(textBefore + "- [  ] " + textAfter)
     } else {
-      setDescriptionInput(newTextBefore + "- [  ] " + currentLineContent + textAfter);
+      setDescriptionInput(newTextBefore + "- [  ] " + currentLineContent + textAfter)
     }
-  
+
     setTimeout(() => {
       // Place cursor right after the newly inserted "- [ ] "
-      const newCursorPosition = newTextBefore.length + 6; // +6 for "- [ ] "
-      textarea.selectionStart = textarea.selectionEnd = newCursorPosition;
-      textarea.focus();
-    }, 0);
-  };
-  
+      const newCursorPosition = newTextBefore.length + 6 // +6 for "- [ ] "
+      textarea.selectionStart = textarea.selectionEnd = newCursorPosition
+      textarea.focus()
+    }, 0)
+  }
+
 
 
   const handleKeyDown = (e) => {
-    const textarea = textAreaRef.current;
+    const textarea = textAreaRef.current
     if (e.key === 'Enter') {
-        e.preventDefault(); // Prevent the default action to manage new line ourselves
+      e.preventDefault() // Prevent the default action to manage new line ourselves
 
-        // Get current cursor position:
-        const start = textarea.selectionStart;
-        const end = textarea.selectionEnd;
-        const textBefore = descriptionInput.substring(0, start)
-        const textAfter = descriptionInput.substring(end)
+      // Get current cursor position:
+      const start = textarea.selectionStart
+      const end = textarea.selectionEnd
+      const textBefore = descriptionInput.substring(0, start)
+      const textAfter = descriptionInput.substring(end)
 
-        // Find the type of list and act accordingly
-        const linesBeforeCursor = textBefore.split('\n')
-        const lastLine = linesBeforeCursor[linesBeforeCursor.length - 1]
-        const numberMatch = lastLine.match(/^(\d+)\./)
-        const bulletMatch = lastLine.startsWith("● ")
-        const taskMatch = lastLine.trim().startsWith("- [  ]") || lastLine.trim().startsWith("- [x] ")
+      // Find the type of list and act accordingly
+      const linesBeforeCursor = textBefore.split('\n')
+      const lastLine = linesBeforeCursor[linesBeforeCursor.length - 1]
+      const numberMatch = lastLine.match(/^(\d+)\./)
+      const bulletMatch = lastLine.startsWith("● ")
+      const taskMatch = lastLine.trim().startsWith("- [  ]") || lastLine.trim().startsWith("- [x] ")
 
-        let newText = textBefore + '\n'
+      let newText = textBefore + '\n'
 
-        if (numberMatch) {
-            const number = parseInt(numberMatch[1], 10);
-            newText += (number + 1) + '. ' + textAfter;
-        } else if (bulletMatch) {
-            newText += "● " + textAfter;
-        } else if (taskMatch) {
-            newText += "- [  ] " + textAfter;
-        } else {
-            newText += textAfter; // No list, continue with normal text
-        }
+      if (numberMatch) {
+        const number = parseInt(numberMatch[1], 10)
+        newText += (number + 1) + '. ' + textAfter
+      } else if (bulletMatch) {
+        newText += "● " + textAfter
+      } else if (taskMatch) {
+        newText += "- [  ] " + textAfter
+      } else {
+        newText += textAfter // No list, continue with normal text
+      }
 
-        setDescriptionInput(newText);
-        setTimeout(() => {
-            // Place cursor after the newly inserted prefix
-            const positionAdjust = numberMatch ? (numberMatch[1].length + 3) : bulletMatch ? 3 : taskMatch ? 8 : 1;
-            const position = start + positionAdjust; // Adjust for ". ", "- ", or "- [ ] "
-            textarea.selectionStart = textarea.selectionEnd = position;
-            textarea.focus();
-        }, 0);
+      setDescriptionInput(newText)
+      setTimeout(() => {
+        // Place cursor after the newly inserted prefix
+        const positionAdjust = numberMatch ? (numberMatch[1].length + 3) : bulletMatch ? 3 : taskMatch ? 8 : 1
+        const position = start + positionAdjust // Adjust for ". ", "- ", or "- [ ] "
+        textarea.selectionStart = textarea.selectionEnd = position
+        textarea.focus()
+      }, 0)
     }
   }
 
   function getButtonImage(description) {
-    if (description.toLowerCase().includes('changed the due date')) return edit_due;
-    if (description.toLowerCase().includes('assigned')) return edit_assignee;
-    if (description.toLowerCase().includes('updated title')) return edit_title;
-    if (description.toLowerCase().includes('closed this issue')) return edit_close;
-    if (description.toLowerCase().includes('reopened this issue')) return edit_open;
-    return null; // Default case if no conditions are met
+    if (description.toLowerCase().includes('changed the due date')) return edit_due
+    if (description.toLowerCase().includes('assigned')) return edit_assignee
+    if (description.toLowerCase().includes('updated title')) return edit_title
+    if (description.toLowerCase().includes('closed this issue')) return edit_close
+    if (description.toLowerCase().includes('reopened this issue')) return edit_open
+    return null // Default case if no conditions are met
   }
 
   const toggleCommentOptions = (index) => {
@@ -580,7 +585,7 @@ const IssueDetail = () => {
     queryClient.setQueryData(['comments', issueId], prevComments => prevComments.filter(comment => comment.id !== commentId))
   }
 
-  
+
   const formatTimestamp = (timestamp) => {
     const date = new Date(timestamp)
     const hours = date.getHours().toString().padStart(2, '0')
@@ -648,190 +653,190 @@ const IssueDetail = () => {
       </div>
       <div className="issue-body">
         <div className='left-container'>
-        <div className="left-section">
-          <div className="description-box">
-            <div className="header">
-            <div className="left-header">
-              <h3>Description</h3>
-              {descriptionHistory && descriptionHistory.length > 0 && (
-                <>
-                  <button onClick={toggleHistoryList} className="history-btn">
-                    last edited by {descriptionHistory[descriptionHistory.length - 1]?.name}
-                    <img src={downArrow} alt="Show History" />
-                  </button>
-                  {showHistoryList && (
-                    <ul className='history-list' ref={historyRef}>
-                      {descriptionHistory.slice().reverse().map((item, index) => (
-                        <li key={index} onClick={() => toggleHistoryModal(item)}>
-                          {item.name} edited at {formatDate(item.timestamp)}
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </>
-              )}
-            </div>
-            
-              <button onClick={toggleDescriptionEditMode} className="edit-btn">
-                <img src={edit_description_button} alt="Edit Description" />
-              </button>
-            </div>
-            <hr />
-            {!isDescriptionEditMode ? (
-              renderDescription(issue.description.text, setDescription)
-            ) : (
-              <>
-                <div className="edit-container">
-                  <div className="tabs-and-toolbar">
-                      <div className="tabs">
-                          <button onClick={() => setCurrentTab('Edit')} className={currentTab === 'Edit' ? 'active' : ''}>
-                              Edit
-                          </button>
-                          <button onClick={() => setCurrentTab('Preview')} className={currentTab === 'Preview' ? 'active' : ''}>
-                              Preview
-                          </button>
-                      </div>
-                      {currentTab === 'Edit' && (
-                          <div className="toolbar">
-                              <button onClick={insertNumberList} title="Number List">
-                                  <img src={number_list} alt="Number List" />
-                              </button>
-                              <button onClick={insertBulletList} title = "Bullet List">
-                                  <img src={bullet_list} alt="Bullet List" />
-                              </button>
-                              <button onClick={insertTaskList} title = "Task List">
-                                  <img src={task_list} alt="Task List" />
-                              </button>
-                          </div>
-                      )}
-                  </div>
-
-                  {currentTab === 'Edit' && (
-                      <textarea
-                          ref={textAreaRef}
-                          value={descriptionInput}
-                          onChange={(e) => setDescriptionInput(e.target.value)}
-                          onKeyDown={handleKeyDown}
-                          className="text-input"
-                      />
-                  )}
-
-                  {currentTab === 'Preview' && (
-                      <div className="preview">
-                          {renderDescriptionWithCheckboxes(descriptionInput, true)}
-                      </div>
-                  )}
-              </div>
-
-                
-              </>
-            )}
-            {isDescriptionEditMode && (
-              <div className="button-group">
-                <button onClick={() => setIsDescriptionEditMode(false)} className="cancel-btn">Cancel</button>
-                <button onClick={handleDescriptionUpdate} className="save-btn">Update Description</button>
-              </div>
-            )}
-
-            {showHistoryModal && currentHistoryItem && (
-              <div className="modal" onClick={closeHistoryModal}>
-                <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-                  <div className="modal-header">
-                    <span>{currentHistoryItem.name} edited at {formatDate(currentHistoryItem.timestamp)}</span>
-                    <span className="close" onClick={closeHistoryModal}>x</span>
-                  </div>  
-                  <hr />
-                  <div className="modal-body">
-                  {renderDescriptionWithCheckboxes(currentHistoryItem.text)}
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-          
-          <div className="detail-actions-container">
-            {/* <h3>Detail Actions</h3> */}
-            {actionHistory.map((entry, index) => (
-              <div key={index} style={{ top: `${index * 60}px` }} className="action-item">
-                <button className="action-button" style={{ backgroundImage: `url(${getButtonImage(entry.description)})` }}></button>
-                <p className="action-text">
-                  {entry.description.match(usernameRegex) ? (
-                  <>
-                    <span className="username-style">{entry.description.match(usernameRegex)[1]}</span>
-                    {entry.description.substring(entry.description.match(usernameRegex)[1].length)} on {formatTimestamp(new Date(entry.timestamp))}
-                  </>
-                ) : (
-                  <span>{entry.description} on {formatDate(entry.timestamp)}</span>
-                )}
-                </p>
-              </div>
-            ))}
-          </div>
-
-
-          <div className="issue-comments">
-            {comments.length === 0 ? (
-              <p>No comments yet.</p>
-            ) : (
-              comments.map((comment, index) => (
-                <div className="comment-box" key={index}>
-                  <div className="comment-header">
-                    <img src={default_user} alt={comment.user.name} className="comment-avatar"/>
-                    <div className="comment-info">
-                      <p className="comment-user">{comment.user.name} commented on {formatDate(comment.timestamp)}
-                        {comment.versions && comment.versions.length > 1 && (
-                          <>
-                          <button className="edited" onClick={() => toggleEditHistory(comment.id)}>
-                            · edited <img src={downArrow} alt="Toggle History" />
-                          </button>
-                          {comment.showHistory && (
-                            <ul className="comment-history-list">
-                              {comment.versions.map((version, idx) => (
-                                <li key={idx} onClick={() => toggleHistoryModal(version)}>
-                                  {comment.user.name} edited on {formatTimestamp(version.timestamp)}
-                                </li>
-                              ))}
-                            </ul>
-                          )}
-                          </>
-                        )}
-                      </p>
-                    </div>
-                    <div className="comment-actions">
-                      <button onClick={() => toggleCommentOptions(index)} className="comment-toggle"> Options
+          <div className="left-section">
+            <div className="description-box">
+              <div className="header">
+                <div className="left-header">
+                  <h3>Description</h3>
+                  {descriptionHistory && descriptionHistory.length > 0 && (
+                    <>
+                      <button onClick={toggleHistoryList} className="history-btn">
+                        last edited by {descriptionHistory[descriptionHistory.length - 1]?.name}
                         <img src={downArrow} alt="Show History" />
                       </button>
-                      {showCommentOptions === index && (
-                        <div className="comment-options" ref={commentOptionsRef}>
-                          <button onClick={() => toggleEditComment(comment.id, comment.text)}>Edit</button>
-                          <button onClick={() => deleteComment(comment.id)}>Delete</button>
+                      {showHistoryList && (
+                        <ul className='history-list' ref={historyRef}>
+                          {descriptionHistory.slice().reverse().map((item, index) => (
+                            <li key={index} onClick={() => toggleHistoryModal(item)}>
+                              {item.name} edited at {formatDate(item.timestamp)}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </>
+                  )}
+                </div>
+
+                <button onClick={toggleDescriptionEditMode} className="edit-btn">
+                  <img src={edit_description_button} alt="Edit Description" />
+                </button>
+              </div>
+              <hr />
+              {!isDescriptionEditMode ? (
+                renderDescription(issue.description.text, setDescription)
+              ) : (
+                <>
+                  <div className="edit-container">
+                    <div className="tabs-and-toolbar">
+                      <div className="tabs">
+                        <button onClick={() => setCurrentTab('Edit')} className={currentTab === 'Edit' ? 'active' : ''}>
+                          Edit
+                        </button>
+                        <button onClick={() => setCurrentTab('Preview')} className={currentTab === 'Preview' ? 'active' : ''}>
+                          Preview
+                        </button>
+                      </div>
+                      {currentTab === 'Edit' && (
+                        <div className="toolbar">
+                          <button onClick={insertNumberList} title="Number List">
+                            <img src={number_list} alt="Number List" />
+                          </button>
+                          <button onClick={insertBulletList} title="Bullet List">
+                            <img src={bullet_list} alt="Bullet List" />
+                          </button>
+                          <button onClick={insertTaskList} title="Task List">
+                            <img src={task_list} alt="Task List" />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+
+                    {currentTab === 'Edit' && (
+                      <textarea
+                        ref={textAreaRef}
+                        value={descriptionInput}
+                        onChange={(e) => setDescriptionInput(e.target.value)}
+                        onKeyDown={handleKeyDown}
+                        className="text-input"
+                      />
+                    )}
+
+                    {currentTab === 'Preview' && (
+                      <div className="preview">
+                        {renderDescriptionWithCheckboxes(descriptionInput, true)}
+                      </div>
+                    )}
+                  </div>
+
+
+                </>
+              )}
+              {isDescriptionEditMode && (
+                <div className="button-group">
+                  <button onClick={() => setIsDescriptionEditMode(false)} className="cancel-btn">Cancel</button>
+                  <button onClick={handleDescriptionUpdate} className="save-btn">Update Description</button>
+                </div>
+              )}
+
+              {showHistoryModal && currentHistoryItem && (
+                <div className="modal" onClick={closeHistoryModal}>
+                  <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                    <div className="modal-header">
+                      <span>{currentHistoryItem.name} edited at {formatDate(currentHistoryItem.timestamp)}</span>
+                      <span className="close" onClick={closeHistoryModal}>x</span>
+                    </div>
+                    <hr />
+                    <div className="modal-body">
+                      {renderDescriptionWithCheckboxes(currentHistoryItem.text)}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="detail-actions-container">
+              {/* <h3>Detail Actions</h3> */}
+              {actionHistory.map((entry, index) => (
+                <div key={index} style={{ top: `${index * 60}px` }} className="action-item">
+                  <button className="action-button" style={{ backgroundImage: `url(${getButtonImage(entry.description)})` }}></button>
+                  <p className="action-text">
+                    {entry.description.match(usernameRegex) ? (
+                      <>
+                        <span className="username-style">{entry.description.match(usernameRegex)[1]}</span>
+                        {entry.description.substring(entry.description.match(usernameRegex)[1].length)} on {formatTimestamp(new Date(entry.timestamp))}
+                      </>
+                    ) : (
+                      <span>{entry.description} on {formatDate(entry.timestamp)}</span>
+                    )}
+                  </p>
+                </div>
+              ))}
+            </div>
+
+
+            <div className="issue-comments">
+              {comments.length === 0 ? (
+                <p>No comments yet.</p>
+              ) : (
+                comments.map((comment, index) => (
+                  <div className="comment-box" key={index}>
+                    <div className="comment-header">
+                      <img src={default_user} alt={comment.user.name} className="comment-avatar" />
+                      <div className="comment-info">
+                        <p className="comment-user">{comment.user.name} commented on {formatDate(comment.timestamp)}
+                          {comment.versions && comment.versions.length > 1 && (
+                            <>
+                              <button className="edited" onClick={() => toggleEditHistory(comment.id)}>
+                                · edited <img src={downArrow} alt="Toggle History" />
+                              </button>
+                              {comment.showHistory && (
+                                <ul className="comment-history-list">
+                                  {comment.versions.map((version, idx) => (
+                                    <li key={idx} onClick={() => toggleHistoryModal(version)}>
+                                      {comment.user.name} edited on {formatTimestamp(version.timestamp)}
+                                    </li>
+                                  ))}
+                                </ul>
+                              )}
+                            </>
+                          )}
+                        </p>
+                      </div>
+                      <div className="comment-actions">
+                        <button onClick={() => toggleCommentOptions(index)} className="comment-toggle"> Options
+                          <img src={downArrow} alt="Show History" />
+                        </button>
+                        {showCommentOptions === index && (
+                          <div className="comment-options" ref={commentOptionsRef}>
+                            <button onClick={() => toggleEditComment(comment.id, comment.text)}>Edit</button>
+                            <button onClick={() => deleteComment(comment.id)}>Delete</button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <div className="comment-content">
+                      {editingCommentId === comment.id ? (
+                        <textarea
+                          value={editedCommentText}
+                          onChange={(e) => setEditedCommentText(e.target.value)}
+                        />
+                      ) : (
+                        <p className="comment-text">{comment.text}</p>
+                      )}
+
+                      {editingCommentId === comment.id && (
+                        <div className='button-group'>
+                          <button onClick={() => saveEditedComment(comment)} className='save-btn'>Save</button>
+                          <button onClick={() => toggleEditComment(null)} className="cancel-btn">Cancel</button>
                         </div>
                       )}
                     </div>
                   </div>
-                  <div className="comment-content">
-                  {editingCommentId === comment.id ? (
-                    <textarea
-                      value={editedCommentText}
-                      onChange={(e) => setEditedCommentText(e.target.value)}
-                    />
-                  ) : (
-                    <p className="comment-text">{comment.text}</p>
-                  )}
-
-                  {editingCommentId === comment.id && (
-                              <div className='button-group'>
-                                <button onClick={() => saveEditedComment(comment)} className='save-btn'>Save</button>
-                                <button onClick={() => toggleEditComment(null)} className="cancel-btn">Cancel</button>
-                              </div>
-                            )}
-                  </div>
-                </div>
-              ))
-            )}
+                ))
+              )}
             </div>
           </div>
-          
+
 
           <div className='under-left-section'>
             <div className="add-comment">
@@ -846,7 +851,6 @@ const IssueDetail = () => {
                 <input
                   type="file"
                   multiple
-                  accept=".pdf, .doc, .docx, .jpg, .png"
                   onChange={handleCommentFileUpload}
                   className="file-input"
                 />
@@ -857,7 +861,7 @@ const IssueDetail = () => {
 
         </div>
 
-        
+
         <div className="right-section">
 
           <div className="due-date">

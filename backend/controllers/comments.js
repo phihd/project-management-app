@@ -4,6 +4,18 @@ const Issue = require('../models/issue')
 const Project = require('../models/project')
 const CommentModel = require('../models/comment')
 
+
+const multer = require('multer')
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, './uploads/') // Ensure this directory exists
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + '-' + file.originalname)
+  }
+})
+const upload = multer({ storage: storage })
+
 commentsRouter.get('/', async (request, response) => {
   const issueId = request.params.issueId
   const comments = await CommentModel
@@ -29,6 +41,7 @@ commentsRouter.post('/', async (request, response, next) => {
     return response.status(401).json({ error: 'token missing' })
   }
 
+  console.log(token)
   const decodedToken = jwt.verify(token, process.env.SECRET)
   if (!decodedToken.id) {
     return response.status(401).json({ error: 'token invalid' })
@@ -50,7 +63,8 @@ commentsRouter.post('/', async (request, response, next) => {
     text: body.text,
     issue: issue,
     user: user.id,
-    versions: [{ text: body.text }]
+    versions: [{ text: body.text }],
+    files: request.files.map(file => file.path)
   }).populate('user', { name: 1 })
 
   const savedComment = await comment.save()
@@ -110,12 +124,14 @@ commentsRouter.put('/:commentId', async (request, response, next) => {
     return response.status(403).json({ message: 'Comment can only be edited by its creator' })
   }
 
-  const updatedCommentModel = await CommentModel
-    .findByIdAndUpdate(commentId, {
-      $set: { text: body.text, timestamp: new Date() }, // Update latest text and timestamp
-      $push: { versions: { text: body.text, timestamp: new Date() } } // Add new version
-    }, { new: true })
-    .populate('user', { name: 1 })
+  existingComment.text = body.text
+  existingComment.timestamp = new Date()
+  existingComment.versions.push({ text: body.text, timestamp: new Date() })
+  if (request.files && request.files.length > 0) {
+    existingComment.files = request.files.map(file => file.path)
+  }
+
+  const updatedCommentModel = await existingComment.save()
 
   response.json(updatedCommentModel)
 })
