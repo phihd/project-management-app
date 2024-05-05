@@ -12,13 +12,14 @@ const transporter = nodemailer.createTransport({
   },
 })
 
-const sendEmailNotification = async (to, subject, text) => {
+const sendEmailNotification = async (to, subject, text, html) => {
   try {
     await transporter.sendMail({
       from: '"SCQC Issue Tracker" scqc.issue.tracker@gmail.com', // Sender address
       to, // List of receivers
       subject, // Subject line
       text, // Plain text body
+      html, // HTML body content
     })
 
     console.log('Email sent successfully')
