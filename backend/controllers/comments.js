@@ -35,7 +35,6 @@ commentsRouter.get('/:commentId', async (request, response) => {
 })
 
 commentsRouter.post('/', upload.array('files', 5), async (request, response, next) => {
-  console.log('hehe')
   const token = request.token
   if (!token) {
     return response.status(401).json({ error: 'token missing' })
