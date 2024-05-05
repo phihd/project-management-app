@@ -19,13 +19,13 @@
 .dashboard-header h2 {
   margin: 0;
   color: #DBCA49;
-  font-size: 12vh;
+  font-size: 10vh;
   display: block;
 }
 
 .dashboard-header h3 {
   color: #8c8383;
-  font-size: 4vh;
+  font-size: 3.5vh;
   font-weight: 200;
   display: block;
   margin-top: 8px;
@@ -78,7 +78,7 @@
 .issue-row .issue-card-header h4 {
   margin: 0;
   color: white;
-  font-size: 4vh;
+  font-size: 3vh;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
