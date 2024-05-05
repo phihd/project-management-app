@@ -898,6 +898,7 @@ p {
   resize: vertical;
   font-family: 'Montserrat', sans-serif;
   font-size:14px;
+  background-color: #e3e3d1;
 }
 
 .comment-input textarea {

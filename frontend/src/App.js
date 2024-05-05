@@ -12,6 +12,9 @@ import {
   // useMatch,
   useNavigate
 } from 'react-router-dom'
+import NProgress from 'nprogress'
+import 'nprogress/nprogress.css'
+NProgress.configure({ easing: 'ease', speed: 500, showSpinner: false })
 
 import scqcLogo from './img/LOGO-SCQC-ISO.png'
 import user_phihd from './img/user_phihd.jpeg'
@@ -50,9 +53,10 @@ const App = () => {
 
   const [isSidebarVisible, setIsSidebarVisible] = useState(false)
   const { user, setUser } = useContext(UserContext)
+  const location = useLocation()
+  const currentRoute = location.pathname  // This holds the current path
   const queryClient = useQueryClient()
-  const location = useLocation();
-  const currentRoute = location.pathname;  // This holds the current path
+  const navigate = useNavigate()
 
 
   const handleLogout = () => {
@@ -82,25 +86,30 @@ const App = () => {
   }, [])
 
   // Fetch user
-  const { isLoading: userLoading, isError: userError, error: userErrorMessage } = useQuery('user', userService.getUserFromLocalStorage, {
-    onSuccess: (userData) => {
-      setUser(userData)
-      setShowLogin(false)
-    },
-    onError: () => {
-      handleLogout()
-      setShowLogin(true)
-    },
-    enabled: !!localStorage.getItem('loggedProjectappUser'),
-    retry: false,
-    refetchOnWindowFocus: false
-  })
+  const { isLoading: userLoading, isError: userError, error: userErrorMessage } = useQuery(
+    'user',
+    userService.getUserFromLocalStorage,
+    {
+      staleTime: 5 * 60 * 1000,
+      onSuccess: (userData) => {
+        setUser(userData)
+        setShowLogin(false)
+      },
+      onError: () => {
+        handleLogout()
+        setShowLogin(true)
+      },
+      enabled: !!localStorage.getItem('loggedProjectappUser'),
+      retry: false,
+      refetchOnWindowFocus: false
+    })
 
   // Fetch notifications
   const { data: notifications, isLoading: notificationsLoading } = useQuery(
     'notifications',
     () => notiService.get(user.id),
     {
+      staleTime: 5 * 60 * 1000,
       enabled: !!user && !!user.token,
       onError: (error) => {
         if (error.response && error.response.status === 401) { // Handle unauthorized access (e.g., token expiration)
@@ -113,8 +122,24 @@ const App = () => {
     }
   )
 
-  if (userLoading) return <div>Loading user data...</div>
-  if (notificationsLoading) return <div>Loading notifications...</div>
+  if (userLoading || notificationsLoading) {
+    NProgress.start()
+    return (
+      <div className='App'>
+        <div className='navbar'>
+          <div className='logo'>
+            <Link to="/" onClick={() => handleItemClick('')}>
+              <img className='logo' src={scqcLogo} alt="SCQC Logo" />
+            </Link>
+          </div>
+        </div>
+        <div className='content-wrapper'></div>
+        <footer className='footer'></footer>
+      </div>
+    )
+  } else {
+    NProgress.done()
+  }
 
   function NavigationBar({ toggleSidebar }) {
     const [showNotifications, setShowNotifications] = useState(false)
@@ -262,13 +287,13 @@ const App = () => {
       setIsOpenEmailForm(!isOpenEmailForm)
       // Attach or detach the event listener based on the form state
       if (!isOpenEmailForm) {
-          // Attaching the event listener
-          document.addEventListener('mousedown', handleClickOutside)
+        // Attaching the event listener
+        document.addEventListener('mousedown', handleClickOutside)
       } else {
-          // Removing the event listener
-          document.removeEventListener('mousedown', handleClickOutside)
+        // Removing the event listener
+        document.removeEventListener('mousedown', handleClickOutside)
       }
-  }
+    }
 
     const handleEmailChange = (event) => {
       setEmail(event.target.value)
@@ -288,14 +313,14 @@ const App = () => {
     const handleCloseForm = () => {
       setIsOpenEmailForm(false)
       document.removeEventListener('mousedown', handleClickOutside)
-  }
+    }
 
-  const handleClickOutside = (event) => {
-    if (formRef.current && !formRef.current.contains(event.target)) {
+    const handleClickOutside = (event) => {
+      if (formRef.current && !formRef.current.contains(event.target)) {
         setIsOpenEmailForm(false)
         document.removeEventListener('mousedown', handleClickOutside)
+      }
     }
-}
 
     return (
       <div className="user-info">
@@ -311,14 +336,14 @@ const App = () => {
         )}
         {isOpenEmailForm && (
           <div className="email-form-overlay">
-          <div className="email-form" ref={formRef}>
-            <button className="close-btn" onClick={handleCloseForm}> x </button>
-            <form onSubmit={handleSubmitEmail}>
-              <input type="email" value={email} onChange={handleEmailChange} placeholder="Enter email to receive notifications" />
-              <button type="submit">Submit</button>
-            </form>
+            <div className="email-form" ref={formRef}>
+              <button className="close-btn" onClick={handleCloseForm}> x </button>
+              <form onSubmit={handleSubmitEmail}>
+                <input type="email" value={email} onChange={handleEmailChange} placeholder="Enter email to receive notifications" />
+                <button type="submit">Submit</button>
+              </form>
+            </div>
           </div>
-        </div>
         )}
       </div>
     )
@@ -412,32 +437,32 @@ const App = () => {
     <div>
       {user === null && loginForm()}
       {
-        user && 
+        user &&
         <div>
           <div className="App">
             <NavigationBar toggleSidebar={() => setIsSidebarVisible(prev => !prev)} />
-          <div className={`sidebar-wrapper ${isSidebarVisible ? '' : 'hidden'}`}>
-            <Sidebar isVisible={isSidebarVisible} />
+            <div className={`sidebar-wrapper ${isSidebarVisible ? '' : 'hidden'}`}>
+              <Sidebar isVisible={isSidebarVisible} />
+            </div>
+            <div className={`content-wrapper ${isSidebarVisible ? 'shifted' : ''}`}>
+              <div className={`main-content ${currentRoute === '/' ? 'dashboard-active' : ''}`}>
+                <Routes>
+                  <Route path="/" element={<Main />} />
+                  <Route path="/project" element={<Project />} />
+                  <Route path="/project/:projectId" element={<ProjectDetail />} />
+                  <Route path="/department" element={<Department />} />
+                  <Route path="/project/:projectId/:issueId" element={<IssueDetail />} />
+                  <Route path="/procedure" element={<Procedure />} />
+                  <Route path="/procedure/:templateId" element={<TemplateDetail />} />
+                  <Route path="/procedure/:templateId/:stepId" element={<StepDetail />} />
+                </Routes>
+              </div>
+            </div>
+            <Footer>
+              <UserDropdown user={user} handleLogout={handleLogout} />
+            </Footer>
           </div>
-          <div className={`content-wrapper ${isSidebarVisible ? 'shifted' : ''}`}>
-            <div className={`main-content ${currentRoute === '/' ? 'dashboard-active' : ''}`}>
-            <Routes>
-                <Route path="/" element={<Main />} />
-                <Route path="/project" element={<Project />} />
-                <Route path="/project/:projectId" element={<ProjectDetail />} />
-                <Route path="/department" element={<Department />} />
-                <Route path="/project/:projectId/:issueId" element={<IssueDetail />} />
-                <Route path="/procedure" element={<Procedure />} />
-                <Route path="/procedure/:templateId" element={<TemplateDetail />} />
-                <Route path="/procedure/:templateId/:stepId" element={<StepDetail />} />
-              </Routes>
-            </div>
-            </div>
-              <Footer>
-                  <UserDropdown user={user} handleLogout={handleLogout} />
-              </Footer>
-            </div>
-          </div>
+        </div>
       }
     </div>
   )

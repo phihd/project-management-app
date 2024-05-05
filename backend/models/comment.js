@@ -32,13 +32,7 @@ const commentSchema = new mongoose.Schema({
     ref: 'Issue',
     required: true,
   },
-  // files: [
-  //   {
-  //     filename: String,
-  //     contentType: String,
-  //     fileId: mongoose.Schema.Types.ObjectId, // Reference to the file in GridFS
-  //   },
-  // ],
+  files: [{ type: String }] 
 })
 
 commentSchema.set('toJSON', {

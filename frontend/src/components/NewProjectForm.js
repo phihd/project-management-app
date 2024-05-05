@@ -1,18 +1,16 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useQuery } from 'react'
 import userService from '../services/users'
 import './NewProjectForm.css'
+import NProgress from 'nprogress'
+import 'nprogress/nprogress.css'
+NProgress.configure({ easing: 'ease', speed: 500, showSpinner: false })
 
 const NewProjectForm = ({ handleCreateProject, handleCloseForm }) => {
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
-  const [members, setMembers] = useState([])
   const [selectedMembers, setSelectedMembers] = useState([])
 
-  useEffect(() => {
-    userService.getAll().then(users => {
-      setMembers(users)
-    })
-  }, [])
+  const { data: members, isLoading, isError, error } = useQuery('members', userService.getAll)
 
   const handleMemberSelection = (e) => {
     const selectedMemberIds = Array.from(e.target.selectedOptions, option => option.value)
@@ -29,6 +27,14 @@ const NewProjectForm = ({ handleCreateProject, handleCloseForm }) => {
     handleCreateProject(newProject)
     handleCloseForm()
   }
+
+  if (isLoading) {
+    NProgress.start()
+    return
+  } else {
+    NProgress.done()
+  }
+  if (isError) return <div>Error loading project members: {error.message}</div>
 
   return (
     <div className="new-form-container">

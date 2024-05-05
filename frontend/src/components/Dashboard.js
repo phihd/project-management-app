@@ -6,6 +6,9 @@ import { useContext } from 'react'
 import userService from '../services/users'
 import './Dashboard.css'
 import UserContext from './UserContext'
+import NProgress from 'nprogress'
+import 'nprogress/nprogress.css'
+NProgress.configure({ easing: 'ease', speed: 500, showSpinner: false })
 
 import background from '../img/app_background.png'
 
@@ -29,8 +32,13 @@ function Dashboard() {
     }
   )
 
-  if (isLoading) return <div>Loading open issues...</div>;
-  if (isError) return <div>Error: {error.message}</div>;
+  if (isLoading) {
+    NProgress.start()
+    return
+  } else {
+    NProgress.done()
+  }
+  if (isError) return <div>Error: {error.message}</div>
 
   return (
     <div className="dashboard">
