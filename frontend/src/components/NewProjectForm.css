@@ -8,7 +8,7 @@
   border-radius: 8px;
 }
 
-.new-form-input, .new-form-textarea, .new-form-select {
+.new-form-input, .new-form-textarea {
   width: 100%;       /* Make inputs take full width of the form */
   padding: 10px;     /* Add padding for better text visibility */
   margin-top: 8px;   /* Add some space above the input */
@@ -57,3 +57,30 @@
   font-family: 'Montserrat', sans-serif;
   margin-bottom: 4px;
 }
+
+.new-form-select {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background-color: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  height: auto;
+  min-height: 50px; /* Minimum height with enough room to show multiple selections */
+  overflow-y: auto; /* Allows scrolling inside the dropdown */
+}
+
+.new-form-select option {
+  padding: 8px;
+  cursor: pointer; /* Changes the cursor to a pointer to indicate selectable items */
+}
+
+.new-form-select option:hover {
+  background-color: #f7f7f7; /* Adds a hover effect for options */
+}
+
+.new-form-select:focus {
+  outline: none; /* Removes the outline */
+  border-color: #ccc; /* Sets a more neutral border color */
+}
+

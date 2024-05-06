@@ -50,7 +50,6 @@ function Dashboard() {
   const handleCreateProject = async (newProject) => {
     if (newProject.name !== '') {
       const updatedProject = await projectService.create(newProject)
-      queryClient.setQueryData('projects', old => [...old, updatedProject])
       navigate(`/project/${updatedProject.id}`)
     }
   }

@@ -70,12 +70,20 @@ const App = () => {
     const axiosInterceptor = axios.interceptors.response.use(
       response => response,
       error => {
-        if (error.response && error.response.status === 401) {
-          handleLogout()
+        if (error.response) {
+          // Specifically handle token expiration scenario
+          if (error.response.status === 401 && error.response.data.error === "token expired") {
+            handleLogout()
+            alert('Your session has expired. Please log in again.')
+          } else if (error.response.status === 401 || error.response.status === 403) {
+            // Handle other unauthorized access without logging out
+            alert('You are not authorized to perform this action.')
+          }
         }
         return Promise.reject(error)
       }
     )
+
 
     // Cleanup function to remove interceptor when component unmounts
     return () => {
@@ -232,7 +240,7 @@ const App = () => {
               Project
             </Link>
           </li>
-          <li className={selectedView === 'department' ? 'selected' : ''}>
+          {/* <li className={selectedView === 'department' ? 'selected' : ''}>
             <Link to="/department" onClick={() => handleItemClick('department')}>
               Department
             </Link>
@@ -241,7 +249,7 @@ const App = () => {
             <Link to="/procedure" onClick={() => handleItemClick('procedure')}>
               Procedure
             </Link>
-          </li>
+          </li> */}
         </ul>
       </aside>
     )
