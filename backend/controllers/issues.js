@@ -212,12 +212,13 @@ issuesRouter.put('/:issueId', async (request, response, next) => {
       await Promise.all(
         updatedIssue.assignees.map(assigneeId =>
           User.findByIdAndUpdate(assigneeId, {
-            $push: { assignedIssues: updatedIssue._id }
+            $set: { assignedIssues: updatedIssue._id }
           })
         ))
     }
 
-    if (['status', 'assignees', 'dueDate'].some(field => field in body)) {
+    // TODO: if add more assignees, pop up noti for extra assignees only
+    if (['dueDate'].some(field => field in body)) {
       await performDueIssueCheck(updatedIssue._id)
     }
 
