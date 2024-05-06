@@ -44,10 +44,8 @@ import { setToken } from './services/tokenmanager'
 const App = () => {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
-  const [message, setMessage] = useState({
-    text: null,
-    isError: false,
-  })
+  const [loginErrorMessage, setLoginErrorMessage] = useState(null)
+  const [signUpErrorMessage, setSignUpErrorMessage] = useState(null)
   const [showLogin, setShowLogin] = useState(true)
   const [showSignUp, setShowSignUp] = useState(false)
 
@@ -339,7 +337,13 @@ const App = () => {
             <div className="email-form" ref={formRef}>
               <button className="close-btn" onClick={handleCloseForm}> x </button>
               <form onSubmit={handleSubmitEmail}>
-                <input type="email" value={email} onChange={handleEmailChange} placeholder="Enter email to receive notifications" />
+                <label for="email">Email</label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={handleEmailChange}
+                  placeholder={user.email ? `Current email: ${user.email}` : "Enter email to receive notifications"}
+                />
                 <button type="submit">Submit</button>
               </form>
             </div>
@@ -382,10 +386,7 @@ const App = () => {
       setUsername('')
       setPassword('')
     } catch (exception) {
-      setMessage({ text: 'wrong username or password', isError: true })
-      setTimeout(() => {
-        setMessage({ text: null, isError: false })
-      }, 5000)
+      setLoginErrorMessage('Incorrect username or password')
     }
   }
 
@@ -407,7 +408,7 @@ const App = () => {
           handleShowLogin()
         }
       } catch (error) {
-        window.alert(error.response.data.error)
+        setSignUpErrorMessage(error.response.data.error)
       }
     }
 
@@ -421,12 +422,14 @@ const App = () => {
             handlePasswordChange={({ target }) => setPassword(target.value)}
             handleSubmit={handleLogin}
             handleShowSignUp={handleShowSignUp}
+            errorMessage={loginErrorMessage}
           />
         }
         {showSignUp &&
           <SignUpForm
             handleSignUp={handleSignUp}
-            handleCloseSignUp={handleShowLogin} // Pass the function to close the sign-up form
+            handleCloseSignUp={handleShowLogin}
+            errorMessage={signUpErrorMessage}
           />
         }
       </div>

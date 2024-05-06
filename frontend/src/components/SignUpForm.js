@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import './SignUpForm.css'
 
-const SignUpForm = ({ handleSignUp, handleCloseSignUp }) => {
+const SignUpForm = ({ handleSignUp, handleCloseSignUp, errorMessage }) => {
   const [name, setName] = useState('')
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
@@ -89,6 +89,7 @@ const SignUpForm = ({ handleSignUp, handleCloseSignUp }) => {
           <button className="signup-button" type="submit">
             Sign Up
           </button>
+          {errorMessage && <div className="error-message">{errorMessage}</div>}
           <button className="back-to-login-button" onClick={handleCloseSignUp}>
             Back to Login
           </button>
