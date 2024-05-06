@@ -376,7 +376,11 @@ const IssueDetail = () => {
 
       const newDescription = newLines.join('\n')
       setDescription(newDescription)
-      await updateDescription(newDescription)
+      await updateIssue({
+        description: {
+          text: newDescription
+        }
+      })
 
       const editedDescription = {
         username: user.name,
@@ -649,7 +653,11 @@ const IssueDetail = () => {
                 {currentStatus}
               </button>
             ) : (
-              <span className="issue-status">Open</span>
+              <span
+                className={`issue-status ${currentStatus.toLowerCase()}`}
+              >
+                {currentStatus}
+              </span>
             )}
             <p className="creator-info">
               {issue.creator.name} created this issue on {
@@ -688,9 +696,14 @@ const IssueDetail = () => {
                   )}
                 </div>
 
-                <button onClick={toggleDescriptionEditMode} className="edit-btn">
-                  <img src={edit_description_button} alt="Edit Description" />
-                </button>
+                {issue.assignees.find(assignee => assignee.id === user.id) ?
+                  <div>
+                    <button onClick={toggleDescriptionEditMode} className="edit-btn">
+                      <img src={edit_description_button} alt="Edit Description" />
+                    </button>
+                  </div> :
+                  <div></div>
+                }
               </div>
               <hr />
               {!isDescriptionEditMode ? (
@@ -787,7 +800,7 @@ const IssueDetail = () => {
 
             <div className="issue-comments">
               {comments.length === 0 ? (
-                <p>No comments yet.</p>
+                <p></p>
               ) : (
                 comments.map((comment, index) => (
                   <div className="comment-box" key={index}>
@@ -858,21 +871,26 @@ const IssueDetail = () => {
           <div className='under-left-section'>
             <div className="add-comment">
               {/* <h3>add a comment</h3> */}
-              <textarea
-                className="comment-input"
-                placeholder="Leave a comment"
-                value={commentInput}
-                onChange={handleCommentInput}
-              ></textarea>
-              <div className="comment-actions">
-                <input
-                  type="file"
-                  multiple
-                  onChange={handleCommentFileUpload}
-                  className="file-input"
-                />
-                <button className="comment-button" onClick={handleAddComment}>Comment</button>
-              </div>
+              {issue.assignees.find(assignee => assignee.id === user.id) ?
+                <div>
+                  <textarea
+                    className="comment-input"
+                    placeholder="Leave a comment"
+                    value={commentInput}
+                    onChange={handleCommentInput}
+                  ></textarea>
+                  <div className="comment-actions">
+                    <input
+                      type="file"
+                      multiple
+                      onChange={handleCommentFileUpload}
+                      className="file-input"
+                    />
+                    <button className="comment-button" onClick={handleAddComment}>Comment</button>
+                  </div>
+                </div> :
+                <div></div>
+              }
             </div>
           </div>
 
