@@ -221,9 +221,9 @@ const IssueDetail = () => {
   }
 
   const handleAddComment = () => {
-    if (commentInput.trim() !== '') {
+    if (commentInput.trim() !== '' || commentFiles.length > 0) {
       const formData = new FormData()
-      formData.append('text', commentInput)
+      formData.append('text', commentInput || ' ')
       formData.append('timestamp', new Date().toLocaleString())
       formData.append('user', user)
 
@@ -836,7 +836,7 @@ const IssueDetail = () => {
                           {comment.text}
                           <br></br>
                           {comment.files && comment.files.map((file, index) => (
-                            <a key={index} href={`/${file}`} target="_blank" rel="noopener noreferrer">View Attachment</a>
+                            <a key={index} href={`/${file}`} target="_blank" rel="noopener noreferrer" className="attachment-link">View Attachment</a>
                           ))}
                         </p>
                       )}
