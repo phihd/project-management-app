@@ -191,6 +191,28 @@ issuesRouter.put('/:issueId', async (request, response, next) => {
       existingIssue.description.user = user.id
     }
 
+    if ('assignees' in body) {
+      const currentAssigneeIds = new Set(existingIssue.assignees.map(a => a.toString()));
+      const newAssigneeIds = new Set(body.assignees);
+
+      const assigneesToAdd = body.assignees.filter(id => !currentAssigneeIds.has(id));
+      const assigneesToRemove = [...currentAssigneeIds].filter(id => !newAssigneeIds.has(id));
+
+      const addPromises = assigneesToAdd.map(assigneeId =>
+        User.findByIdAndUpdate(assigneeId, {
+          $push: { assignedIssues: existingIssue._id }
+        })
+      );
+
+      const removePromises = assigneesToRemove.map(assigneeId =>
+        User.findByIdAndUpdate(assigneeId, {
+          $pull: { assignedIssues: existingIssue._id }
+        })
+      );
+
+      await Promise.all([...addPromises, ...removePromises]);
+    }
+
     Object.keys(body).forEach(key => {
       if (key !== 'description') {
         existingIssue[key] = body[key]
@@ -206,15 +228,6 @@ issuesRouter.put('/:issueId', async (request, response, next) => {
       .populate('comments', 'text')
     if (!updatedIssue) {
       return response.status(404).json({ message: 'Issue not found after update attempt' })
-    }
-
-    if ('assignees' in body) {
-      await Promise.all(
-        updatedIssue.assignees.map(assigneeId =>
-          User.findByIdAndUpdate(assigneeId, {
-            $set: { assignedIssues: updatedIssue._id }
-          })
-        ))
     }
 
     // TODO: if add more assignees, pop up noti for extra assignees only
