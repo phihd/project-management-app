@@ -1,19 +1,26 @@
 /* eslint-disable */
 import React, { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
-import { useQuery } from 'react-query'
+import { Link, useNavigate } from 'react-router-dom'
+import { useQuery, useQueryClient } from 'react-query'
 import { useContext } from 'react'
 import userService from '../services/users'
+import projectService from '../services/projects'
+import NewProjectForm from './NewProjectForm'
 import './Dashboard.css'
 import UserContext from './UserContext'
 import NProgress from 'nprogress'
 import 'nprogress/nprogress.css'
+import add_img from '../img/addnew.png'
 NProgress.configure({ easing: 'ease', speed: 500, showSpinner: false })
 
 import background from '../img/app_background.png'
 
+
 function Dashboard() {
   const { user } = useContext(UserContext)
+  const queryClient = useQueryClient()
+  const navigate = useNavigate()
+  const [showProjectForm, setShowProjectForm] = useState(false)
 
   const { data: openIssues, isLoading, isError, error } = useQuery(
     ['openIssues', user?.id],
@@ -31,6 +38,22 @@ function Dashboard() {
       enabled: !!user
     }
   )
+
+  const handleNewProjectClick = () => {
+    setShowProjectForm(true)
+  }
+
+  const handleCloseForm = () => {
+    setShowProjectForm(false)
+  }
+
+  const handleCreateProject = async (newProject) => {
+    if (newProject.name !== '') {
+      const updatedProject = await projectService.create(newProject)
+      queryClient.setQueryData('projects', old => [...old, updatedProject])
+      navigate(`/project/${updatedProject.id}`)
+    }
+  }
 
   if (isLoading) {
     NProgress.start()
@@ -67,10 +90,23 @@ function Dashboard() {
 
           ))
         ) : (
-          <p></p>
+          <div className="no-open-issues">
+            <p>No open issues</p>
+            <button onClick={handleNewProjectClick} className="new-project-btn">
+              <img src={add_img} alt="Add" style={{ marginRight: '8px' }} />
+              <span>Add New Project</span>
+            </button>
+          </div>
         )}
+        </div>
+      {showProjectForm && (
+        <div className="overlay">
+          <div className="modal">
+            <NewProjectForm handleCloseForm={handleCloseForm} handleCreateProject={handleCreateProject} />
+          </div>
+        </div>
+      )}
       </div>
-    </div>
   )
 }
 

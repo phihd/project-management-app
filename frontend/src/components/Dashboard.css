@@ -40,6 +40,47 @@
   background-color: transparent;
 }
 
+.no-open-issues {
+  grid-column: span 4; /* Center across all grid columns */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(0, 0, 0, 0.7);
+  padding: 20px;
+  border-radius: 10px;
+}
+
+.no-open-issues p {
+  margin: 0 0 20px;
+  color: white;
+  font-size: 2.5vh;
+}
+
+.new-project-btn {
+  display: flex;              /* Aligns children (img and span) in a row */
+  align-items: center;        /* Centers the children vertically */
+  justify-content: center;    /* Centers the children horizontally */
+  padding: 6px 12px;          /* Adjust padding as needed */
+  font-size: 14px;            /* Set font size */
+  border: none;               /* Removes border */
+  border-radius: 16px;         /* Adds rounded corners */
+  cursor: pointer;            /* Changes cursor to pointer on hover */
+  color: black;              /* Set text color */
+  background-color: #DBCA49;
+  font-family: 'Montserrat', sans-serif;
+}
+
+.new-project-btn:hover {
+  background-color: #9b8f30;
+}
+
+.new-project-btn img {
+  vertical-align: middle; /* Aligns the image vertically in the middle of the button text */
+  height: 20px; /* Adjust the size as needed */
+  width: auto; /* Maintain aspect ratio */
+}
+
 
 /* .issue-row {
   background-color: rgba(0, 0, 0, 0.7);
