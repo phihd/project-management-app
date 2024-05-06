@@ -16,12 +16,6 @@ const userSchema = new mongoose.Schema({
       ref: 'Project'
     }
   ],
-  issues: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Issue'
-    }
-  ],
   createdIssues: [
     {
       type: mongoose.Schema.Types.ObjectId,

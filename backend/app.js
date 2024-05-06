@@ -34,11 +34,6 @@ mongoose.connect(config.MONGODB_URI)
     logger.error('error connecting to MongoDB:', error.message)
   })
 
-const dir = './uploads'
-if (!fs.existsSync(dir)) {
-  fs.mkdirSync(dir, { recursive: true })
-}
-
 app.use(cors())
 app.use(express.static('build'))
 app.use(express.json())
@@ -55,6 +50,10 @@ app.use('/api/projects', projectsRouter)
 app.use('/api/projects/:projectId/issues', issuesRouter)
 app.use('/api/projects/:projectId/issues/:issueId/comments', commentRouter)
 // Serve static files from the 'uploads' directory
+const dir = './uploads'
+if (!fs.existsSync(dir)) {
+  fs.mkdirSync(dir, { recursive: true })
+}
 app.use('/uploads', express.static('uploads'))
 
 if (process.env.NODE_ENV === 'test') {

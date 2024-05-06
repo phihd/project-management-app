@@ -16,7 +16,7 @@ function Dashboard() {
   const { user } = useContext(UserContext)
 
   const { data: openIssues, isLoading, isError, error } = useQuery(
-    ['openIssues', user?.id], // Adjust the query key to depend on user.id
+    ['openIssues', user?.id],
     () => {
       if (user) {
         return userService.getAssignedIssues(user.id)
@@ -67,7 +67,7 @@ function Dashboard() {
 
           ))
         ) : (
-          <p>Loading ...</p>
+          <p></p>
         )}
       </div>
     </div>

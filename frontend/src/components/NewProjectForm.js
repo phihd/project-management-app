@@ -1,4 +1,5 @@
-import React, { useState, useQuery } from 'react'
+import React, { useState } from 'react'
+import { useQuery } from 'react-query'
 import userService from '../services/users'
 import './NewProjectForm.css'
 import NProgress from 'nprogress'
