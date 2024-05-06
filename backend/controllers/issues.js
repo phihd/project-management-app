@@ -198,6 +198,7 @@ issuesRouter.put('/:issueId', async (request, response, next) => {
     })
 
     await existingIssue.save()
+
     const updatedIssue = await Issue.findById(issueId)
       .populate('creator', 'name')
       .populate('assignees', 'name')
@@ -205,6 +206,15 @@ issuesRouter.put('/:issueId', async (request, response, next) => {
       .populate('comments', 'text')
     if (!updatedIssue) {
       return response.status(404).json({ message: 'Issue not found after update attempt' })
+    }
+
+    if ('assignees' in body) {
+      await Promise.all(
+        updatedIssue.assignees.map(assigneeId =>
+          User.findByIdAndUpdate(assigneeId, {
+            $push: { assignedIssues: updatedIssue._id }
+          })
+        ))
     }
 
     if (['status', 'assignees', 'dueDate'].some(field => field in body)) {
