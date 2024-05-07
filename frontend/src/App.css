@@ -320,7 +320,7 @@ h1, h2, h3, h4, h5, h6 {
 .email-form form {
   display: flex; /* Use flexbox to arrange children */
   flex-direction: column; /* Stack children vertically */
-  align-items: flex-end; /* Align children to the right */
+  /*align-items: flex-end;*/ /* Align children to the right */
   width: 100%;
 }
 

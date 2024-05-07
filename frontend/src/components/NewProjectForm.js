@@ -13,9 +13,17 @@ const NewProjectForm = ({ handleCreateProject, handleCloseForm }) => {
 
   const { data: members, isLoading, isError, error } = useQuery('members', userService.getAll)
 
-  const handleMemberSelection = (e) => {
-    const selectedMemberIds = Array.from(e.target.selectedOptions, option => option.value)
-    setSelectedMembers(selectedMemberIds)
+  const handleMemberSelection = (event) => {
+    const value = event.target.value
+    let newSelectedMembers = [...selectedMembers]
+
+    if (newSelectedMembers.includes(value)) {
+      newSelectedMembers = newSelectedMembers.filter(id => id !== value)
+    } else {
+      newSelectedMembers.push(value)
+    }
+
+    setSelectedMembers(newSelectedMembers)
   }
 
   const handleFormSubmit = async (e) => {
@@ -68,6 +76,7 @@ const NewProjectForm = ({ handleCreateProject, handleCloseForm }) => {
             className="new-form-select"
             multiple
             onChange={handleMemberSelection}
+            value={Array.from(selectedMembers)}
           >
             {members.map(member => (
               <option key={member.id} value={member.id}>{member.name}</option>
