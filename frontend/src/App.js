@@ -311,6 +311,7 @@ const App = () => {
         .then(response => {
           console.log('Email submitted:', email)
           setEmail('')
+          setUser({ ...user, email: email })
           setIsOpenEmailForm(false)
         })
         .catch(error => console.error('Failed to update email:', error))
