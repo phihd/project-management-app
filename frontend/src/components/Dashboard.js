@@ -50,7 +50,6 @@ function Dashboard() {
   const handleCreateProject = async (newProject) => {
     if (newProject.name !== '') {
       const updatedProject = await projectService.create(newProject)
-      queryClient.invalidateQueries('projects')
       navigate(`/project/${updatedProject.id}`)
     }
   }

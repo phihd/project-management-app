@@ -44,10 +44,8 @@ import { setToken } from './services/tokenmanager'
 const App = () => {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
-  const [message, setMessage] = useState({
-    text: null,
-    isError: false,
-  })
+  const [loginErrorMessage, setLoginErrorMessage] = useState(null)
+  const [signUpErrorMessage, setSignUpErrorMessage] = useState(null)
   const [showLogin, setShowLogin] = useState(true)
   const [showSignUp, setShowSignUp] = useState(false)
 
@@ -72,12 +70,20 @@ const App = () => {
     const axiosInterceptor = axios.interceptors.response.use(
       response => response,
       error => {
-        if (error.response && error.response.status === 401) {
-          handleLogout()
+        if (error.response) {
+          // Specifically handle token expiration scenario
+          if (error.response.status === 401 && error.response.data.error === "token expired") {
+            handleLogout()
+            alert('Your session has expired. Please log in again.')
+          } else if (error.response.status === 401 || error.response.status === 403) {
+            // Handle other unauthorized access without logging out
+            alert('You are not authorized to perform this action.')
+          }
         }
         return Promise.reject(error)
       }
     )
+
 
     // Cleanup function to remove interceptor when component unmounts
     return () => {
@@ -234,7 +240,7 @@ const App = () => {
               Project
             </Link>
           </li>
-          <li className={selectedView === 'department' ? 'selected' : ''}>
+          {/* <li className={selectedView === 'department' ? 'selected' : ''}>
             <Link to="/department" onClick={() => handleItemClick('department')}>
               Department
             </Link>
@@ -243,7 +249,7 @@ const App = () => {
             <Link to="/procedure" onClick={() => handleItemClick('procedure')}>
               Procedure
             </Link>
-          </li>
+          </li> */}
         </ul>
       </aside>
     )
@@ -305,6 +311,7 @@ const App = () => {
         .then(response => {
           console.log('Email submitted:', email)
           setEmail('')
+          setUser({ ...user, email: email })
           setIsOpenEmailForm(false)
         })
         .catch(error => console.error('Failed to update email:', error))
@@ -339,7 +346,13 @@ const App = () => {
             <div className="email-form" ref={formRef}>
               <button className="close-btn" onClick={handleCloseForm}> x </button>
               <form onSubmit={handleSubmitEmail}>
-                <input type="email" value={email} onChange={handleEmailChange} placeholder="Enter email to receive notifications" />
+                <label for="email">Email</label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={handleEmailChange}
+                  placeholder={user.email ? `Current email: ${user.email}` : "Enter email to receive notifications"}
+                />
                 <button type="submit">Submit</button>
               </form>
             </div>
@@ -382,10 +395,7 @@ const App = () => {
       setUsername('')
       setPassword('')
     } catch (exception) {
-      setMessage({ text: 'wrong username or password', isError: true })
-      setTimeout(() => {
-        setMessage({ text: null, isError: false })
-      }, 5000)
+      setLoginErrorMessage('Incorrect username or password')
     }
   }
 
@@ -407,7 +417,7 @@ const App = () => {
           handleShowLogin()
         }
       } catch (error) {
-        window.alert(error.response.data.error)
+        setSignUpErrorMessage(error.response.data.error)
       }
     }
 
@@ -421,12 +431,14 @@ const App = () => {
             handlePasswordChange={({ target }) => setPassword(target.value)}
             handleSubmit={handleLogin}
             handleShowSignUp={handleShowSignUp}
+            errorMessage={loginErrorMessage}
           />
         }
         {showSignUp &&
           <SignUpForm
             handleSignUp={handleSignUp}
-            handleCloseSignUp={handleShowLogin} // Pass the function to close the sign-up form
+            handleCloseSignUp={handleShowLogin}
+            errorMessage={signUpErrorMessage}
           />
         }
       </div>

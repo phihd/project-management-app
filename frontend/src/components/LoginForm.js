@@ -8,7 +8,8 @@ const Login = ({
   handlePasswordChange,
   username,
   password,
-  handleShowSignUp
+  handleShowSignUp,
+  errorMessage
 }) => {
   return (
     <div className="login-body">
@@ -40,6 +41,7 @@ const Login = ({
             />
           </div>
           <button className="login-button" type="submit">Login</button>
+          {errorMessage && <div className="error-message">{errorMessage}</div>}
           <div className="login-signup-link">
             Don&apos;t have an account? <a href="#" onClick={handleShowSignUp}> Sign Up </a>
           </div>

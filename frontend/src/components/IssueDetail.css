@@ -82,9 +82,14 @@
 
 .issue-status {
   padding: 5px 10px;
-  border-radius: 5px;
-  background-color: #f0f0f0;
-  color: #333;
+  border-radius: 20px;
+  background-color: white; /* Default gray, adjust if needed */
+  color: black;
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  font-family: 'Montserrat', sans-serif;
+  margin-right: 20px;
 }
 
 .issue-information .status-btn {

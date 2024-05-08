@@ -138,14 +138,14 @@ function ProjectDetail() {
         <h1 className="project-title">{project.name}</h1>
         <div className="header-buttons">
           {/* <button>{project.status.activityStatus}</button> */}
-          <button>
+          {/* <button>
             <img src={dept_button} alt="Department" className="button-img" />
             Phòng Tổ Chức Hành Chính
           </button>
           <button>
             <img src={status_button} alt="Status" className="button-img" />
             Status
-          </button>
+          </button> */}
         </div>
       </div>
       <div className="project-info">
