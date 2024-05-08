@@ -15,6 +15,7 @@ import new_issue from '../img/new_issue_btn.png'
 import open_status from '../img/open_issue.png'
 import close_status from '../img/close_issue.png'
 import comment_count from '../img/comment_count.png'
+import edit_project from '../img/pencil.png'
 
 import NProgress from 'nprogress'
 import 'nprogress/nprogress.css'
@@ -28,6 +29,10 @@ function ProjectDetail() {
   const [sortedIssues, setSortedIssues] = useState()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
+  const [editMembers, setEditMembers] = useState(false)
+  const [editDescription, setEditDescription] = useState(false)
+  const [membersInput, setMembersInput] = useState([])
+  const [descriptionInput, setDescriptionInput] = useState('')
 
   // Fetch project details
   const {
@@ -36,7 +41,11 @@ function ProjectDetail() {
     isError: isProjectError,
     error: projectError
   } = useQuery(['project', projectId], () => projectService.get(projectId), {
-    enabled: !!projectId
+    enabled: !!projectId,
+    onSuccess: (data) => {
+      setMembersInput(data.members.map(member => member.id))
+      setDescriptionInput(data.description || '')
+    }
   })
 
   // Fetch issues for the project
@@ -91,6 +100,26 @@ function ProjectDetail() {
     }
   }
 
+  const handleSaveMembers = async () => {
+    try {
+      await projectService.updateMembers(projectId, membersInput)
+      queryClient.invalidateQueries(['project', projectId])
+      setEditMembers(false)
+    } catch (error) {
+      console.error('Error updating members:', error)
+    }
+  }
+
+  const handleSaveDescription = async () => {
+    try {
+      await projectService.updateDescription(projectId, { description: descriptionInput })
+      queryClient.invalidateQueries(['project', projectId])
+      setEditDescription(false)
+    } catch (error) {
+      console.error('Error updating description:', error)
+    }
+  }
+
   if (isProjectLoading || isIssuesLoading) {
     NProgress.start()
     return
@@ -121,21 +150,63 @@ function ProjectDetail() {
       </div>
       <div className="project-info">
         <div className="project-section">
-          <h3>Members</h3>
-          <p>
-            {project.members.map((member, index) => (
-              <div key={index}>{member.name}{index < project.members.length - 1 ? ' ' : ''}</div>
-            ))}
-          </p>
+          <div className="project-section-header">
+            <h3>Members</h3>
+            <button onClick={() => setEditMembers(true)} className="edit-btn">
+              <img src={edit_project} alt="Edit Members" />
+            </button>
+          </div>
+          {editMembers ? (
+            <div>
+              <select
+                multiple
+                value={membersInput}
+                onChange={(e) => setMembersInput(Array.from(e.target.selectedOptions, option => option.value))}
+              >
+                {project.allMembers?.map(member => (
+                  <option key={member.id} value={member.id}>{member.name}</option>
+                ))}
+              </select>
+              <button onClick={handleSaveMembers} className="save-btn">Save</button>
+              <button onClick={() => setEditMembers(false)} className="cancel-btn">Cancel</button>
+            </div>
+          ) : (
+            <div>
+              <p>
+                {project.members?.map((member, index) => (
+                  <span key={index}>{member.name}{index < project.members.length - 1 ? ',' : ''} </span>
+                ))}
+              </p>
+            </div>
+          )}
         </div>
         <div className="project-section">
-          <h3>Description</h3>
-          {project.description ? (
-            project.description.split('\n').map((line, index) => (
-              <p key={index}>{line}</p>
-            ))
+          <div className="project-section-header">
+            <h3>Description</h3>
+            <button onClick={() => setEditDescription(true)} className="edit-btn">
+              <img src={edit_project} alt="Edit Description" />
+            </button>
+          </div>
+          {editDescription ? (
+            <div>
+              <textarea
+                value={descriptionInput}
+                onChange={(e) => setDescriptionInput(e.target.value)}
+                className="edit-description"
+              />
+              <button onClick={handleSaveDescription} className="save-btn">Save</button>
+              <button onClick={() => setEditDescription(false)} className="cancel-btn">Cancel</button>
+            </div>
           ) : (
-            <p>No description available</p>
+            <div>
+              {project.description ? (
+                project.description.split('\n').map((line, index) => (
+                  <p key={index}>{line}</p>
+                ))
+              ) : (
+                <p>No description available</p>
+              )}
+            </div>
           )}
         </div>
       </div>

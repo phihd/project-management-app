@@ -116,6 +116,13 @@
   box-shadow: 0 2px 4px rgba(244, 242, 242, 0.1);
 }
 
+.project-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
 /* project-section:hover {
   filter: brightness(75%);
   transition: filter 0.3s ease;
