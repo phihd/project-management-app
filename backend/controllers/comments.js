@@ -3,6 +3,17 @@ const commentsRouter = require('express').Router({ mergeParams: true }) // Use m
 const Issue = require('../models/issue')
 const Project = require('../models/project')
 const CommentModel = require('../models/comment')
+const multer = require('multer')
+
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, './uploads/') // Ensure this directory exists
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + '-' + file.originalname)
+  }
+})
+const upload = multer({ storage: storage })
 
 commentsRouter.get('/', async (request, response) => {
   const issueId = request.params.issueId
@@ -13,9 +24,9 @@ commentsRouter.get('/', async (request, response) => {
   response.json(comments)
 })
 
-commentsRouter.get('/:id', async (request, response) => {
-  const { issueId } = request.params.issueId
-  const comment = await Issue.findOne({ _id: issueId, issue: issueId })
+commentsRouter.get('/:commentId', async (request, response) => {
+  const commentId = request.params.commentId
+  const comment = await CommentModel.findOne({ _id: commentId })
   if (comment) {
     response.json(comment)
   } else {
@@ -23,7 +34,7 @@ commentsRouter.get('/:id', async (request, response) => {
   }
 })
 
-commentsRouter.post('/', async (request, response, next) => {
+commentsRouter.post('/', upload.array('files', 5), async (request, response, next) => {
   const token = request.token
   if (!token) {
     return response.status(401).json({ error: 'token missing' })
@@ -48,10 +59,11 @@ commentsRouter.post('/', async (request, response, next) => {
 
   const comment = await new CommentModel({
     text: body.text,
-    date: body.date,
     issue: issue,
-    user: user.id
-  }).populate('user', { username: 1, name: 1 })
+    user: user.id,
+    versions: [{ text: body.text }],
+    files: request.files.map(file => file.path)
+  }).populate('user', { name: 1 })
 
   const savedComment = await comment.save()
   issue.comments = issue.comments.concat(savedComment._id)
@@ -60,7 +72,7 @@ commentsRouter.post('/', async (request, response, next) => {
   response.status(201).json(savedComment)
 })
 
-commentsRouter.delete('/:id', async (request, response, next) => {
+commentsRouter.delete('/:commentId', async (request, response, next) => {
   const token = request.token
   if (!token) {
     return response.status(401).json({ error: 'token missing' })
@@ -70,8 +82,8 @@ commentsRouter.delete('/:id', async (request, response, next) => {
   if (!decodedToken.id) {
     return response.status(401).json({ error: 'token invalid' })
   }
-  const id = request.params.id
-  const comment = await CommentModel.findById(id)
+  const commentId = request.params.commentId
+  const comment = await CommentModel.findById(commentId)
 
   if (!comment) {
     response.status(404).json({ error: 'comment id cannot be found' })
@@ -79,27 +91,46 @@ commentsRouter.delete('/:id', async (request, response, next) => {
 
   const user = request.user
   if (comment.user.toString() === user.id.toString()) {
-    await CommentModel.deleteOne({ _id: id })
+    await CommentModel.deleteOne({ _id: commentId })
     response.sendStatus(204).end()
   } else {
     response.status(401).json({ error: 'comment can be deleted only by the user who created the comment' })
   }
 })
 
-commentsRouter.put('/:id', async (request, response, next) => {
-  const body = request.body
-  const issueId = request.params.issueId
-
-  const comment = {
-    text: body.title,
-    date: body.date,
-    issue: body.issue,
-    user: body.user
+commentsRouter.put('/:commentId', upload.array('files', 5), async (request, response, next) => {
+  const token = request.token
+  if (!token) {
+    return response.status(401).json({ error: 'token missing' })
   }
 
-  const updatedCommentModel = await CommentModel
-    .findByIdAndUpdate({ issue: issueId }, comment, { new: true })
-    .populate('user', { name: 1 })
+  const decodedToken = jwt.verify(token, process.env.SECRET)
+  if (!decodedToken.id) {
+    return response.status(401).json({ error: 'token invalid' })
+  }
+
+  const body = request.body
+  const user = request.user
+  const commentId = request.params.commentId
+
+  const existingComment = await CommentModel.findOne({ _id: commentId })
+  if (!existingComment) {
+    return response.status(404).json({ message: 'Comment not found' })
+  }
+
+  if ('text' in body && existingComment.user.toString() !== user.id.toString()) {
+    return response.status(403).json({ message: 'Comment can only be edited by its creator' })
+  }
+
+  existingComment.text = body.text
+  existingComment.timestamp = new Date()
+  existingComment.versions.push({ text: body.text, timestamp: new Date() })
+  if (request.files && request.files.length > 0) {
+    existingComment.files = request.files.map(file => file.path)
+  }
+
+  const updatedCommentModel = await existingComment.save()
+
   response.json(updatedCommentModel)
 })
 

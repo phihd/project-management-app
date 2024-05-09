@@ -11,7 +11,10 @@ if (process.env.NODE_ENV === 'production') {
   MONGODB_URI = process.env.DEV_MONGODB_URI
 }
 
+const EMAIL_PASSWORD = process.env.EMAIL_PASSWORD
+
 module.exports = {
   MONGODB_URI,
-  PORT
+  PORT,
+  EMAIL_PASSWORD
 }

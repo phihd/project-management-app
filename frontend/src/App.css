@@ -5,53 +5,82 @@
   box-sizing: border-box;
 }
 
+@import url('https://fonts.googleapis.com/css?family=Montserrat:400,700');
+
+
 /* Apply Segoe UI font to the entire app */
 body {
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  background-color: #353542;
-  color: #fff;
+  font-family: 'Montserrat', sans-serif;
+}
+
+.monsteratt-font {
+  font-family: 'Montserrat', sans-serif;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Montserrat', sans-serif;
 }
 
 /* App container */
 .App {
   display: flex;
   height: 100vh;
-  overflow: hidden;
+  flex-direction: column;
 }
 
 /* Content wrapper */
 .content-wrapper {
   flex: 1; /* Let the content-wrapper take remaining space */
   overflow-y: auto;
-  padding: 25px;
+  margin-left: 0;
   display: flex;
   flex-direction: column;
-  background-color: #353542;
+  background-color: #171b27;
   color: #fff;
+  transition: margin-left 0.5s ease; 
+}
+
+.content-wrapper.shifted {
+  margin-left: 250px; /* Shift right when sidebar is visible */
+  width: calc(100% - 250px)
+}
+
+:root {
+  --navbar-height: 12%;  /* Adjust this value based on your navbar's height */
 }
 
 /* Sidebar wrapper */
 .sidebar-wrapper {
   display: flex;
   flex-direction: column;
-  height:  100%;;
-  background-color: #000000; /* Set background color for the sidebar */
-  min-width: 150px; /* Set a minimum width for the sidebar */
-  max-width: 280px; /* Set a maximum width for the sidebar */
-  height: 100vh; /* Make sidebar wrapper full height */
-  overflow-y: auto; /* Enable vertical scrolling if content exceeds sidebar height */
-  color: #fff; /* Text color for the sidebar */
+  background-color: #000000;
+  overflow: hidden;
+  color: #fff;
+  z-index: 5;
+  transition: all 0.5s ease; /* Smooth transition for hiding/showing */
+  height: calc(100vh - var(--navbar-height));
+}
+
+.sidebar-wrapper.hidden {
+  transform: translateX(-100%); /* Hide by moving left */
+  position: absolute; /* Takes it out of normal flow, preventing it from taking up space */
+  height: calc(100vh - var(--navbar-height));
 }
 
 /* Navbar styles */
 .navbar {
+  width: 100%;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 15px;
-  background-color: #353542;
+  height: 12%;
+  background-color: #1d222e;
   color: #fff;
+  z-index: 10; /* Ensure navbar is above sidebar */
+  border-bottom: 0.3px solid #5d5151; 
+  box-sizing: border-box;
 }
+
 
 .navigation-links ul {
   list-style-type: none;
@@ -74,19 +103,51 @@ body {
   align-items: center;
 }
 
-.notification-btn {
+.notification-btn, .sidebar-toggle-btn {
   background-color: transparent;
   border: none;
+  display: flex;
   cursor: pointer;
   color: #fff;
   font-size: 20px;
   margin-left: 10px;
   padding: 0;
+  position: relative;
+  align-items: center; /* Centers the content of the button vertically */
+  justify-content: center; /* Centers the content of the button horizontally */
 }
 
-.notification-btn img {
-  width: 30px; /* Adjust the width and height as needed */
-  height: 30px;
+.notification-count {
+  position: absolute;
+  top: -7px;
+  right: -10px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: red;
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 12px;
+  margin-right: 35px;
+}
+
+.toolbar-buttons {
+  display: flex;
+  align-items: center;
+}
+
+.notification-btn img, .sidebar-toggle-btn img {
+  width: 35px; /* Adjust the width and height as needed */
+  height: 37px;
+  margin-right: 30px;
+}
+
+.sidebar-toggle-btn img {
+  width: 35px; /* Adjust the width and height as needed */
+  height: 37px;
+  margin-right: 10px;
 }
 
 .notification-btn:hover {
@@ -129,7 +190,7 @@ body {
 }
 
 .notification-link.read {
-  background-color: #353542; /* Subdued background for read notifications */
+  background-color: #3D405B; /* Subdued background for read notifications */
   color: #777; /* Dim text color for read notifications */
 }
 
@@ -145,10 +206,18 @@ body {
 }
 
 /* Logo styles */
+
+.logo {
+  display: flex;
+  align-items: center; /* Center the logo vertically within this div */
+}
+
 .logo img {
   width: 180px;
   height: auto;
-  margin-bottom: 20px;
+  max-height: 100%;
+  padding-left: 20px;
+  position: relative;
 }
 
 /* Navigation links styles */
@@ -173,6 +242,7 @@ body {
   padding: 8px;
   border-radius: 4px;
   border: 1px solid #ccc;
+  font-family: 'Montserrat', sans-serif;
   /* Input border color */
 }
 
@@ -183,7 +253,7 @@ body {
   display: flex;
   align-items: center;
   border-radius: 5px;
-  padding: 10px;
+  display: inline-block;
 }
 
 .user-info-btn {
@@ -194,35 +264,34 @@ body {
   align-items: center;
   color: #fff;
   text-decoration: none;
-  padding: 10px 15px;
+  position: relative;
+  z-index: 1010;
 }
 
 .user-info-btn:hover {
-  background-color: #353542;
-}
-
-.user-info-btn span {
-  margin-right: 8px;
-  font-weight: bold;
+  background-color: #1e1e22;
+  border-radius: 8px;
 }
 
 .user-info-btn img {
   width: 30px;
   height: 30px;
   border-radius: 50%;
+  margin-left: 10px;
 }
 
 /* Styles for the dropdown content */
 .dropdown-content {
   position: absolute;
-  top: calc(-100% - 5px);
-  right: 0;
-  background-color: #353542;
+  bottom: calc(100% + 5px); /* Show the dropdown below the button */
+  left: 0; /* Position it to the right of the button */
+  background-color: #8f8fa3;
   border-radius: 4px;
   display: flex;
   flex-direction: column;
   z-index: 1;
   box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  width: 100%;
 }
 
 .dropdown-content button {
@@ -230,36 +299,182 @@ body {
   border: none;
   background: none;
   cursor: pointer;
-  text-align: left;
   color: #fff;
 }
 
 .dropdown-content button:hover {
   background-color: #9d8f8f;
+  border-radius: 4px;
 }
+
+.email-form {
+  position: relative;
+  padding: 20px;
+  background-color: #e9e4bd;
+  border-radius: 8px;
+  width: 40%;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1); /* Adds a subtle shadow for depth */
+  z-index: 1001; /* Ensure the form is above the overlay */
+}
+
+.email-form form {
+  display: flex; /* Use flexbox to arrange children */
+  flex-direction: column; /* Stack children vertically */
+  /*align-items: flex-end;*/ /* Align children to the right */
+  width: 100%;
+}
+
+.email-form-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(255, 255, 255, 0.7); /* Semi-transparent white background */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000; /* Ensure overlay is above other content */
+}
+
+.email-form input[type="email"] {
+  padding: 8px;
+  margin: 8px 0;
+  width: 100%;
+  font-family: 'Montserrat', sans-serif;
+  border-radius: 8px;
+}
+
+button[type="submit"] {
+  background-color: #DBCA49;
+  color: #000;
+  cursor: pointer;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 14px;
+  margin-top: 10px;
+}
+
+.email-form .close-btn {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  background: none;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+  color: black;
+  font-family: 'Montserrat', sans-serif;
+}
+
+.email-form .close-btn:hover {
+  opacity: 0.5;
+}
+
+/* Project page styles */
+.project-page {
+  padding: 10px;
+  color: #fff;
+  background-color: #171b27; /* Same as the dashboard background */
+}
+
+.project-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.project-header h2 {
+  margin: 0;
+  color: #DBCA49;
+  font-size: 26px;
+}
+
+.create-project-btn {
+  display: flex;              /* Aligns children (img and span) in a row */
+  align-items: center;        /* Centers the children vertically */
+  justify-content: center;    /* Centers the children horizontally */
+  padding: 6px 12px;          /* Adjust padding as needed */
+  font-size: 14px;            /* Set font size */
+  border: none;               /* Removes border */
+  border-radius: 16px;         /* Adds rounded corners */
+  cursor: pointer;            /* Changes cursor to pointer on hover */
+  color: black;              /* Set text color */
+  background-color: #DBCA49;
+}
+
+.create-project-btn img {
+  vertical-align: middle; /* Aligns the image vertically in the middle of the button text */
+  height: 20px; /* Adjust the size as needed */
+  width: auto; /* Maintain aspect ratio */
+}
+
+.create-project-btn span {
+  font-weight: bold;
+}
+
+.create-project-btn:hover {
+  background-color: #9b8f30;
+}
+
+.project-container {
+  flex: 1; /* Takes remaining height */
+  overflow-y: auto; /* Allows scrolling */
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  width: 100%;
+}
+
+.project-container .project-row {
+  min-height: 12vh;
+  background-color: #131623;
+  margin-bottom: 5px;
+  border-radius: 10px;
+  align-items: center;
+  justify-content: center;
+  display: flex;
+  padding: 10px;
+  box-sizing: border-box;
+  cursor: pointer;
+}
+
+
+.project-container .header-row {
+  min-height: 8vh; /* Smaller height for the header row */
+  font-weight: bold;
+  background-color: #171b27;
+  color: #ffffff;
+  border-radius: 8px;
+  align-items: center;
+  justify-content: space-between;
+  display: flex;
+}
+
+.project-column {
+  flex: 1; /* Gives equal space to each column */
+  padding: 0 10px; /* Adds padding for spacing */
+  display: flex; /* Aligns items in a flexible layout */
+  align-items: center; /* Vertically centers items */
+  flex-wrap: wrap; /* Allows items to wrap within the column */
+}
+
+.project-container .project-row:not(.header-row):hover {
+  background-color: #2a2e35; /* Changed color for better visibility */
+}
+
+.members-element {
+  margin-right: 4px;
+}
+
 
 /* Sidebar styles */
 .sidebar {
   padding: 18px; /* Add padding to the sidebar */
 }
 
-/* Apply hidden style when the hidden class is added */
 .sidebar.hidden {
-transform: translateX(-100%); /* Move the sidebar off-screen */
-}
-
-/* Adjust width of sidebar */
-@media (max-width: 768px) {
-  .sidebar-wrapper {
-    width: 200px; /* Adjust width for smaller screens */
-  }
-}
-
-/* Media query for even smaller screens */
-@media (max-width: 576px) {
-  .sidebar-wrapper {
-    width: 150px; /* Further adjust width for even smaller screens */
-  }
+  display: none;
 }
 
 
@@ -290,51 +505,43 @@ transform: translateX(-100%); /* Move the sidebar off-screen */
 .main-content {
   flex: 1;
   overflow-y: auto;
-  background-color: #353542;
-  /* Light gray background */
-  color: #fff;
-  /* Text color */
-}
-
-/* Dashboard Styles */
-.dashboard {
+  background-color: #171b27;
+  height: calc(100vh - 70px);
   padding: 15px;
-}
-
-/* Table Styles */
-table {
-  margin-top: 20px;
+  color: #fff;
   width: 100%;
-  border-collapse: collapse;
 }
 
-th,
-td {
-  border: none;
-  padding: 8px;
-  text-align: left;
+.main-content.dashboard-active {
+  padding: 0;
 }
 
-th {
-  background-color: #353542;
+/* Styles the scrollbar track */
+.main-content::-webkit-scrollbar {
+  width: 8px;  /* or the width you prefer */
+  height: 8px; /* needed for horizontal scroll */
 }
 
-.row-link {
-  text-decoration: none;
-  color: inherit;
-  display: block;
+/* Styles the scrollbar handle */
+.main-content::-webkit-scrollbar-thumb {
+  background-color: #444452; /* scrollbar color */
+  border-radius: 4px;        /* optional, for rounded corners */
 }
 
+/* Optional: Styles the scrollbar track */
+.main-content::-webkit-scrollbar-track {
+  background: #171b27; /* color of the track, could be same as app background */
+}
 
 /* Footer Styles */
 .footer {
-  background-color: #353542;
-  /* Light gray background */
+  background-color: #171b27;
   color: #fff;
   /* Text color */
   padding: 15px;
   text-align: left;
-  /* Change text alignment to left */
+  position: relative;
+  height: 70px;
 }
 
 /* Center the content within the footer */
@@ -352,22 +559,10 @@ th {
   /* Change color on hover */
 }
 
-/* Dashboard hover effect */
-.dashboard:hover {
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-  /* Add shadow effect on hover */
-}
-
 /* Table hover effect */
 .table tr:hover {
   background-color: #4d4c4c;
   /* Darker row hover background color */
-}
-
-/* Footer hover effect */
-.footer:hover {
-  background-color: #212121;
-  border-radius: 8px;
 }
 
 .status-button:hover {
@@ -453,44 +648,6 @@ th {
   gap: 20px;
 }
 
-.project-section {
-  background-color: #fff;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.project-section {
-  background-color: #fff;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.project-section:hover {
-  filter: brightness(75%);
-  transition: filter 0.3s ease;
-}
-
-.project-section h3 {
-  margin-top: 0;
-  color: #444;
-}
-
-.project-section p {
-  margin: 10px 0;
-  color: #666;
-}
-
-.project-section ul {
-  list-style: none;
-  padding: 0;
-}
-
-.project-section li {
-  margin-bottom: 5px;
-  color: #666;
-}
 
 .overlay {
   position: fixed;
@@ -516,6 +673,7 @@ th {
   background-color: transparent;
   border: none;
   cursor: pointer;
+  margin-right: 5px;
 }
 
 .delete-button-img {
@@ -527,27 +685,28 @@ th {
 /*****************NewIssueForm.css*********************/
 
 /* Form container */
-form {
+/* form {
   max-width: 400px;
   margin: 0 auto;
   padding: 20px;
   background: #f9f9f9;
   border-radius: 8px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-}
+} */
 
 /* Form headings */
 h2 {
   font-size: 1.5rem;
   margin-bottom: 20px;
   text-align: center;
+  color: white;
 }
 
 label {
   display: block;
   font-weight: bold;
   margin-bottom: 5px;
-  color: #000000;
+  color: #171b27;
 }
 
 input[type='text'],
@@ -557,22 +716,17 @@ textarea {
   font-size: 16px;
   border: 1px solid #ccc;
   border-radius: 4px;
+  font-family: 'Montserrat', sans-serif;
 }
 
 /* Form buttons */
 button[type='submit'],
 button[type='button'] {
   padding: 8px 16px;
-  margin-right: 10px;
-  font-size: 16px;
   border: none;
   border-radius: 4px;
   cursor: pointer;
-}
-
-button[type='submit'] {
-  background-color: #007bff;
-  color: #fff;
+  border-radius: 8px;
 }
 
 button[type='submit']:hover,

@@ -1,63 +1,111 @@
 /* eslint-disable */
 import React, { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+import { useQuery, useQueryClient } from 'react-query'
+import { useContext } from 'react'
 import userService from '../services/users'
-import './ProjectDetail.css'
+import projectService from '../services/projects'
+import NewProjectForm from './NewProjectForm'
+import './Dashboard.css'
+import UserContext from './UserContext'
+import NProgress from 'nprogress'
+import 'nprogress/nprogress.css'
+import add_img from '../img/addnew.png'
+NProgress.configure({ easing: 'ease', speed: 500, showSpinner: false })
 
-function Dashboard({ currentUser }) {
-  const [openIssues, setOpenIssues] = useState([])
+import background from '../img/app_background.png'
 
-  useEffect(() => {
-    // Fetch open issues involving the current user
-    const fetchOpenIssues = async () => {
-      try {
-        const issues = await userService.getAssignedIssues(currentUser.id)
-        const openIssues = issues
-          .filter(issue => issue.status === 'Open')
-          .sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate)) // Sorting open issues by due date
 
-        setOpenIssues(openIssues)
-      } catch (error) {
-        console.error('Error fetching open issues:', error)
+function Dashboard() {
+  const { user } = useContext(UserContext)
+  const queryClient = useQueryClient()
+  const navigate = useNavigate()
+  const [showProjectForm, setShowProjectForm] = useState(false)
+
+  const { data: openIssues, isLoading, isError, error } = useQuery(
+    ['openIssues', user?.id],
+    () => {
+      if (user) {
+        return userService.getAssignedIssues(user.id)
+          .then(issues => issues
+            .filter(issue => issue.status === 'Open')
+            .sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate))
+          )
       }
+      return []
+    },
+    {
+      enabled: !!user
     }
+  )
 
-    if (currentUser) {
-      fetchOpenIssues()
+  const handleNewProjectClick = () => {
+    setShowProjectForm(true)
+  }
+
+  const handleCloseForm = () => {
+    setShowProjectForm(false)
+  }
+
+  const handleCreateProject = async (newProject) => {
+    if (newProject.name !== '') {
+      const updatedProject = await projectService.create(newProject)
+      navigate(`/project/${updatedProject.id}`)
     }
-  }, [currentUser])
+  }
+
+  if (isLoading) {
+    NProgress.start()
+    return
+  } else {
+    NProgress.done()
+  }
+  if (isError) return <div>Error: {error.message}</div>
 
   return (
     <div className="dashboard">
-      {openIssues.length > 0 && <div>
-        <h2>Open Issues</h2>
-        <ul className="project-detail-issue-list">
-          {openIssues.map((issue) => (
-            <li key={issue.id} className="project-detail-issue-item">
-              <Link to={`project/${issue.project.id}/${issue.id}`} className="project-detail-issue-link">
-                <div className="project-detail-issue-info">
-                  <div>
-                    <h3 className="project-detail-issue-title">{issue.title}</h3>
-                    <p className="project-detail-issue-due-date">
-                      Due Date: {
-                        new Date(issue.dueDate).toLocaleDateString('en-GB', {
-                          day: '2-digit',
-                          month: '2-digit',
-                          year: 'numeric',
-                        })}
-                    </p>
-                    <Link to={`/project/${issue.project.id}`} className="dashboard-project-link">
-                      <p>Project: {issue.project.name}</p>
-                    </Link>
-                  </div>
-                </div>
-              </Link>
-            </li>
-          ))}
-        </ul>
+      <div className="dashboard-header">
+        <h2>ISSUE DASHBOARD</h2>
+        <h3> prioritization is the key to mastering effective workload management. </h3>
       </div>
-      }
-    </div>
+      <div className="issue-container">
+        {openIssues.length > 0 ? (
+          openIssues.map((issue) => (
+            <div className="issue-row" key={issue.id}>
+              <div className="issue-card-header">
+                <h4>{issue.title}</h4>
+              </div>
+              <div className="issue-card-info">
+                <p>Due Date: {new Date(issue.dueDate).toLocaleDateString('en-GB', {
+                  day: '2-digit', month: '2-digit', year: 'numeric'
+                })}</p>
+                <p>Project: {issue.project.name}</p>
+                <p>Assignees: {issue.assignees.map(assignee => assignee.name).join(', ')}</p>
+              </div>
+              <Link to={`/project/${issue.project.id}/${issue.id}`} className="details-button">
+                see details
+              </Link>
+            </div>
+
+          ))
+        ) : (
+          <div className="no-open-issues">
+            <p>No open issues</p>
+            <button onClick={handleNewProjectClick} className="new-project-btn">
+              <img src={add_img} alt="Add" style={{ marginRight: '8px' }} />
+              <span>Add New Project</span>
+            </button>
+          </div>
+        )}
+        </div>
+      {showProjectForm && (
+        <div className="overlay">
+          <div className="modal">
+            <NewProjectForm handleCloseForm={handleCloseForm} handleCreateProject={handleCreateProject} />
+          </div>
+        </div>
+      )}
+      </div>
   )
 }
 

@@ -1,0 +1,86 @@
+/* NewProjectForm.css */
+.new-form-container {
+  width: 80%;       
+  margin: 20px auto; 
+  padding: 40px;     
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  background-color: #f7f3d2;
+  border-radius: 8px;
+}
+
+.new-form-input, .new-form-textarea {
+  width: 100%;       /* Make inputs take full width of the form */
+  padding: 10px;     /* Add padding for better text visibility */
+  margin-top: 8px;   /* Add some space above the input */
+  margin-bottom: 16px; /* Add some space below the input */
+  box-sizing: border-box; /* Include padding and border in the width */
+  border-radius: 4px;
+}
+
+.new-form-button {
+  padding: 10px 20px;
+  margin-right: 10px; /* Space between buttons */
+  cursor: pointer;   /* Change cursor to pointer to indicate clickability */
+  background-color: #dbca49;
+  color: #171b27;
+  border: none;
+  border-radius: 5px;
+  font-size: 12px;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: bold;
+}
+
+.new-form-button-cancel {
+  padding: 10px 20px;
+  margin-right: 10px; /* Space between buttons */
+  cursor: pointer;   /* Change cursor to pointer to indicate clickability */
+  background-color: #a7a280;
+  color: #171b27;
+  border: none;
+  border-radius: 5px;
+  font-size: 12px;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: bold;
+}
+
+.project-form {
+  background-color: transparent;
+  box-shadow: none;
+}
+
+.new-form-container h2 {
+  color: #171b27;
+  margin-bottom: 30px;
+}
+
+.new-form-container option {
+  font-family: 'Montserrat', sans-serif;
+  margin-bottom: 4px;
+}
+
+.new-form-select {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background-color: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  height: auto;
+  min-height: 50px; /* Minimum height with enough room to show multiple selections */
+  overflow-y: auto; /* Allows scrolling inside the dropdown */
+}
+
+.new-form-select option {
+  padding: 8px;
+  cursor: pointer; /* Changes the cursor to a pointer to indicate selectable items */
+}
+
+.new-form-select option:hover {
+  background-color: #f7f7f7; /* Adds a hover effect for options */
+}
+
+.new-form-select:focus {
+  outline: none; /* Removes the outline */
+  border-color: #ccc; /* Sets a more neutral border color */
+}
+

@@ -9,16 +9,11 @@ const userSchema = new mongoose.Schema({
   },
   name: String,
   passwordHash: String,
+  email: String,
   projects: [
     {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Project'
-    }
-  ],
-  issues: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Issue'
     }
   ],
   createdIssues: [

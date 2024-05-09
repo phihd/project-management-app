@@ -1,0 +1,182 @@
+.dashboard {
+  height: calc(100vh - 20px);
+  display: flex;
+  flex-direction: column;
+  background: url('../img/app_background.png') no-repeat center center fixed; 
+  background-size: cover;
+}
+
+
+.dashboard-header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 45%;
+  margin-bottom: 20px;
+  flex-direction: column;
+}
+
+.dashboard-header h2 {
+  margin: 0;
+  color: #DBCA49;
+  font-size: 10vh;
+  display: block;
+}
+
+.dashboard-header h3 {
+  color: #8c8383;
+  font-size: 3.2vh;
+  font-weight: 200;
+  display: block;
+  margin-top: 8px;
+}
+
+.issue-container {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr); 
+  grid-gap: 5px;
+  overflow-y: auto;
+  background-color: transparent;
+}
+
+.no-open-issues {
+  grid-column: span 4; /* Center across all grid columns */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(0, 0, 0, 0.7);
+  padding: 20px;
+  border-radius: 10px;
+}
+
+.no-open-issues p {
+  margin: 0 0 20px;
+  color: white;
+  font-size: 2.5vh;
+}
+
+.new-project-btn {
+  display: flex;              /* Aligns children (img and span) in a row */
+  align-items: center;        /* Centers the children vertically */
+  justify-content: center;    /* Centers the children horizontally */
+  padding: 6px 12px;          /* Adjust padding as needed */
+  font-size: 14px;            /* Set font size */
+  border: none;               /* Removes border */
+  border-radius: 16px;         /* Adds rounded corners */
+  cursor: pointer;            /* Changes cursor to pointer on hover */
+  color: black;              /* Set text color */
+  background-color: #DBCA49;
+  font-family: 'Montserrat', sans-serif;
+}
+
+.new-project-btn:hover {
+  background-color: #9b8f30;
+}
+
+.new-project-btn img {
+  vertical-align: middle; /* Aligns the image vertically in the middle of the button text */
+  height: 20px; /* Adjust the size as needed */
+  width: auto; /* Maintain aspect ratio */
+}
+
+
+/* .issue-row {
+  background-color: rgba(0, 0, 0, 0.7);
+  margin-bottom: 5px;
+  align-items: center;
+  justify-content: center;
+  display: flex;
+  padding: 10px;
+  box-sizing: border-box;
+  height: 100%; 
+  cursor: pointer;
+} */
+
+.issue-row {
+  background-color: rgba(0, 0, 0, 0.7);
+  margin-bottom: 3px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  box-sizing: border-box;
+  height: 33vh;
+  width:100%;
+  overflow: hidden;
+  border-radius: 10px;
+}
+
+.issue-row .issue-card-header {
+  padding: 10px;
+  padding-left:20px;
+  padding-top: 0px;
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.issue-row .issue-card-header h4 {
+  margin: 0;
+  color: white;
+  font-size: 3vh;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  width: 100%;
+}
+
+.issue-row .issue-card-info p {
+  margin: 5px 0;
+  font-size: 2vh;
+  color:#dddfd0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  width: 100%;
+}
+
+.issue-row .issue-card-info {
+  padding: 20px;
+  padding-top: 0px;
+  padding-bottom: 0px;
+  width: 100%;
+}
+
+.details-button {
+  padding: 4px;
+  margin-top: 30px;
+  background-color: #DBCA49;
+  color: white;
+  text-decoration: none;
+  border-radius: 10px;
+  text-align: center;
+  display: block;
+  transition: background-color 0.3s;
+  margin-left: 20px;
+  font-size: 12px;
+  width: 100px;
+}
+
+.issue-container .header-row {
+  display: none;
+}
+
+.issue-container::-webkit-scrollbar {
+  width: 10px;
+}
+
+.issue-container::-webkit-scrollbar-track {
+  background: #171b27;
+}
+
+.issue-container::-webkit-scrollbar-thumb {
+  background-color: #2e3141;
+  border-radius: 8px;
+  border: 2px solid #171b27;
+}
+
+.issue-column {
+  flex: 1; /* Equal width for each column */
+  padding: 0 10px; /* Spacing for readability */
+}

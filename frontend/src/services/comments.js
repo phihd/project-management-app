@@ -8,18 +8,26 @@ const getAll = (projectId, issueId) => {
   return request.then(response => response.data)
 }
 
-const create = async (projectId, issueId, newObject) => {
+const create = async (projectId, issueId, formData) => {
+  const token = getToken()
+  const config = {
+    headers: {
+      Authorization: token,
+      'Content-Type': 'multipart/form-data',
+    },
+  }
+
+  const response = await axios.post(`${baseUrl}/${projectId}/issues/${issueId}/comments`, formData, config)
+  return response.data
+}
+
+const update = (projectId, issueId, commentId, newObject) => {
   const token = getToken()
   const config = {
     headers: { Authorization: token },
   }
 
-  const response = await axios.post(`${baseUrl}/${projectId}/issues/${issueId}/comments`, newObject, config)
-  return response.data
-}
-
-const update = (projectId, issueId, commentId, newObject) => {
-  const request = axios.put(`${baseUrl}/${projectId}/issues/${issueId}/comments/${commentId}`, newObject)
+  const request = axios.put(`${baseUrl}/${projectId}/issues/${issueId}/comments/${commentId}`, newObject, config)
   return request.then(response => response.data)
 }
 

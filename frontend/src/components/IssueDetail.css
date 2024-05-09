@@ -1,23 +1,336 @@
 .issue-detail {
-  padding: 20px;
+  padding: 10px;
+}
+
+.back-to-project-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.back-to-project-btn img {
+  width: 40px;
+  height: auto;
+  display: block;
 }
 
 .issue-header {
   display: flex;
+  flex-direction: column;
+  padding-bottom: 18px;
+  border-bottom: 0.5px solid #bbb2b2;
+}
+
+.issue-title-container {
+  display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 15px;
 }
 
 .issue-title {
   margin: 0;
-  font-size: 24px;
+  font-size: 26px;
+}
+
+.title-edit-input {
+  flex-grow: 1;
+  padding: 8px;
+  font-size: 12px;
+  font-family: 'Montserrat', sans-serif;
+  color: #605656;
+}
+
+.button-group {
+  display: flex;
+}
+
+.edit-title-btn, .save-title-btn, .cancel-edit-btn {
+  padding: 6px 12px;
+  margin-left: 8px;
+  cursor: pointer;
+  border: none;
+  border-radius: 4px;
+}
+
+.cancel-edit-btn {
+  background-color: #6c757d;
+  font-size: 12px;
+  font-family: 'Montserrat', sans-serif;
+  color: black;
+}
+
+.save-title-btn {
+  font-size: 12px;
+  font-family: 'Montserrat', sans-serif;
+  background-color: #DBCA49;
+  color: black;
+}
+
+.edit-title-btn:hover, .save-title-btn:hover, .cancel-edit-btn:hover {
+  opacity: 0.9;
+}
+
+.edit-title-btn {
+  background-color: #6c757d;
+  font-size: 12px;
+  font-family: 'Montserrat', sans-serif;
+  color: white;
+  border: 1px solid wheat;
 }
 
 .issue-status {
   padding: 5px 10px;
+  border-radius: 20px;
+  background-color: white; /* Default gray, adjust if needed */
+  color: black;
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  font-family: 'Montserrat', sans-serif;
+  margin-right: 20px;
+}
+
+.issue-information .status-btn {
+  padding: 5px 10px;
+  border-radius: 20px;
+  background-color: white; /* Default gray, adjust if needed */
+  color: black;
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  font-family: 'Montserrat', sans-serif;
+  cursor: pointer;
+  margin-right: 20px;
+}
+
+.status-btn.open {
+  border-color: #46e676;
+}
+
+.status-btn.close {
+  border-color: #414141;
+}
+
+.issue-information p {
+  margin: 0;
+  font-size: 14px;
+}
+
+.issue-information {
+  display: flex;
+  align-items: center;
+}
+
+.status-and-info {
+  display: flex;
+  align-items: center;
+}
+
+.info-and-comments {
+  display: flex;
+  align-items: center;
+  margin-left: 10px;
+}
+
+.creator-info, .comment-count {
+  margin: 0 10px 0 0; /* Provides spacing around the text */
+  font-size: 14px;
+}
+
+.comment-count {
+  white-space: nowrap; /* Keeps the comment count on one line */
+}
+
+.comment-content {
+  padding: 20px;
+  background-color: #171b27;
+  border-radius: 8px;
+  z-index: 0;
+}
+
+.attachment-link {
+  display: inline-block;
+  color: black;
+  padding: 5px 10px;
+  margin-top: 10px;
   border-radius: 5px;
-  background-color: #f0f0f0;
-  color: #333;
+  text-decoration: none;
+  transition: background-color 0.3s;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 12px;
+  text-decoration: underline;
+  background-color: #c0c1a1;
+  padding: 12px 20px;
+  border-radius: 10px;
+  margin-right: 8px;
+}
+
+.attachment-link:hover {
+  opacity: 0.8;
+}
+
+.comment-text {
+  font-size: 14px;
+  color: white; 
+  margin-bottom: 0px;
+  line-height: 1.5;
+}
+
+.issue-body {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+.left-container .left-section, .right-section {
+  border: none;
+}
+
+.left-container {
+  flex: 2;
+  display: flex;
+  flex-direction: column;
+  padding-right: 15px;
+}
+
+.left-section {
+  padding-right: 15px;
+  position: relative;
+}
+
+.left-section::before {
+  content: '';
+  position: absolute;
+  left: 50px;  /* Line position from the left */
+  top: calc(100% - 62%);  /* Adjust this based on where the description box ends */
+  bottom: -10px;
+  width: 2px;  /* Line width */
+  background-color: rgb(234, 230, 213);  /* Line color */
+  z-index: 0;
+}
+
+.under-left-section {
+  padding-right: 15px;
+  margin-top:-10px;
+}
+
+.under-left-section h3 {
+  border-top: 2px solid;
+  padding:20px;
+  padding-left: 0px;
+  font-size: 24px;
+}
+
+
+.right-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding-left: 20px;
+  padding-top: 20px;
+  margin-left: 10px;
+}
+
+.right-section .section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.edit-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  margin-left: 10px; /* Space between the header and the button */
+}
+
+.edit-btn img {
+  height: 30px;
+  width: auto;
+}
+
+.due-date, .assignees {
+  border-bottom: 0.3px solid #695959;
+  padding-bottom: 20px;
+}
+
+.due-date input[type="date"] {
+  margin-right: 10px;
+  font-family: 'Montserrat', sans-serif;
+}
+
+.save-btn, .cancel-btn {
+  padding: 5px 10px;
+  margin-right: 5px;
+  font-size: 12px;
+  color: black;
+  border: none;
+  cursor: pointer;
+  border-radius: 4px;
+  font-family: 'Montserrat', sans-serif;
+}
+
+.save-btn {
+  background-color: #DBCA49; /* Bootstrap primary blue */
+}
+
+.cancel-btn {
+  background-color: #6c757d;
+  font-size: 12px;
+}
+
+.save-btn:hover, .cancel-btn:hover {
+  opacity: 0.8;
+}
+
+.due-date p, .assignees p {
+  margin-top: 0;
+}
+
+.assignees select {
+  margin-right: 10px;
+  font-family: 'Montserrat', sans-serif;
+  border-radius: 8px;
+  max-height: 120px;
+}
+
+.assignees select::-webkit-scrollbar {
+  width: 12px; /* Adjust the width of the scrollbar */
+}
+
+.assignees select::-webkit-scrollbar-track {
+  background: #f1f1f1; /* Color of the track */
+  border-radius: 8px; /* Match the border-radius of the select */
+}
+
+.assignees select::-webkit-scrollbar-thumb {
+  background: #888; /* Color of the scrollbar thumb */
+  border-radius: 8px; /* Roundness of the scrollbar thumb */
+}
+
+.assignees select::-webkit-scrollbar-thumb:hover {
+  background: #555; /* Color of the scrollbar thumb on hover */
+}
+
+.assignees option {
+  padding: 10px 10px;
+}
+
+h3 {
+  font-size: 20px;
+}
+
+p {
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+
+.issue-comments, .add-comment, .due-date, .assignees {
+  margin-bottom: 20px;
 }
 
 .issue-box {
@@ -31,30 +344,6 @@
   margin-top: 0;
 }
 
-.comment-box {
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  padding: 10px;
-  margin-bottom: 10px;
-}
-
-.comment-box p {
-  margin: 5px 0;
-}
-
-.comment-box button {
-  background-color: #007bff;
-  color: #fff;
-  border: none;
-  border-radius: 5px;
-  padding: 5px 10px;
-  cursor: pointer;
-}
-
-.comment-box button:hover {
-  background-color: #0056b3;
-}
-
 .issue-meta {
   font-size: 14px;
 }
@@ -63,16 +352,375 @@
   margin-right: 10px;
 }
 
-.issue-description {
-  margin-top: 20px;
+.description-box {
+  border: none;
+  /* padding: 15px; */
+  border-radius: 8px;
+  /* margin-bottom: 20px; */
+  background-color: rgb(234, 230, 213);
 }
 
-.issue-description h3 {
-  margin-bottom: 10px;
+.description-box .header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px;
+  padding-bottom: 10px;
 }
 
-.issue-description-text {
-  line-height: 1.5;
+.description-box .left-header {
+  display: flex;
+  /* align-items: center; */
+  gap: 8px;
+  position: relative;
+}
+
+.description-box h3 {
+  margin: 0;
+  padding: 0;
+  color: #333;
+  font-size: 20px;
+  flex-grow: 1;
+}
+
+.description-box .actions {
+  display: flex;
+  gap: 10px;
+}
+
+.description-box .history-btn, .description-box .save-btn, .description-box .cancel-btn {
+  padding: 6px 12px;
+  font-size: 14px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.description-box .save-btn {
+  background-color: #dbca49;
+  font-size: 12px;
+  margin-top: 10px;
+}
+
+.description-box .cancel-btn {
+  background-color: #6c757d;
+  font-size: 12px;
+  margin-top: 10px;
+}
+
+.description-box .history-btn {
+  background: none;
+  border: none;
+  color: #333;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding-left: 0px;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 12px;
+}
+
+.description-box .history-btn img {
+  width: 12px;
+  height: auto;
+}
+
+.description-box .edit-btn {
+  padding: 4px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.description-box .edit-btn img {
+  width: 20px;
+  height: auto;
+}
+
+.tabs {
+  display: flex;
+}
+
+.tabs button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 10px;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 12px;
+
+}
+
+.tabs button.active {
+  background-color: #f1f2dd;
+  color: black;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 12px;
+  border-radius: 8px;
+  border-bottom-right-radius: 0px;
+  border-bottom-left-radius: 0px;
+}
+
+.edit-container {
+  margin: 8px;
+  border-radius: 8px;
+  border: 0.5px solid #b0a9a9;
+  box-sizing: border-box;
+  background-color: #f1f2dd;
+}
+
+.tabs-and-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #a5a7a1;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+}
+
+.toolbar {
+  display: flex;
+  margin-right: 10px;
+}
+
+.toolbar button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  margin-left: 12px; /* Space between toolbar buttons */
+  align-items: center;
+  padding: 7px;
+  padding-right: 10px;
+}
+
+.toolbar img {
+  height: 16px;
+  width: auto;
+  cursor: pointer;
+}
+
+.text-input {
+  height: 150px; 
+  padding: 8px;
+  box-sizing: border-box;
+  resize: vertical;
+  overflow-y: auto;
+  font-size: 14px;
+  border: none;
+  border-top-right-radius: 0px;
+  border-top-left-radius: 0px;
+}
+
+.text-input:focus {
+  outline: none;
+}
+
+.preview {
+  height: 150px; 
+  padding: 20px;
+  background-color: #f1f2dd;
+  color:black;
+  border: 1px solid #ccc;
+  border-top: none;
+  border-radius: 5px;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 14px;
+  border-top-right-radius: 0px;
+  border-top-left-radius: 0px;
+  white-space: pre-wrap;
+  resize: vertical;
+  overflow-y: auto;
+}
+
+.preview span {
+  margin-left: 5px;
+}
+
+.text-input::-webkit-scrollbar,
+.preview::-webkit-scrollbar {
+    width: 8px;
+    height: 10px;
+    background-color: #f1f2dd;
+}
+
+.text-input::-webkit-scrollbar-thumb,
+.preview::-webkit-scrollbar-thumb {
+    background-color: #b0b0b0; 
+    border-radius: 4px;
+}
+
+.text-input::-webkit-scrollbar-thumb:hover,
+.preview::-webkit-scrollbar-thumb:hover {
+    background-color: #a0a0a0; /* Even darker on hover */
+}
+
+.text-input::-webkit-resizer,
+.preview::-webkit-resizer {
+  width: 50px;  /* Width of the handle */
+  height: 50px; /* Height of the handle */
+}
+
+.description-box .edit-btn:hover, .description-box .history-btn:hover, .description-box .save-btn:hover, .description-box .cancel-btn:hover {
+  opacity: 0.85;
+}
+
+.description-box .header hr {
+  border: 0;
+  height: 1px;
+  background-color: #bbb;
+  margin-top: 0;
+}
+
+.history-list {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%; /* Adjust width as necessary */
+  background-color: white;
+  border: 1px solid #ccc;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  z-index: 10;
+  list-style-type: none; 
+  padding: 0;
+  margin-top: 5px;
+  display: block;
+  color: black;
+  border-radius: 8px;
+}
+
+.history-list li {
+  padding: 8px 16px;
+  cursor: pointer;
+  border-bottom: 1px solid #ddd;
+  font-size: 12px;
+  border-radius: 8px;
+}
+
+.history-list li:last-child {
+  border-bottom: none;
+}
+
+.history-list li:hover {
+  background-color: #f0f0f0;
+  border-radius: 8px;
+}
+
+
+/* Modal styles */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(255, 255, 255, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background-color: #fff;
+  border-radius: 5px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  width: 90%;
+  max-width: 500px;
+  color: black;
+  text-align: justify;
+  border-radius: 10px;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 14px;
+  font-weight: bold;
+  padding: 15px;
+  background-color: #e1e1c5;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+}
+
+.modal-body {
+  padding: 20px;
+}
+
+.modal-body p {
+  font-size: 12px;
+}
+
+.modal-body span {
+  font-size: 12px;
+  margin-left: 5px;
+}
+
+
+.close {
+  color: #aaaaaa;
+  float: right;
+  font-size: 20px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.close:hover,
+.close:focus {
+  color: #000;
+  text-decoration: none;
+}
+
+.close span {
+  padding: 0;
+}
+
+.modal hr {
+  border: 0;
+  height: 1px;
+  background-color: #ccc;
+  margin-top: 0;
+  margin-bottom: 0;
+  width: 100%;
+}
+
+
+.description-box .button-group {
+  display: flex;
+  gap: 3px;
+  margin-left: 20px;
+  padding-bottom: 12px;
+}
+
+.description-box textarea {
+  width: 100%;
+  height: 150px; 
+  padding: 20px;
+  border-radius: 4px;
+  resize: vertical;
+  text-align: justify;
+  background-color: #f1f2dd;
+  font-family: 'Montserrat', sans-serif;
+}
+
+.description-box .description-text {
+  color: black;
+  padding: 25px;
+  text-align: justify;
+}
+
+.description-text span {
+  font-size: 14px;
+  font-family: 'Montserrat', sans-serif;
+  margin-left: 5px;
+}
+
+.description-box .save-btn, .description-box .cancel-btn {
+  padding: 6px 12px;
 }
 
 .issue-details {
@@ -101,37 +749,229 @@
   margin-top: 20px;
 }
 
-.comment {
-  margin-bottom: 15px;
+.comment-box {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  margin-bottom: 10px;
+  margin-top: 45px;
+  border-radius: 8px;
+  z-index:1;
+}
+
+.comment-header {
+  display: flex;
+  align-items: center;
+  position: relative;
+  background-color: #e3e3d1;
+  padding: 15px;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+}
+
+.comment-actions {
+  position: relative;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+
+.comment-toggle {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 10px;
+  font-family: 'Montserrat', sans-serif;
+  display: flex;
+}
+
+.comment-toggle img {
+  height: 11px;
+  width: auto;
+  margin-left: 5px;
+}
+
+
+.comment-options {
+  position: absolute;
+  right: 0;
+  background-color: white;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  top: 20px;
+  z-index: 100;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.comment-options button {
+  display: block;
+  padding: 5px 10px;
+  width: 100%;
+  text-align: left;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 12px;
+  font-family: 'Montserrat', sans-serif;
+}
+
+.comment-options button:hover {
+  background-color: #f0f0f0;
+  border-radius: 4px;
+}
+
+.comment-info {
+  flex-grow: 1;
+}
+
+.edited {
+  background: none;
+  border: none;
+  color: #333;
+  cursor: pointer;
+  font-style: italic;
+  align-items: center;
+  font-size: 14px; /* Adjust as needed */
+  padding: 0; /* Removes default button padding */
+  margin-left: 10px;
+  font-family: 'Montserrat', sans-serif;
+}
+
+.edited img {
+  width: 12px; /* Adjust size as needed */
+  margin-left: 5px; /* Space between text and icon */
+}
+
+.comment-history-list {
+  position: absolute;
+  top:100%;
+  left:40%;
+  background-color: white;
+  width: auto; /* Adjust based on your content */
+  max-height: 300px; /* Set a max height */
+  overflow-y: auto; /* Allow scrolling */
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  z-index: 100;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+}
+
+.comment-history-list li {
+  padding: 8px 16px;
+  border-bottom: 1px solid #ddd;
+  cursor: pointer;
+  color: black;
+  font-size:12px;
+  font-weight: 200;
+}
+
+.comment-history-list li:last-child {
+  border-bottom: none;
+}
+
+.comment-box textarea {
+  width: 100%;
+  height: 100px; 
+  padding: 10px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+  resize: vertical;
+  font-family: 'Montserrat', sans-serif;
+}
+
+.comment-box textarea:focus {
+  outline: none;
+  border-color: black;
+}
+
+.comment-box .button-group button {
+  padding: 6px 12px;
+  font-size: 12px;
+  margin-right: 10px;
+  cursor: pointer;
+  border: none;
+  border-radius: 4px;
+  display: inline-block;
+  margin-top: 10px;
+}
+
+.comment-box .button-group .save-btn {
+  background-color: #dbca49;
+  color: #000;
+}
+
+.comment-box .button-group .cancel-btn {
+  background-color: #6c757d;
+  color: #000;
+}
+
+.comment-box .button-group button:hover {
+  opacity: 0.8;
 }
 
 .comment-user {
   font-weight: bold;
   margin-bottom: 5px;
-}
-
-.comment-text {
-  line-height: 1.5;
+  color:#333;
 }
 
 .add-comment {
   margin-top: 20px;
 }
 
+
+
 .comment-input {
   width: 100%;
   height: 100px;
   margin-bottom: 10px;
   resize: vertical;
+  font-family: 'Montserrat', sans-serif;
+  font-size:14px;
+  background-color: #e3e3d1;
+}
+
+.comment-input textarea {
+  padding-left: 20px;
+}
+
+.add-comment .file-input {
+  border: 1px solid #ccc; /* Basic border styling */
+  padding: 6px 10px; /* Padding inside the input */
+  font-family: 'Montserrat', sans-serif;
+  border-radius: 8px;
+}
+
+.file-input button {
+  font-family: 'Montserrat', sans-serif;
+}
+
+.add-comment .comment-actions {
+  display: flex;
+  justify-content: flex-end; /* Aligns children (button and input) to the right */
+  align-items: center; /* Aligns items vertically */
+  gap: 10px; /* Spacing between button and input */
 }
 
 .comment-button {
   padding: 8px 16px;
-  background-color: #007bff;
-  color: #fff;
+  background-color: #dbca49;
+  color: #000;
   border: none;
   border-radius: 4px;
   cursor: pointer;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 600;
+}
+
+.comment-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  margin-right: 10px;
 }
 
 .filters {
@@ -146,4 +986,39 @@
   width: 100%;
   padding: 8px;
   margin-bottom: 10px;
+}
+
+.detail-actions-container {
+  position: relative;
+  margin-left: 50px;
+  border-left: 2px solid #ddd; /* Adjust color as needed */
+}
+
+.action-button {
+  position: absolute;
+  left: -15px;
+  width: 25px;
+  height: 25px;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  border: none;
+  cursor: pointer;
+  background-color: white;
+  border-radius: 20px;
+  margin-top: 30px;
+}
+
+.action-text {
+  margin-left: 25px;
+  padding-top: 30px;
+  margin-bottom: 15px;
+}
+
+.issue-detail .detail-actions-container .action-text .username-style {
+  font-weight: 580;
+  color: #DBCA49;
+  font-size: 14px;
+  font-style: italic;
+  margin-right: 3px;
 }

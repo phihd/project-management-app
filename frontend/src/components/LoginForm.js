@@ -1,44 +1,54 @@
-import React from 'react'
-import PropTypes from 'prop-types'
+/* eslint-disable */
+import React, { useState, useEffect } from 'react'
+import './LoginForm.css'
 
-const LoginForm = ({
+const Login = ({
   handleSubmit,
   handleUsernameChange,
   handlePasswordChange,
   username,
-  password
+  password,
+  handleShowSignUp,
+  errorMessage
 }) => {
   return (
-    <form onSubmit={handleSubmit}>
-      <div>
-        username
-        <input
-          id='username'
-          type="text"
-          value={username}
-          onChange={handleUsernameChange}
-        />
+    <div className="login-body">
+      <div className="login-container">
+        <form className="login-form" onSubmit={handleSubmit}>
+          <h2>Sign in</h2>
+          <div className="login-input-group">
+            <label htmlFor="username">Username:</label>
+            <input
+              type="text"
+              id="username"
+              name="username"
+              placeholder="Enter your username"
+              value={username}
+              onChange={handleUsernameChange}
+              required
+            />
+          </div>
+          <div className="login-input-group">
+            <label htmlFor="password">Password:</label>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              placeholder="Enter your password"
+              value={password}
+              onChange={handlePasswordChange}
+              required
+            />
+          </div>
+          <button className="login-button" type="submit">Login</button>
+          {errorMessage && <div className="error-message">{errorMessage}</div>}
+          <div className="login-signup-link">
+            Don&apos;t have an account? <a href="#" onClick={handleShowSignUp}> Sign Up </a>
+          </div>
+        </form>
       </div>
-      <div>
-        password
-        <input
-          id='password'
-          type="password"
-          value={password}
-          onChange={handlePasswordChange}
-        />
-      </div>
-      <button id='login-button' type="submit">login</button>
-    </form>
+    </div>
   )
 }
 
-LoginForm.propTypes = {
-  handleSubmit: PropTypes.func.isRequired,
-  handleUsernameChange: PropTypes.func.isRequired,
-  handlePasswordChange: PropTypes.func.isRequired,
-  username: PropTypes.string.isRequired,
-  password: PropTypes.string.isRequired
-}
-
-export default LoginForm
+export default Login
