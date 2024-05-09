@@ -356,7 +356,7 @@ p {
   border: none;
   /* padding: 15px; */
   border-radius: 8px;
-  /* margin-bottom: 20px; */
+  position: relative;
   background-color: rgb(234, 230, 213);
 }
 
