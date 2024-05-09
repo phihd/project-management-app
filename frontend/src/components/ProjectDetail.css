@@ -109,6 +109,22 @@
   font-size: 15px;
 }
 
+.project-section select {
+  font-family: 'Montserrat', sans-serif;
+  width: 50%;
+  padding: 10px;
+  margin-right: 10px; 
+  border-radius: 8px;
+}
+
+.project-section option {
+  margin-bottom: 5px;
+}
+
+.project-section textarea {
+  margin-bottom: 10px;
+}
+
 .project-section {
   background-color: #d5cb79;
   padding: 20px;

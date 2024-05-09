@@ -5,6 +5,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom'
 import { useQuery, useQueryClient } from 'react-query'
 import projectService from '../services/projects'
 import issueService from '../services/issues'
+import userService from '../services/users'
 import UserContext from './UserContext'
 import NewIssueForm from './NewIssueForm'
 
@@ -43,8 +44,8 @@ function ProjectDetail() {
   } = useQuery(['project', projectId], () => projectService.get(projectId), {
     enabled: !!projectId,
     onSuccess: (data) => {
-      setMembersInput(data.members.map(member => member.id))
       setDescriptionInput(data.description || '')
+      setMembersInput(data.members.map(member => member.id) || [])
     }
   })
 
@@ -69,6 +70,26 @@ function ProjectDetail() {
       }))
     }
   })
+
+  // Fetch users
+  const {
+    data: allUsers,
+    isLoading: isUsersLoading,
+    isError: isUsersError,
+    error: usersError
+  } = useQuery('users', () => userService.getAll())
+
+  const handleUpdateProject = async (updateData) => {
+    try {
+      const updatedProject = await projectService.update(projectId, updateData)
+      {console.log(updatedProject)}
+      queryClient.setQueryData(['project', projectId], updatedProject)
+      return updatedProject
+    } catch (error) {
+      console.error('Error updating project:', error)
+      throw new Error('Failed to update project.')
+    }
+  }
 
 
   const handleNewIssueClick = () => {
@@ -102,22 +123,22 @@ function ProjectDetail() {
 
   const handleSaveMembers = async () => {
     try {
-      await projectService.updateMembers(projectId, membersInput)
-      queryClient.invalidateQueries(['project', projectId])
+      // Make sure that `membersInput` is always an array
+      if (!Array.isArray(membersInput)) {
+        setMembersInput([membersInput])
+      }
+  
+      await handleUpdateProject({ members: membersInput })
       setEditMembers(false)
     } catch (error) {
-      console.error('Error updating members:', error)
+      console.error('Error saving members:', error)
+      alert('Failed to save members.')
     }
   }
 
   const handleSaveDescription = async () => {
-    try {
-      await projectService.updateDescription(projectId, { description: descriptionInput })
-      queryClient.invalidateQueries(['project', projectId])
-      setEditDescription(false)
-    } catch (error) {
-      console.error('Error updating description:', error)
-    }
+    await handleUpdateProject({ description: descriptionInput })
+    setEditDescription(false)
   }
 
   if (isProjectLoading || isIssuesLoading) {
@@ -163,8 +184,8 @@ function ProjectDetail() {
                 value={membersInput}
                 onChange={(e) => setMembersInput(Array.from(e.target.selectedOptions, option => option.value))}
               >
-                {project.allMembers?.map(member => (
-                  <option key={member.id} value={member.id}>{member.name}</option>
+                {allUsers?.map(user => (
+                  <option key={user.id} value={user.id}>{user.name}</option>
                 ))}
               </select>
               <button onClick={handleSaveMembers} className="save-btn">Save</button>
