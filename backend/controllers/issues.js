@@ -192,25 +192,25 @@ issuesRouter.put('/:issueId', async (request, response, next) => {
     }
 
     if ('assignees' in body) {
-      const currentAssigneeIds = new Set(existingIssue.assignees.map(a => a.toString()));
-      const newAssigneeIds = new Set(body.assignees);
+      const currentAssigneeIds = new Set(existingIssue.assignees.map(a => a.toString()))
+      const newAssigneeIds = new Set(body.assignees)
 
-      const assigneesToAdd = body.assignees.filter(id => !currentAssigneeIds.has(id));
-      const assigneesToRemove = [...currentAssigneeIds].filter(id => !newAssigneeIds.has(id));
+      const assigneesToAdd = body.assignees.filter(id => !currentAssigneeIds.has(id))
+      const assigneesToRemove = [...currentAssigneeIds].filter(id => !newAssigneeIds.has(id))
 
       const addPromises = assigneesToAdd.map(assigneeId =>
         User.findByIdAndUpdate(assigneeId, {
           $push: { assignedIssues: existingIssue._id }
         })
-      );
+      )
 
       const removePromises = assigneesToRemove.map(assigneeId =>
         User.findByIdAndUpdate(assigneeId, {
           $pull: { assignedIssues: existingIssue._id }
         })
-      );
+      )
 
-      await Promise.all([...addPromises, ...removePromises]);
+      await Promise.all([...addPromises, ...removePromises])
     }
 
     Object.keys(body).forEach(key => {

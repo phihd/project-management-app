@@ -82,7 +82,6 @@ function ProjectDetail() {
   const handleUpdateProject = async (updateData) => {
     try {
       const updatedProject = await projectService.update(projectId, updateData)
-      {console.log(updatedProject)}
       queryClient.setQueryData(['project', projectId], updatedProject)
       return updatedProject
     } catch (error) {
