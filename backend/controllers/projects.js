@@ -101,20 +101,47 @@ projectsRouter.delete('/:id', async (request, response, next) => {
 })
 
 projectsRouter.put('/:id', async (request, response, next) => {
-  const body = request.body
+  try {
+    const token = request.token
+    if (!token) {
+      return response.status(401).json({ error: 'token missing' })
+    }
 
-  const project = {
-    name: body.name,
-    status: body.status,
-    department: body.department,
-    members: body.members,
-    description: body.description,
+    const decodedToken = jwt.verify(token, process.env.SECRET)
+    if (!decodedToken.id) {
+      return response.status(401).json({ error: 'token invalid' })
+    }
+
+    const body = request.body
+
+    const currentProject = await Project.findById(request.params.id).populate('members', 'id')
+    if (!currentProject) {
+      return response.status(404).json({ error: 'Project not found' })
+    }
+
+    const currentMemberIds = new Set(currentProject.members.map(member => member._id.toString()))
+    const newMembers = body.members.filter(id => !currentMemberIds.has(id))
+
+    const project = {
+      name: body.name,
+      status: body.status,
+      department: body.department,
+      members: body.members,
+      description: body.description,
+    }
+    const updatedProject = await Project
+      .findByIdAndUpdate(request.params.id, project, { new: true })
+      .populate('members', { username: 1, name: 1 })
+
+    // TODO: Handle the case when members are removed
+    await Promise.all(newMembers.map(memberId =>
+      User.findByIdAndUpdate(memberId, { $push: { projects: updatedProject._id } })
+    ))
+
+    response.json(updatedProject)
+  } catch (error) {
+    response.status(400).json({ message: error.message })
   }
-
-  const updatedProject = await Project
-    .findByIdAndUpdate(request.params.id, project, { new: true })
-    .populate('user', { username: 1, name: 1 })
-  response.json(updatedProject)
 })
 
 module.exports = projectsRouter
