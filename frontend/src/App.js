@@ -75,6 +75,8 @@ const App = () => {
           if (error.response.status === 401 && error.response.data.error === "token expired") {
             handleLogout()
             alert('Your session has expired. Please log in again.')
+          } else if (error.response.status === 401 && error.response.data.error === "Invalid username or password") {
+            
           } else if (error.response.status === 401 || error.response.status === 403) {
             // Handle other unauthorized access without logging out
             alert('You are not authorized to perform this action.')
@@ -396,6 +398,7 @@ const App = () => {
       setPassword('')
     } catch (exception) {
       setLoginErrorMessage('Incorrect username or password')
+      throw exception
     }
   }
 
