@@ -6,3 +6,6 @@
 
 # misc
 .env
+
+# local files
+/uploads
