@@ -119,8 +119,11 @@ projectsRouter.put('/:id', async (request, response, next) => {
       return response.status(404).json({ error: 'Project not found' })
     }
 
-    const currentMemberIds = new Set(currentProject.members.map(member => member._id.toString()))
+    const currentMemberIds = new Set(currentProject.members.map(member => member.id.toString()))
     const newMembers = body.members.filter(id => !currentMemberIds.has(id))
+    const removedMembers = currentProject.members.filter(
+      member => !body.members.some(newMember => newMember === member._id.toString())
+    )
 
     const project = {
       name: body.name,
@@ -133,10 +136,14 @@ projectsRouter.put('/:id', async (request, response, next) => {
       .findByIdAndUpdate(request.params.id, project, { new: true })
       .populate('members', { username: 1, name: 1 })
 
-    // TODO: Handle the case when members are removed
-    await Promise.all(newMembers.map(memberId =>
-      User.findByIdAndUpdate(memberId, { $push: { projects: updatedProject._id } })
-    ))
+    await Promise.all([
+      ...newMembers.map(member =>
+        User.findByIdAndUpdate(member, { $push: { projects: updatedProject._id } })
+      ),
+      ...removedMembers.map(member =>
+        User.findByIdAndUpdate(member._id, { $pull: { projects: updatedProject._id } })
+      )
+    ])
 
     response.json(updatedProject)
   } catch (error) {
