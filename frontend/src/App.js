@@ -316,6 +316,7 @@ const App = () => {
         const updatedUser = await userService.update(user.id.toString(), { email, name })
         const newUser = { ...user, email: updatedUser.email, name: updatedUser.name }
         setUser(newUser)
+        window.localStorage.setItem('loggedProjectappUser', JSON.stringify(newUser))
         setEmail('')
         setName('')
         setIsOpenProfileForm(false)
@@ -325,8 +326,7 @@ const App = () => {
     }
 
     const handleCloseForm = () => {
-      setIsOpenEmailForm(false)
-      setIsOpenNameForm(false)
+      setIsOpenProfileForm(false)
       document.removeEventListener('mousedown', handleClickOutside)
     }
 
