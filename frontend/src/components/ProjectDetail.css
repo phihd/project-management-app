@@ -274,7 +274,6 @@
   width: 100%;           /* Ensures the element fills only its container width */
 }
 
-
 .delete-button {
   background-color: transparent;
   border: none;
@@ -286,4 +285,41 @@
   width: 30px;
   height: 30px;
   border-radius: 50%;
+}
+
+.scrollable-member-list {
+  max-height: 400px; /* Adjust the height as needed */
+  overflow-y: auto;
+  background-color: transparent;
+  border-radius: 8px;
+  margin-bottom: 5px;
+}
+
+.member-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  background-color: #d5cb79;
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+
+.member-item.selected {
+  background-color: #b3a661;
+}
+
+.member-item span {
+  color: #000000;
+  font-size: 15px;
+}
+
+.toggle-member-btn {
+  background-color: transparent;
+  border: none;
+  color: #000000;
+  font-size: 16px;
+  cursor: pointer;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 12px;
 }

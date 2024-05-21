@@ -120,6 +120,16 @@ function ProjectDetail() {
     }
   }
 
+  const handleToggleMember = (memberId) => {
+    setMembersInput((prevMembers) => {
+      if (prevMembers.includes(memberId)) {
+        return prevMembers.filter((id) => id !== memberId)
+      } else {
+        return [...prevMembers, memberId]
+      }
+    })
+  }
+
   const handleSaveMembers = async () => {
     try {
       // Make sure that `membersInput` is always an array
@@ -178,15 +188,19 @@ function ProjectDetail() {
           </div>
           {editMembers ? (
             <div>
-              <select
-                multiple
-                value={membersInput}
-                onChange={(e) => setMembersInput(Array.from(e.target.selectedOptions, option => option.value))}
-              >
+              <div className="scrollable-member-list">
                 {allUsers?.map(user => (
-                  <option key={user.id} value={user.id}>{user.name}</option>
+                  <div
+                    key={user.id}
+                    className={`member-item ${membersInput.includes(user.id) ? 'selected' : ''}`}
+                  >
+                    <span>{user.name}</span>
+                    <button className="toggle-member-btn" onClick={() => handleToggleMember(user.id)}>
+                      {membersInput.includes(user.id) ? 'Remove' : 'Add'}
+                    </button>
+                  </div>
                 ))}
-              </select>
+              </div>
               <button onClick={handleSaveMembers} className="save-btn">Save</button>
               <button onClick={() => setEditMembers(false)} className="cancel-btn">Cancel</button>
             </div>
