@@ -275,8 +275,11 @@ const App = () => {
   const UserDropdown = ({ handleLogout }) => {
     const [isOpen, setIsOpen] = useState(false)
     const [isOpenEmailForm, setIsOpenEmailForm] = useState(false)
+    const [isOpenNameForm, setIsOpenNameForm] = useState(false)
     const [email, setEmail] = useState('')
+    const [name, setName] = useState('')
     const formRef = useRef(null)
+    const { user, setUser } = useContext(UserContext)
 
     const toggleDropdown = () => {
       setIsOpen(!isOpen)
@@ -285,6 +288,8 @@ const App = () => {
     const handleItemClick = (action) => {
       if (action === 'settings') {
         toggleEmailForm()
+      } else if (action === 'editName') {
+        toggleNameForm()
       } else if (action === 'logout') {
         handleLogout()
       }
@@ -293,7 +298,6 @@ const App = () => {
 
     const toggleEmailForm = () => {
       setIsOpenEmailForm(!isOpenEmailForm)
-      // Attach or detach the event listener based on the form state
       if (!isOpenEmailForm) {
         // Attaching the event listener
         document.addEventListener('mousedown', handleClickOutside)
@@ -303,31 +307,56 @@ const App = () => {
       }
     }
 
+    const toggleNameForm = () => {
+      setIsOpenNameForm(!isOpenNameForm)
+      if (!isOpenNameForm) {
+        document.addEventListener('mousedown', handleClickOutside)
+      } else {
+        document.removeEventListener('mousedown', handleClickOutside)
+      }
+    }
+
     const handleEmailChange = (event) => {
       setEmail(event.target.value)
     }
 
-    const handleSubmitEmail = (event) => {
+    const handleNameChange = (event) => {
+      setName(event.target.value)
+    }
+
+    const handleSubmitEmail = async (event) => {
       event.preventDefault()
-      userService.update(user.id.toString(), { email: email })
-        .then(response => {
-          console.log('Email submitted:', email)
-          setEmail('')
-          setUser({ ...user, email: email })
-          setIsOpenEmailForm(false)
-        })
-        .catch(error => console.error('Failed to update email:', error))
+      try {
+        await userService.update(user.id.toString(), { email })
+        setUser((prevUser) => ({ ...prevUser, email }))
+        setEmail('')
+        setIsOpenEmailForm(false)
+      } catch (error) {
+        console.error('Failed to update email:', error)
+      }
+    }
+  
+    const handleSubmitName = async (event) => {
+      event.preventDefault()
+      try {
+        await userService.update(user.id.toString(), { name })
+        setUser((prevUser) => ({ ...prevUser, name }))
+        setName('')
+        setIsOpenNameForm(false)
+      } catch (error) {
+        console.error('Failed to update name:', error)
+      }
     }
 
     const handleCloseForm = () => {
       setIsOpenEmailForm(false)
+      setIsOpenNameForm(false)
       document.removeEventListener('mousedown', handleClickOutside)
     }
 
     const handleClickOutside = (event) => {
       if (formRef.current && !formRef.current.contains(event.target)) {
-        setIsOpenEmailForm(false)
-        document.removeEventListener('mousedown', handleClickOutside)
+        handleCloseForm()
       }
     }
 
@@ -339,7 +368,8 @@ const App = () => {
         </button>
         {isOpen && (
           <div className="dropdown-content">
-            <button onClick={() => handleItemClick('settings')}>Settings</button>
+            <button onClick={() => handleItemClick('settings')}>Add Email</button>
+            <button onClick={() => handleItemClick('editName')}>Edit Name</button>
             <button onClick={() => handleItemClick('logout')}>Log Out</button>
           </div>
         )}
@@ -356,6 +386,23 @@ const App = () => {
                   placeholder={user.email ? `Current email: ${user.email}` : "Enter email to receive notifications"}
                 />
                 <button type="submit">Submit</button>
+              </form>
+            </div>
+          </div>
+        )}
+        {isOpenNameForm && (
+          <div className="email-form-overlay">
+            <div className="email-form" ref={formRef}>
+              <button className="close-btn" onClick={handleCloseForm}> x </button>
+              <form onSubmit={handleSubmitName}>
+                <label htmlFor="name">Edit Name</label>
+                <input
+                  type="text"
+                  value={name}
+                  onChange={handleNameChange}
+                  placeholder={user.name ? `Current name: ${user.name}` : "Enter your new name"}
+                />
+                <button type="submit">Save</button>
               </form>
             </div>
           </div>

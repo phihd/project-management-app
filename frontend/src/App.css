@@ -300,6 +300,7 @@ h1, h2, h3, h4, h5, h6 {
   background: none;
   cursor: pointer;
   color: #fff;
+  font-family: 'Montserrat', sans-serif;
 }
 
 .dropdown-content button:hover {
@@ -337,7 +338,8 @@ h1, h2, h3, h4, h5, h6 {
   z-index: 1000; /* Ensure overlay is above other content */
 }
 
-.email-form input[type="email"] {
+.email-form input[type="email"],
+.email-form input[type="text"] {
   padding: 8px;
   margin: 8px 0;
   width: 100%;
@@ -709,7 +711,7 @@ label {
   color: #171b27;
 }
 
-input[type='text'],
+input[type='text']
 textarea {
   width: 100%;
   padding: 8px;
