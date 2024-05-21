@@ -1,9 +1,10 @@
-import React, { useState } from 'react'
+import React, { useContext, useState } from 'react'
 import { useQuery, useQueryClient } from 'react-query'
 import { useNavigate } from 'react-router-dom'
 import projectService from '../services/projects'
 import Table from './Table'
 import NProgress from 'nprogress'
+import UserContext from './UserContext'
 import 'nprogress/nprogress.css'
 NProgress.configure({ easing: 'ease', speed: 500, showSpinner: false })
 
@@ -11,6 +12,7 @@ const Project = () => {
   const [showProjectForm, setShowProjectForm] = useState(false)
   const queryClient = useQueryClient()
   const navigate = useNavigate()
+  const { user } = useContext(UserContext)
 
   const { data: projects, isLoading, isError, error } = useQuery('projects', projectService.getAll, {})
 
@@ -38,10 +40,14 @@ const Project = () => {
   }
   if (isError) return <div>Error: {error.message}</div>
 
+  const userProjects = projects?.filter(project => project.members.some(member => member.id === user.id))
+
+
   return (
     <div>
       <Table
-        projects={projects || []} handleNewProjectClick={handleNewProjectClick}
+        projects={userProjects || []}
+        handleNewProjectClick={handleNewProjectClick}
         showProjectForm={showProjectForm}
         handleCloseForm={handleCloseForm}
         handleCreateProject={handleCreateProject}
