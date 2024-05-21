@@ -274,8 +274,7 @@ const App = () => {
 
   const UserDropdown = ({ handleLogout }) => {
     const [isOpen, setIsOpen] = useState(false)
-    const [isOpenEmailForm, setIsOpenEmailForm] = useState(false)
-    const [isOpenNameForm, setIsOpenNameForm] = useState(false)
+    const [isOpenProfileForm, setIsOpenProfileForm] = useState(false)
     const [email, setEmail] = useState('')
     const [name, setName] = useState('')
     const formRef = useRef(null)
@@ -287,29 +286,16 @@ const App = () => {
 
     const handleItemClick = (action) => {
       if (action === 'settings') {
-        toggleEmailForm()
-      } else if (action === 'editName') {
-        toggleNameForm()
+        toggleProfileForm()
       } else if (action === 'logout') {
         handleLogout()
       }
       setIsOpen(false)
     }
 
-    const toggleEmailForm = () => {
-      setIsOpenEmailForm(!isOpenEmailForm)
-      if (!isOpenEmailForm) {
-        // Attaching the event listener
-        document.addEventListener('mousedown', handleClickOutside)
-      } else {
-        // Removing the event listener
-        document.removeEventListener('mousedown', handleClickOutside)
-      }
-    }
-
-    const toggleNameForm = () => {
-      setIsOpenNameForm(!isOpenNameForm)
-      if (!isOpenNameForm) {
+    const toggleProfileForm = () => {
+      setIsOpenProfileForm(!isOpenProfileForm);
+      if (!isOpenProfileForm) {
         document.addEventListener('mousedown', handleClickOutside)
       } else {
         document.removeEventListener('mousedown', handleClickOutside)
@@ -319,32 +305,22 @@ const App = () => {
     const handleEmailChange = (event) => {
       setEmail(event.target.value)
     }
-
+  
     const handleNameChange = (event) => {
       setName(event.target.value)
     }
 
-    const handleSubmitEmail = async (event) => {
-      event.preventDefault()
+    const handleSubmitProfile = async (event) => {
+      event.preventDefault();
       try {
-        await userService.update(user.id.toString(), { email })
-        setUser((prevUser) => ({ ...prevUser, email }))
+        const updatedUser = await userService.update(user.id.toString(), { email, name })
+        const newUser = { ...user, email: updatedUser.email, name: updatedUser.name }
+        setUser(newUser)
         setEmail('')
-        setIsOpenEmailForm(false)
-      } catch (error) {
-        console.error('Failed to update email:', error)
-      }
-    }
-  
-    const handleSubmitName = async (event) => {
-      event.preventDefault()
-      try {
-        await userService.update(user.id.toString(), { name })
-        setUser((prevUser) => ({ ...prevUser, name }))
         setName('')
-        setIsOpenNameForm(false)
+        setIsOpenProfileForm(false)
       } catch (error) {
-        console.error('Failed to update name:', error)
+        console.error('Failed to update profile:', error)
       }
     }
 
@@ -368,45 +344,34 @@ const App = () => {
         </button>
         {isOpen && (
           <div className="dropdown-content">
-            <button onClick={() => handleItemClick('settings')}>Add Email</button>
-            <button onClick={() => handleItemClick('editName')}>Edit Name</button>
+            <button onClick={() => handleItemClick('settings')}>Edit Profile</button>
             <button onClick={() => handleItemClick('logout')}>Log Out</button>
           </div>
         )}
-        {isOpenEmailForm && (
-          <div className="email-form-overlay">
-            <div className="email-form" ref={formRef}>
-              <button className="close-btn" onClick={handleCloseForm}> x </button>
-              <form onSubmit={handleSubmitEmail}>
-                <label for="email">Email</label>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={handleEmailChange}
-                  placeholder={user.email ? `Current email: ${user.email}` : "Enter email to receive notifications"}
-                />
-                <button type="submit">Submit</button>
-              </form>
-            </div>
+        {isOpenProfileForm && (
+        <div className="profile-form-overlay">
+          <div className="profile-form" ref={formRef}>
+            <button className="close-btn" onClick={handleCloseForm}> x </button>
+            <form onSubmit={handleSubmitProfile}>
+              <label htmlFor="name">Name</label>
+              <input
+                type="text"
+                value={name}
+                onChange={handleNameChange}
+                placeholder={user.name ? `Current name: ${user.name}` : "Enter your new name"}
+              />
+              <label htmlFor="email">Email</label>
+              <input
+                type="email"
+                value={email}
+                onChange={handleEmailChange}
+                placeholder={user.email ? `Current email: ${user.email}` : 'Enter email to receive notifications'}
+              />
+              <button type="submit">Save</button>
+            </form>
           </div>
-        )}
-        {isOpenNameForm && (
-          <div className="email-form-overlay">
-            <div className="email-form" ref={formRef}>
-              <button className="close-btn" onClick={handleCloseForm}> x </button>
-              <form onSubmit={handleSubmitName}>
-                <label htmlFor="name">Edit Name</label>
-                <input
-                  type="text"
-                  value={name}
-                  onChange={handleNameChange}
-                  placeholder={user.name ? `Current name: ${user.name}` : "Enter your new name"}
-                />
-                <button type="submit">Save</button>
-              </form>
-            </div>
-          </div>
-        )}
+        </div>
+      )}
       </div>
     )
   }

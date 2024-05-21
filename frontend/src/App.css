@@ -308,7 +308,7 @@ h1, h2, h3, h4, h5, h6 {
   border-radius: 4px;
 }
 
-.email-form {
+.profile-form {
   position: relative;
   padding: 20px;
   background-color: #e9e4bd;
@@ -318,14 +318,14 @@ h1, h2, h3, h4, h5, h6 {
   z-index: 1001; /* Ensure the form is above the overlay */
 }
 
-.email-form form {
+.profile-form form {
   display: flex; /* Use flexbox to arrange children */
   flex-direction: column; /* Stack children vertically */
   /*align-items: flex-end;*/ /* Align children to the right */
   width: 100%;
 }
 
-.email-form-overlay {
+.profile-form-overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -338,10 +338,10 @@ h1, h2, h3, h4, h5, h6 {
   z-index: 1000; /* Ensure overlay is above other content */
 }
 
-.email-form input[type="email"],
-.email-form input[type="text"] {
+.profile-form input[type="email"],
+.profile-form input[type="text"] {
   padding: 8px;
-  margin: 8px 0;
+  margin: 10px 0;
   width: 100%;
   font-family: 'Montserrat', sans-serif;
   border-radius: 8px;
@@ -356,7 +356,7 @@ button[type="submit"] {
   margin-top: 10px;
 }
 
-.email-form .close-btn {
+.profile-form .close-btn {
   position: absolute;
   top: 5px;
   right: 5px;
@@ -368,7 +368,7 @@ button[type="submit"] {
   font-family: 'Montserrat', sans-serif;
 }
 
-.email-form .close-btn:hover {
+.profile-form .close-btn:hover {
   opacity: 0.5;
 }
 
@@ -735,3 +735,4 @@ button[type='submit']:hover,
 button[type='button']:hover {
   opacity: 0.8;
 }
+
