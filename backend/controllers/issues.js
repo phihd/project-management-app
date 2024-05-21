@@ -56,9 +56,14 @@ issuesRouter.post('/', async (request, response, next) => {
   const body = request.body
   const user = request.user
 
-  // Fetch the project to verify if the user is a member
   const project = await Project.findById(projectId)
-  if (!project || !project.members.includes(user._id)) {
+  if (!project) {
+    return response.status(403).json({ error: 'Project not found' })
+  }
+
+  // Project member permissions check
+  const member = project.members.find(member => member.user.toString() === user._id.toString())
+  if (!member || !member.permissions.includes('canCreateIssue')) {
     return response.status(403).json({ error: 'Unauthorized access' })
   }
 

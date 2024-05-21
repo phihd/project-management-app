@@ -7,14 +7,14 @@ const Issue = require('../models/issue')
 projectsRouter.get('/', async (request, response) => {
   const projects = await Project
     .find({})
-    .populate('members', { name: 1 })
+    .populate('members.user', { name: 1 })
   response.json(projects)
 })
 
 projectsRouter.get('/:id', async (request, response) => {
   const project = await Project
     .findById(request.params.id)
-    .populate('members', { name: 1 })
+    .populate('members.user', { name: 1 })
   if (project) {
     response.json(project)
   } else {
@@ -34,19 +34,23 @@ projectsRouter.post('/', async (request, response, next) => {
   }
 
   const body = request.body
-  const user = request.user
+  const members = body.members.map(memberId => ({
+    user: memberId,
+    permissions: [],
+  }))
+
   const project = await new Project({
     name: body.name,
     status: body.status,
     department: body.department,
-    members: body.members,
+    members: members,
     description: body.description,
   })
 
   const savedProject = await project.save()
 
-  for (const memberId of body.members) {
-    const currentUser = await User.findById(memberId)
+  for (const member of members) {
+    const currentUser = await User.findById(member.user)
     if (currentUser) {
       currentUser.projects = currentUser.projects.concat(savedProject._id)
       await currentUser.save()
@@ -77,8 +81,9 @@ projectsRouter.delete('/:id', async (request, response, next) => {
 
     const user = request.user
 
+    console.log(project.members)
     // Check if the user is a member of the project
-    if (!project.members.includes(user.id)) {
+    if (!project.members.some(member => member.user.toString() === user.id)) {
       return response.status(401).json({
         error: 'project can be deleted only by the members in the project',
       })
@@ -86,7 +91,7 @@ projectsRouter.delete('/:id', async (request, response, next) => {
 
     // Delete project references from users
     await User.updateMany(
-      { _id: { $in: project.members } },
+      { _id: { $in: project.members.map(member => member.user) } },
       { $pull: { projects: project._id } }
     )
 
@@ -114,29 +119,42 @@ projectsRouter.put('/:id', async (request, response, next) => {
 
     const body = request.body
 
-    const currentProject = await Project.findById(request.params.id).populate('members', 'id')
+    const currentProject = await Project.findById(request.params.id).populate('members.user', 'id')
     if (!currentProject) {
       return response.status(404).json({ error: 'Project not found' })
     }
 
-    const currentMemberIds = new Set(currentProject.members.map(member => member._id.toString()))
-    const newMembers = body.members.filter(id => !currentMemberIds.has(id))
+    const updatedMembers = body.members.map(member => ({
+      user: member.user,
+      permissions: member.permissions || [],
+    }))
 
     const project = {
       name: body.name,
       status: body.status,
       department: body.department,
-      members: body.members,
+      members: updatedMembers,
       description: body.description,
     }
+
     const updatedProject = await Project
       .findByIdAndUpdate(request.params.id, project, { new: true })
-      .populate('members', { username: 1, name: 1 })
+      .populate('members.user', { username: 1, name: 1 })
 
-    // TODO: Handle the case when members are removed
-    await Promise.all(newMembers.map(memberId =>
-      User.findByIdAndUpdate(memberId, { $push: { projects: updatedProject._id } })
-    ))
+    const currentMemberIds = new Set(currentProject.members.map(member => member.user._id.toString()))
+    const newMembers = body.members.filter(member => !currentMemberIds.has(member.user))
+    const removedMembers = currentProject.members.filter(
+      member => !body.members.some(newMember => newMember.user === member.user.toString())
+    )
+
+    await Promise.all([
+      ...newMembers.map(member =>
+        User.findByIdAndUpdate(member.user, { $push: { projects: updatedProject._id } })
+      ),
+      ...removedMembers.map(member =>
+        User.findByIdAndUpdate(member.user, { $pull: { projects: updatedProject._id } })
+      )
+    ])
 
     response.json(updatedProject)
   } catch (error) {

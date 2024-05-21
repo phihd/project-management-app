@@ -45,7 +45,7 @@ function ProjectDetail() {
     enabled: !!projectId,
     onSuccess: (data) => {
       setDescriptionInput(data.description || '')
-      setMembersInput(data.members.map(member => member.id) || [])
+      setMembersInput(data.members.user.map(member => member.id) || [])
     }
   })
 
@@ -193,7 +193,7 @@ function ProjectDetail() {
           ) : (
             <div>
               <p>
-                {project.members?.map((member, index) => (
+                {project.members.user?.map((member, index) => (
                   <span key={index}>{member.name}{index < project.members.length - 1 ? ',' : ''} </span>
                 ))}
               </p>
