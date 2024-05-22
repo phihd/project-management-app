@@ -120,11 +120,13 @@ function ProjectDetail() {
   }
 
   const handleCreateIssue = async (newIssue) => {
+    NProgress.start()
     if (newIssue.title != '') {
       const issue = await issueService.create(projectId, newIssue)
       queryClient.setQueryData(['issues', projectId], old => [...old, issue])
       navigate(`/project/${projectId}/${issue.id}`)
     }
+    NProgress.done()
   }
 
   const handleToggleMember = (memberId) => {
@@ -249,7 +251,6 @@ function ProjectDetail() {
               <button onClick={handleSaveDescription} className="save-btn">Save</button>
               <button onClick={() => setEditDescription(false)} className="cancel-btn">Cancel</button>
               </div>
-              {console.log(descriptionInput)}
               
             </div>
           ) : (

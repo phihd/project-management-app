@@ -25,11 +25,13 @@ const Project = () => {
   }
 
   const handleCreateProject = async (newProject) => {
+    NProgress.start()
     if (newProject.name !== '') {
       const updatedProject = await projectService.create(newProject)
       queryClient.setQueryData('projects', old => [...old, updatedProject])
       navigate(`/project/${updatedProject.id}`)
     }
+    NProgress.done()
   }
 
   const handleDeleteProject = async (projectId) => {
