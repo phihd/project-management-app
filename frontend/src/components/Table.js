@@ -5,6 +5,10 @@ import delete_button from '../img/delete.png'
 import NewProjectForm from './NewProjectForm'
 import add_img from '../img/addnew.png'
 
+import NProgress from 'nprogress'
+import 'nprogress/nprogress.css'
+NProgress.configure({ easing: 'ease', speed: 500, showSpinner: false })
+
 const Table = ({ projects, queryClient, handleNewProjectClick, showProjectForm, handleCloseForm, handleCreateProject }) => {
   const navigate = useNavigate()
 
@@ -15,8 +19,15 @@ const Table = ({ projects, queryClient, handleNewProjectClick, showProjectForm, 
   const handleDeleteProject = async (projectId, event) => {
     event.stopPropagation()
     if (window.confirm('Are you sure you want to delete this project?')) {
-      await projectService.remove(projectId)
-      queryClient.setQueryData('projects', old => old.filter(project => project.id !== projectId))
+      try {
+        NProgress.start()
+        await projectService.remove(projectId)
+        queryClient.setQueryData('projects', old => old.filter(project => project.id !== projectId))
+        NProgress.done()
+      } catch (error) {
+        console.error('Failed to delete the project:', error)
+        NProgress.done()
+      }
     }
   }
 

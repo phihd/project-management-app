@@ -144,6 +144,17 @@
   transition: filter 0.3s ease;
 } */
 
+.edit-description-box {
+  display: flex;
+  flex-direction: column;
+}
+
+.edit-description {
+  font-family: 'Montserrat', sans-serif;
+  padding: 5px;
+}
+
+
 .project-issues .issue-list {
   display: grid;
   grid-template-columns: repeat(3, 1fr);

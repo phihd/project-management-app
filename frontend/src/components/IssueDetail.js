@@ -37,6 +37,7 @@ const IssueDetail = () => {
   const [commentInput, setCommentInput] = useState('')
   const { user } = useContext(UserContext)
   const [isAssigneeEditMode, setIsAssigneeEditMode] = useState(false)
+  const [selectedAssignees, setSelectedAssignees] = useState([])
   const [assigneeInput, setAssigneeInput] = useState('')
   const { projectId, issueId } = useParams()
   const [currentStatus, setCurrentStatus] = useState('')
@@ -110,20 +111,48 @@ const IssueDetail = () => {
 
   const toggleAssigneeEditMode = () => {
     setIsAssigneeEditMode(!isAssigneeEditMode)
-    setAssigneeInput(issue.assignee)
+    setSelectedAssignees(issue.assignees.map(assignee => assignee.id))
+  }
+
+  const handleAssigneeSelection = (assigneeId) => {
+    let newSelectedAssignees = [...selectedAssignees]
+
+    if (newSelectedAssignees.includes(assigneeId)) {
+        newSelectedAssignees = newSelectedAssignees.filter(id => id !== assigneeId)
+    } else {
+        newSelectedAssignees.push(assigneeId)
+    }
+
+    setSelectedAssignees(newSelectedAssignees)
   }
 
   const handleAssigneeUpdate = async () => {
-    if (assigneeInput.sort().toString() !== issue.assignees.map(a => a.id).sort().toString()) {
-      try {
-        const selectedAssigneeUsers = assigneeInput.map(assigneeName => project.members.find(user => user.name === assigneeName))
-        const actionDescription = `${user.name} assigned ${assigneeInput.join(', ')}`
-        await updateIssue({ assignees: selectedAssigneeUsers.map(user => user.id) }, actionDescription)
-        setIsAssigneeEditMode(false)
-      } catch (error) {
-        console.error('Error updating assignees:', error)
-      }
+    if (selectedAssignees.sort().toString() !== issue.assignees.map(a => a.id).sort().toString()) {
+        try {
+            const selectedAssigneeUsers = selectedAssignees.map(id => project.members.find(user => user.id === id))
+            const actionDescription = `${user.name} assigned ${selectedAssigneeUsers.map(user => user.name).join(', ')}`
+            await updateIssue({ assignees: selectedAssigneeUsers.map(user => user.id) }, actionDescription)
+            setIsAssigneeEditMode(false)
+        } catch (error) {
+            console.error('Error updating assignees:', error)
+        }
     }
+}
+
+  const renderAssigneeSelection = () => {
+    return (
+        <div className="assignee-list">
+            {project.members.map(member => (
+                <div
+                    key={member.id}
+                    className={`assignee-item ${selectedAssignees.includes(member.id) ? 'selected' : ''}`}
+                    onClick={() => handleAssigneeSelection(member.id)}
+                >
+                    {member.name}
+                </div>
+            ))}
+        </div>
+    )
   }
 
   const handleStatusButtonClick = async () => {
@@ -934,17 +963,11 @@ const IssueDetail = () => {
             <p>{issue.assignees.map(assignee => assignee.name).join(', ')}</p>
             {isAssigneeEditMode && (
               <div>
-                <select
-                  multiple
-                  value={assigneeInput}
-                  onChange={(e) => setAssigneeInput(Array.from(e.target.selectedOptions, option => option.value))}
-                >
-                  {project.members.map(user => (
-                    <option key={user.id} value={user.name}>{user.name}</option>
-                  ))}
-                </select>
-                <button onClick={handleAssigneeUpdate} className="save-btn">Save</button>
-                <button onClick={() => setIsAssigneeEditMode(false)} className="cancel-btn">Cancel</button>
+                <div className="assignee-selection">
+                {renderAssigneeSelection()}
+              </div>
+              <button onClick={handleAssigneeUpdate} className="save-btn">Save</button>
+              <button onClick={() => setIsAssigneeEditMode(false)} className="cancel-btn">Cancel</button>
               </div>
             )}
           </div>

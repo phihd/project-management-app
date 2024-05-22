@@ -32,6 +32,18 @@ const Project = () => {
     }
   }
 
+  const handleDeleteProject = async (projectId) => {
+    try {
+      NProgress.start()
+      await projectService.remove(projectId)
+      queryClient.setQueryData('projects', old => old.filter(project => project.id !== projectId))
+      NProgress.done()
+    } catch (error) {
+      console.error('Failed to delete the project:', error)
+      NProgress.done()
+    }
+  }
+
   if (isLoading) {
     NProgress.start()
     return
@@ -51,6 +63,7 @@ const Project = () => {
         showProjectForm={showProjectForm}
         handleCloseForm={handleCloseForm}
         handleCreateProject={handleCreateProject}
+        handleDeleteProject={handleDeleteProject}
         queryClient={queryClient}
       />
     </div>

@@ -105,10 +105,17 @@ function ProjectDetail() {
 
   const handleDeleteIssue = async (issueId, event) => {
     event.stopPropagation()
-    const confirmDelete = window.confirm('Are you sure you want to delete this issue?');
+    const confirmDelete = window.confirm('Are you sure you want to delete this issue?')
     if (confirmDelete) {
-      await issueService.remove(projectId, issueId)
-      queryClient.setQueryData(['issues', projectId], prevIssues => prevIssues.filter((issue) => issue.id !== issueId))
+      NProgress.start()
+      try {
+        await issueService.remove(projectId, issueId)
+        queryClient.setQueryData(['issues', projectId], prevIssues => prevIssues.filter((issue) => issue.id !== issueId))
+      } catch (error) {
+        console.error('Error deleting issue:', error)
+      } finally {
+        NProgress.done()
+      }
     }
   }
 
@@ -132,22 +139,32 @@ function ProjectDetail() {
 
   const handleSaveMembers = async () => {
     try {
-      // Make sure that `membersInput` is always an array
       if (!Array.isArray(membersInput)) {
         setMembersInput([membersInput])
       }
-  
+      
+      NProgress.start()
       await handleUpdateProject({ members: membersInput })
       setEditMembers(false)
     } catch (error) {
       console.error('Error saving members:', error)
       alert('Failed to save members.')
+    } finally {
+      NProgress.done()
     }
   }
 
   const handleSaveDescription = async () => {
-    await handleUpdateProject({ description: descriptionInput })
-    setEditDescription(false)
+    try {
+      NProgress.start()
+      await handleUpdateProject({ description: descriptionInput })
+      setEditDescription(false)
+    } catch (error) {
+      console.error('Error saving description:', error)
+      alert('Failed to save description.')
+    } finally {
+      NProgress.done()
+    }
   }
 
   if (isProjectLoading || isIssuesLoading) {
@@ -222,14 +239,18 @@ function ProjectDetail() {
             </button>
           </div>
           {editDescription ? (
-            <div>
+            <div className='edit-description-box'>
               <textarea
                 value={descriptionInput}
                 onChange={(e) => setDescriptionInput(e.target.value)}
                 className="edit-description"
               />
+              <div className = 'edit-description-buttons'>
               <button onClick={handleSaveDescription} className="save-btn">Save</button>
               <button onClick={() => setEditDescription(false)} className="cancel-btn">Cancel</button>
+              </div>
+              {console.log(descriptionInput)}
+              
             </div>
           ) : (
             <div>
