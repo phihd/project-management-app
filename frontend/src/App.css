@@ -367,6 +367,10 @@ button[type="submit"], button[type="button"] {
   font-family: 'Montserrat', sans-serif;
 }
 
+.profile-form button[type="submit"] {
+  background-color: #DBCA49;
+}
+
 .profile-form .close-btn:hover {
   opacity: 0.5;
 }

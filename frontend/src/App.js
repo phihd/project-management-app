@@ -278,8 +278,22 @@ const App = () => {
     const [email, setEmail] = useState('')
     const [name, setName] = useState('')
     const formRef = useRef(null)
+    const nameInputRef = useRef(null)
     const { user, setUser } = useContext(UserContext)
 
+    useEffect(() => {
+      if (user) {
+        setEmail(user.email || '')
+        setName(user.name || '')
+      }
+    }, [user])
+
+    useEffect(() => {
+      if (isOpenProfileForm && nameInputRef.current) {
+        nameInputRef.current.focus()
+      }
+    }, [isOpenProfileForm])
+    
     const toggleDropdown = () => {
       setIsOpen(!isOpen)
     }
@@ -311,17 +325,22 @@ const App = () => {
     }
 
     const handleSubmitProfile = async (event) => {
-      event.preventDefault();
-      try {
-        const updatedUser = await userService.update(user.id.toString(), { email, name })
-        const newUser = { ...user, email: updatedUser.email, name: updatedUser.name }
-        setUser(newUser)
-        window.localStorage.setItem('loggedProjectappUser', JSON.stringify(newUser))
-        setEmail('')
-        setName('')
-        setIsOpenProfileForm(false)
-      } catch (error) {
-        console.error('Failed to update profile:', error)
+      event.preventDefault()
+      const updatedData = {}
+  
+      if (email && email !== user.email) updatedData.email = email
+      if (name && name !== user.name) updatedData.name = name
+  
+      if (Object.keys(updatedData).length > 0) {
+        try {
+          const updatedUser = await userService.update(user.id.toString(), updatedData)
+          const newUser = { ...user, ...updatedUser }
+          setUser(newUser)
+          window.localStorage.setItem('loggedProjectappUser', JSON.stringify(newUser))
+          setIsOpenProfileForm(false)
+        } catch (error) {
+          console.error('Failed to update profile:', error)
+        }
       }
     }
 
@@ -359,6 +378,7 @@ const App = () => {
                 value={name}
                 onChange={handleNameChange}
                 placeholder={user.name ? `Current name: ${user.name}` : "Enter your new name"}
+                ref={nameInputRef}
               />
               <label htmlFor="email">Email</label>
               <input
