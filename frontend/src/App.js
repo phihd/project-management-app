@@ -325,8 +325,7 @@ const App = () => {
     }
 
     const handleCloseForm = () => {
-      setIsOpenEmailForm(false)
-      setIsOpenNameForm(false)
+      setIsOpenProfileForm(false)
       document.removeEventListener('mousedown', handleClickOutside)
     }
 

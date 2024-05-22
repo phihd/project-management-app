@@ -347,8 +347,7 @@ h1, h2, h3, h4, h5, h6 {
   border-radius: 8px;
 }
 
-button[type="submit"] {
-  background-color: #DBCA49;
+button[type="submit"], button[type="button"] {
   color: #000;
   cursor: pointer;
   font-family: 'Montserrat', sans-serif;

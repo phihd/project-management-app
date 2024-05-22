@@ -1,6 +1,7 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect, useContext } from 'react'
 import { useQuery } from 'react-query'
 import userService from '../services/users'
+import UserContext from './UserContext'
 import './NewProjectForm.css'
 import NProgress from 'nprogress'
 import 'nprogress/nprogress.css'
@@ -10,8 +11,15 @@ const NewProjectForm = ({ handleCreateProject, handleCloseForm }) => {
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [selectedMembers, setSelectedMembers] = useState([])
+  const { user } = useContext(UserContext)
 
   const { data: members, isLoading, isError, error } = useQuery('members', userService.getAll)
+
+  useEffect(() => {
+    if (user) {
+      setSelectedMembers([user.id])
+    }
+  }, [user])
 
   const handleMemberSelection = (event) => {
     const value = event.target.value
