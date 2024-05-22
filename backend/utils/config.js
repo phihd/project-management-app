@@ -1,6 +1,7 @@
 require('dotenv').config()
 
 const PORT = process.env.PORT
+const MONGODB_CLUSTER_URI = process.env.MONGODB_CLUSTER_URI
 
 let MONGODB_URI
 if (process.env.NODE_ENV === 'production') {
@@ -14,6 +15,7 @@ if (process.env.NODE_ENV === 'production') {
 const EMAIL_PASSWORD = process.env.EMAIL_PASSWORD
 
 module.exports = {
+  MONGODB_CLUSTER_URI,
   MONGODB_URI,
   PORT,
   EMAIL_PASSWORD
