@@ -4,12 +4,22 @@ import { getToken } from './tokenmanager'
 
 
 const getAll = () => {
-  const request = axios.get(baseUrl)
+  const token = getToken()
+  const config = {
+    headers: { Authorization: token },
+  }
+
+  const request = axios.get(baseUrl, config)
   return request.then(response => response.data)
 }
 
 const get = (projectId) => {
-  const request = axios.get(`${baseUrl}/${projectId}`)
+  const token = getToken()
+  const config = {
+    headers: { Authorization: token },
+  }
+
+  const request = axios.get(`${baseUrl}/${projectId}`, config)
   return request.then(response => response.data)
 }
 const create = async newObject => {

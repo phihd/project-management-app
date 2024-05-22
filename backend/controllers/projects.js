@@ -5,22 +5,56 @@ const User = require('../models/user')
 const Issue = require('../models/issue')
 
 projectsRouter.get('/', async (request, response) => {
-  const projects = await Project
-    .find({})
-    .populate('members', { name: 1 })
-  response.json(projects)
-})
+  try {
+    const token = request.token
+    if (!token) {
+      return response.status(401).json({ error: 'token missing' })
+    }
 
-projectsRouter.get('/:id', async (request, response) => {
-  const project = await Project
-    .findById(request.params.id)
-    .populate('members', { name: 1 })
-  if (project) {
-    response.json(project)
-  } else {
-    response.status(404).end()
+    const decodedToken = jwt.verify(token, process.env.SECRET)
+    if (!decodedToken.id) {
+      return response.status(401).json({ error: 'token invalid' })
+    }
+
+    const userId = decodedToken.id
+    const projects = await Project.find({ members: userId }).populate('members', { name: 1 })
+    response.json(projects)
+  } catch (error) {
+    response.status(400).json({ error: error.message })
   }
 })
+
+
+projectsRouter.get('/:id', async (request, response) => {
+  try {
+    const token = request.token
+    if (!token) {
+      return response.status(401).json({ error: 'token missing' })
+    }
+
+    const decodedToken = jwt.verify(token, process.env.SECRET)
+    if (!decodedToken.id) {
+      return response.status(401).json({ error: 'token invalid' })
+    }
+
+    const userId = decodedToken.id
+    const project = await Project.findById(request.params.id).populate('members', { name: 1 })
+
+    if (project) {
+      const isMember = project.members.some(member => member._id.toString() === userId)
+      if (isMember) {
+        response.json(project)
+      } else {
+        response.status(403).json({ error: 'forbidden: not a project member' })
+      }
+    } else {
+      response.status(404).json({ error: 'project not found' })
+    }
+  } catch (error) {
+    response.status(400).json({ error: error.message })
+  }
+})
+
 
 projectsRouter.post('/', async (request, response, next) => {
   const token = request.token
@@ -119,11 +153,15 @@ projectsRouter.put('/:id', async (request, response, next) => {
       return response.status(404).json({ error: 'Project not found' })
     }
 
-    const currentMemberIds = new Set(currentProject.members.map(member => member.id.toString()))
-    const newMembers = body.members.filter(id => !currentMemberIds.has(id))
-    const removedMembers = currentProject.members.filter(
-      member => !body.members.some(newMember => newMember === member._id.toString())
-    )
+    let newMembers = []
+    let removedMembers = []
+    if (body.members) {
+      const currentMemberIds = new Set(currentProject.members.map(member => member.id.toString()))
+      newMembers = body.members.filter(id => !currentMemberIds.has(id))
+      removedMembers = currentProject.members.filter(
+        member => !body.members.some(newMember => newMember === member._id.toString())
+      )
+    }
 
     const project = {
       name: body.name,
@@ -136,14 +174,27 @@ projectsRouter.put('/:id', async (request, response, next) => {
       .findByIdAndUpdate(request.params.id, project, { new: true })
       .populate('members', { username: 1, name: 1 })
 
-    await Promise.all([
-      ...newMembers.map(member =>
-        User.findByIdAndUpdate(member, { $push: { projects: updatedProject._id } })
-      ),
-      ...removedMembers.map(member =>
-        User.findByIdAndUpdate(member._id, { $pull: { projects: updatedProject._id } })
-      )
-    ])
+      if (body.members) {
+        // Update users' projects
+        await Promise.all([
+          ...newMembers.map(member =>
+            User.findByIdAndUpdate(member, { $push: { projects: updatedProject._id } })
+          ),
+          ...removedMembers.map(async member => {
+            // Remove the project from the user's project list
+            await User.findByIdAndUpdate(member._id, { $pull: { projects: updatedProject._id } })
+  
+            // Update assigned issues for the removed member
+            const issues = await Issue.find({ project: request.params.id, assignees: member._id })
+            await Promise.all(issues.map(async issue => {
+              // Remove the member from the issue's assignees
+              await Issue.findByIdAndUpdate(issue._id, { $pull: { assignees: member._id } })
+              // Remove the issue from the user's assignedIssues
+              await User.findByIdAndUpdate(member._id, { $pull: { assignedIssues: issue._id } })
+            }))
+          })
+        ])
+      }
 
     response.json(updatedProject)
   } catch (error) {
