@@ -37,6 +37,7 @@ import UserContext from './components/UserContext'
 import loginService from './services/login'
 import userService from './services/users'
 import notiService from './services/notifications'
+import homeService from './services/home'
 import { setToken } from './services/tokenmanager'
 
 
@@ -76,7 +77,7 @@ const App = () => {
             handleLogout()
             alert('Your session has expired. Please log in again.')
           } else if (error.response.status === 401 && error.response.data.error === "Invalid username or password") {
-            
+
           } else if (error.response.status === 401 || error.response.status === 403) {
             // Handle other unauthorized access without logging out
             alert('You are not authorized to perform this action.')
@@ -99,21 +100,32 @@ const App = () => {
     userService.getUserFromLocalStorage,
     {
       staleTime: 5 * 60 * 1000,
-      onSuccess: (userData) => {
+      onSuccess: async (userData) => {
         setUser(userData)
-        setShowLogin(false)
+        try {
+          const response = await homeService.getAll()
+          if (response === 'OK') {
+            setShowLogin(false)
+          } else {
+            handleLogout()
+          }
+        } catch (error) {
+          console.error(error)
+          handleLogout()
+        }
       },
-      onError: () => {
+      onError: (error) => {
+        console.error('Failed to fetch user:', error)
         handleLogout()
-        setShowLogin(true)
       },
       enabled: !!localStorage.getItem('loggedProjectappUser'),
       retry: false,
-      refetchOnWindowFocus: false
-    })
+      refetchOnWindowFocus: false,
+    }
+  )
 
   // Fetch notifications
-  const { data: notifications, isLoading: notificationsLoading } = useQuery(
+  const { data: notifications, isLoading: notificationsLoading, error: notificationsError } = useQuery(
     'notifications',
     () => notiService.get(user.id),
     {
@@ -122,7 +134,6 @@ const App = () => {
       onError: (error) => {
         if (error.response && error.response.status === 401) { // Handle unauthorized access (e.g., token expiration)
           handleLogout()
-          setShowLogin(true)
         }
       },
       refetchIntervalInBackground: false,
@@ -147,6 +158,10 @@ const App = () => {
     )
   } else {
     NProgress.done()
+  }
+
+  if (notificationsError) {
+    console.error('Failed to fetch notifications:', notificationsError) // Add this line to log errors
   }
 
   function NavigationBar({ toggleSidebar }) {
@@ -278,7 +293,6 @@ const App = () => {
     const [email, setEmail] = useState('')
     const [name, setName] = useState('')
     const formRef = useRef(null)
-    const { user, setUser } = useContext(UserContext)
 
     const toggleDropdown = () => {
       setIsOpen(!isOpen)
@@ -294,7 +308,7 @@ const App = () => {
     }
 
     const toggleProfileForm = () => {
-      setIsOpenProfileForm(!isOpenProfileForm);
+      setIsOpenProfileForm(!isOpenProfileForm)
       if (!isOpenProfileForm) {
         document.addEventListener('mousedown', handleClickOutside)
       } else {
@@ -305,13 +319,13 @@ const App = () => {
     const handleEmailChange = (event) => {
       setEmail(event.target.value)
     }
-  
+
     const handleNameChange = (event) => {
       setName(event.target.value)
     }
 
     const handleSubmitProfile = async (event) => {
-      event.preventDefault();
+      event.preventDefault()
       try {
         const updatedUser = await userService.update(user.id.toString(), { email, name })
         const newUser = { ...user, email: updatedUser.email, name: updatedUser.name }
@@ -349,29 +363,29 @@ const App = () => {
           </div>
         )}
         {isOpenProfileForm && (
-        <div className="profile-form-overlay">
-          <div className="profile-form" ref={formRef}>
-            <button className="close-btn" onClick={handleCloseForm}> x </button>
-            <form onSubmit={handleSubmitProfile}>
-              <label htmlFor="name">Name</label>
-              <input
-                type="text"
-                value={name}
-                onChange={handleNameChange}
-                placeholder={user.name ? `Current name: ${user.name}` : "Enter your new name"}
-              />
-              <label htmlFor="email">Email</label>
-              <input
-                type="email"
-                value={email}
-                onChange={handleEmailChange}
-                placeholder={user.email ? `Current email: ${user.email}` : 'Enter email to receive notifications'}
-              />
-              <button type="submit">Save</button>
-            </form>
+          <div className="profile-form-overlay">
+            <div className="profile-form" ref={formRef}>
+              <button className="close-btn" onClick={handleCloseForm}> x </button>
+              <form onSubmit={handleSubmitProfile}>
+                <label htmlFor="name">Name</label>
+                <input
+                  type="text"
+                  value={name}
+                  onChange={handleNameChange}
+                  placeholder={user.name ? `Current name: ${user.name}` : "Enter your new name"}
+                />
+                <label htmlFor="email">Email</label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={handleEmailChange}
+                  placeholder={user.email ? `Current email: ${user.email}` : 'Enter email to receive notifications'}
+                />
+                <button type="submit">Save</button>
+              </form>
+            </div>
           </div>
-        </div>
-      )}
+        )}
       </div>
     )
   }
