@@ -57,10 +57,10 @@ if (!fs.existsSync(dir)) {
 }
 app.use('/uploads', express.static('uploads'))
 
-if (process.env.NODE_ENV === 'test') {
-  const testingRouter = require('./controllers/testing')
-  app.use('/api/testing', testingRouter)
-}
+// if (process.env.NODE_ENV === 'test') {
+//   const testingRouter = require('./controllers/testing')
+//   app.use('/api/testing', testingRouter)
+// }
 
 // Middleware for serving static files from 'build' directory (React build)
 app.use(express.static(path.join(__dirname, 'build')))
