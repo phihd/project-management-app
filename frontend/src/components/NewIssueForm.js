@@ -28,9 +28,16 @@ function NewIssueForm({ handleCreateIssue, handleCloseForm }) {
   }
 
 
-  const handleAssigneeSelection = (e) => {
-    const selectedOptions = Array.from(e.target.selectedOptions, (option) => option.value)
-    setSelectedAssignees(selectedOptions)
+  const handleAssigneeSelection = (assigneeId) => {
+    let newSelectedAssignees = [...selectedAssignees]
+
+    if (newSelectedAssignees.includes(assigneeId)) {
+      newSelectedAssignees = newSelectedAssignees.filter(id => id !== assigneeId)
+    } else {
+      newSelectedAssignees.push(assigneeId)
+    }
+
+    setSelectedAssignees(newSelectedAssignees)
   }
 
   const handleSubmit = (e) => {
@@ -83,17 +90,17 @@ function NewIssueForm({ handleCreateIssue, handleCloseForm }) {
       </div>
       <div>
         <label>Select Assignees:</label>
-        <select
-          id="assignees"
-          multiple
-          onChange={handleAssigneeSelection}
-        >
+        <div className="assignees-list">
           {assignees.map(assignee => (
-            <option key={assignee.id} value={assignee.id}>
+            <div
+              key={assignee.id}
+              className={`assignee-item ${selectedAssignees.includes(assignee.id) ? 'selected' : ''}`}
+              onClick={() => handleAssigneeSelection(assignee.id)}
+            >
               {assignee.name}
-            </option>
+            </div>
           ))}
-        </select>
+        </div>
       </div>
       <div>
         <button type="submit">Create Issue</button>

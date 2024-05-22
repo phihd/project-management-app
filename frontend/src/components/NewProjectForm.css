@@ -84,3 +84,28 @@
   border-color: #ccc; /* Sets a more neutral border color */
 }
 
+.members-list-add {
+  display: flex;
+  flex-direction: column;
+  max-height: 200px; /* Adjust as needed */
+  overflow-y: auto; /* Adds scroll if content overflows */
+  background-color: #fff;
+  font-size: 14px;
+  border-radius: 4px;
+}
+
+.member-item-add {
+  padding: 10px;
+  margin: 4px 0;
+  border-radius: 4px;
+  cursor: pointer;
+  user-select: none;
+  background-color: transparent;
+  color: black;
+}
+
+.member-item-add.selected {
+  background-color: #a7a280;
+  color: white;
+}
+

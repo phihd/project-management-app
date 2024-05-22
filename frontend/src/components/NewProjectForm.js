@@ -21,14 +21,13 @@ const NewProjectForm = ({ handleCreateProject, handleCloseForm }) => {
     }
   }, [user])
 
-  const handleMemberSelection = (event) => {
-    const value = event.target.value
+  const handleMemberSelection = (memberId) => {
     let newSelectedMembers = [...selectedMembers]
 
-    if (newSelectedMembers.includes(value)) {
-      newSelectedMembers = newSelectedMembers.filter(id => id !== value)
+    if (newSelectedMembers.includes(memberId)) {
+      newSelectedMembers = newSelectedMembers.filter(id => id !== memberId)
     } else {
-      newSelectedMembers.push(value)
+      newSelectedMembers.push(memberId)
     }
 
     setSelectedMembers(newSelectedMembers)
@@ -79,17 +78,17 @@ const NewProjectForm = ({ handleCreateProject, handleCloseForm }) => {
         </div>
         <div>
           <label htmlFor="members">Select Members:</label>
-          <select
-            id="members"
-            className="new-form-select"
-            multiple
-            onChange={handleMemberSelection}
-            value={Array.from(selectedMembers)}
-          >
+          <div className="members-list-add">
             {members.map(member => (
-              <option key={member.id} value={member.id}>{member.name}</option>
+              <div
+                key={member.id}
+                className={`member-item-add ${selectedMembers.includes(member.id) ? 'selected' : ''}`}
+                onClick={() => handleMemberSelection(member.id)}
+              >
+                {member.name}
+              </div>
             ))}
-          </select>
+          </div>
         </div>
         <div className="button-group">
           <button type="submit" className="new-form-button">Create Project</button>

@@ -67,3 +67,28 @@
 .new-issue-form option {
   margin-bottom: 3px;
 }
+
+.assignees-list {
+  display: flex;
+  flex-direction: column;
+  max-height: 200px; /* Adjust as needed */
+  overflow-y: auto; /* Adds scroll if content overflows */
+  border: 1px solid #ccc; /* Same style as the select box */
+  border-radius: 4px;
+  padding: 8px;
+  background-color: #fff;
+}
+
+.assignee-item {
+  padding: 8px;
+  margin: 4px 0;
+  border-radius: 4px;
+  cursor: pointer;
+  user-select: none; /* Prevents text selection on double click */
+  color:black;
+}
+
+.assignee-item.selected {
+  background-color: #a7a280;
+  color: white;
+}
